@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sophie &amp; Ruiyuan — 24 juillet 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Serif+SC:wght@400;500;600;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ===================== ENVELOPE INTRO ===================== -->
+<div id="envelope-overlay" class="envelope-overlay">
+  <div class="envelope-xi cal">囍</div>
+  <div class="envelope" id="envelope">
+    <div class="envelope-letter" id="envelope-letter">
+      <div class="envelope-letter-kicker" data-i18n="envInvite"></div>
+      <div class="envelope-letter-names">Sophie <span class="amp">&amp;</span> Ruiyuan</div>
+      <div class="cal envelope-letter-zh">苏菲 &amp; 瑞元</div>
+      <div class="envelope-letter-date">24 · 07 · 2027</div>
+    </div>
+    <div class="envelope-back"></div>
+    <div class="envelope-pocket-front"></div>
+    <div class="envelope-pocket-left"></div>
+    <div class="envelope-pocket-right"></div>
+    <div class="envelope-flap" id="envelope-flap"></div>
+    <div class="envelope-seal" id="envelope-seal">
+      <div class="envelope-seal-ring"></div>
+      <div class="envelope-seal-letters">S<span class="amp-sm">&amp;</span>R</div>
+    </div>
+  </div>
+  <div class="envelope-hint" id="envelope-hint">
+    <div class="envelope-hint-text" data-i18n="envHint"></div>
+  </div>
+</div>
+
+<!-- ===================== TEASER (accès public) ===================== -->
+<div id="teaser" class="teaser" hidden>
+  <div class="teaser-xi cal">囍</div>
+  <div class="teaser-content">
+    <div class="teaser-kicker" data-i18n="pubKicker"></div>
+    <h1 class="teaser-names">Sophie <span class="amp-italic">&amp;</span> Ruiyuan</h1>
+    <div class="cal teaser-zh">苏菲 &amp; 瑞元</div>
+    <div class="teaser-rule"></div>
+    <div class="teaser-date">24 · 07 · 2027</div>
+    <p class="teaser-msg" data-i18n="pubMsg"></p>
+    <button class="btn-outline" id="lang-btn-teaser"></button>
+  </div>
+</div>
+
+<!-- ===================== SITE (accès invité) ===================== -->
+<div id="site" class="site" hidden>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="#top" class="nav-brand" id="nav-brand-link">
+      <span class="brand-monogram">
+        <span class="brand-monogram-ring brand-monogram-ring-1"></span>
+        <span class="brand-monogram-ring brand-monogram-ring-2"></span>
+        <span class="brand-monogram-letters">S<span class="amp-sm">&amp;</span>R</span>
+      </span>
+      <span class="cal brand-xi">囍</span>
+    </a>
+    <div class="nav-right">
+      <div class="navlinks" id="navlinks"></div>
+      <button class="lang-btn" id="lang-btn"></button>
+      <button class="burger" id="burger-btn" aria-label="Menu">☰</button>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu" hidden>
+    <button class="mobile-menu-close" id="mobile-menu-close" aria-label="Fermer">×</button>
+    <div id="mobile-menu-links" class="mobile-menu-links"></div>
+  </div>
+
+  <!-- ===================== HERO B (crème aéré) ===================== -->
+  <header id="top" class="hero">
+    <div class="hero-xi cal">囍</div>
+    <svg class="hero-peony" viewBox="-56 -56 112 112" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z"/>
+      <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(45)"/>
+      <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(90)"/>
+      <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(135)"/>
+      <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(180)"/>
+      <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(225)"/>
+      <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(270)"/>
+      <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(315)"/>
+      <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(22.5)"/>
+      <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(67.5)"/>
+      <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(112.5)"/>
+      <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(157.5)"/>
+      <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(202.5)"/>
+      <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(247.5)"/>
+      <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(292.5)"/>
+      <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(337.5)"/>
+      <circle r="5"/>
+    </svg>
+    <svg class="hero-rose" viewBox="-45 -45 90 90" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-3 -1 C-1 -6 5 -6 6 -1 C7 4 1 8 -3 5 C-10 2 -9 -8 -2 -12"/>
+      <path d="M-13 -4 C-16 -15 -5 -23 6 -20 C18 -17 22 -4 16 5 C11 13 0 18 -9 14"/>
+      <path d="M-24 2 C-29 -12 -18 -28 -2 -30"/>
+      <path d="M4 -30 C20 -27 31 -13 29 3"/>
+      <path d="M28 8 C25 23 11 33 -5 30"/>
+      <path d="M-10 31 C-25 27 -33 12 -30 -4"/>
+    </svg>
+    <div class="hero-content">
+      <div class="monogram">
+        <div class="monogram-ring monogram-ring-1"></div>
+        <div class="monogram-ring monogram-ring-2"></div>
+        <div class="monogram-dot dot-top"></div>
+        <div class="monogram-dot dot-bottom"></div>
+        <div class="monogram-dot dot-left"></div>
+        <div class="monogram-dot dot-right"></div>
+        <div class="monogram-letters">S<span class="amp-sm">&amp;</span>R</div>
+        <div class="cal monogram-xi">囍</div>
+      </div>
+      <div class="kicker hero-kicker" data-i18n="heroKicker"></div>
+      <div class="hero-names">
+        <h1 class="hero-name">Sophie</h1>
+        <span class="cal hero-amp">&amp;</span>
+        <h1 class="hero-name">Ruiyuan</h1>
+      </div>
+      <div class="cal hero-zh">苏菲 &amp; 瑞元</div>
+      <div class="hero-date-row">
+        <span class="rule"></span>
+        <span class="hero-date">24 JUILLET 2027</span>
+        <span class="rule"></span>
+      </div>
+      <p class="hero-place" data-i18n="heroPlace"></p>
+      <div class="hero-fusion-row">
+        <span class="rule rule-sm"></span>
+        <span class="hero-fusion" data-i18n="heroFusion"></span>
+        <span class="rule rule-sm"></span>
+      </div>
+    </div>
+    <div class="hero-cd-passed cal" id="hero-cd-passed" hidden></div>
+    <div class="countdown" id="countdown"></div>
+  </header>
+
+  <!-- ===================== NOTRE HISTOIRE ===================== -->
+  <section id="histoire" class="section section-cream section-toile">
+    <svg class="toile-bg" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="toile" width="180" height="180" patternUnits="userSpaceOnUse">
+          <g fill="none" stroke="#2B4A8B" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M30 176 C55 146 40 116 70 100 C58 78 78 56 66 38"></path>
+            <path d="M70 100 C86 94 96 104 90 118 C80 120 70 112 70 100Z"></path>
+            <path d="M52 132 C40 124 40 110 52 104 C60 114 60 126 52 132Z"></path>
+            <circle cx="66" cy="34" r="5"></circle>
+            <path d="M66 34 L66 24 M66 34 L57 29 M66 34 L75 29 M66 34 L59 41 M66 34 L73 41"></path>
+            <path d="M124 22 C144 47 132 76 154 92"></path>
+            <path d="M154 92 C164 86 174 94 170 106 C160 108 154 100 154 92Z"></path>
+            <circle cx="124" cy="18" r="4"></circle>
+            <path d="M124 18 L124 10 M124 18 L117 14 M124 18 L131 14"></path>
+            <path d="M104 148 q9 -9 18 0 q-9 -5 -18 0Z"></path>
+          </g>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#toile)"></rect>
+    </svg>
+    <div class="section-inner section-narrow">
+      <div class="cal section-glyph">缘</div>
+      <div class="kicker" data-i18n="storyKicker"></div>
+      <h2 class="section-title" data-i18n="storyTitle"></h2>
+      <div class="divider"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+      <p class="section-text" data-i18n="storyP1"></p>
+      <p class="section-text" data-i18n="storyP2"></p>
+    </div>
+  </section>
+
+  <!-- ===================== PROGRAMME ===================== -->
+  <section id="programme" class="section section-bordeaux">
+    <div class="prog-xi cal">囍</div>
+    <div class="section-inner section-narrow" style="margin-bottom:56px">
+      <div class="kicker kicker-light" data-i18n="progKicker"></div>
+      <h2 class="section-title section-title-light" data-i18n="progTitle"></h2>
+      <div class="divider" style="margin-top:22px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue2"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+      <p class="section-sub" data-i18n="progSub"></p>
+    </div>
+    <div class="prog-list" id="prog-list"></div>
+  </section>
+
+  <!-- ===================== INFOS PRATIQUES ===================== -->
+  <section id="infos" class="section section-cream">
+    <div class="section-inner section-wide" style="margin-bottom:52px">
+      <div class="kicker" data-i18n="infoKicker"></div>
+      <h2 class="section-title" data-i18n="infoTitle"></h2>
+      <div class="divider" style="margin-top:24px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+    </div>
+    <div class="places-grid" id="places-grid"></div>
+  </section>
+
+  <!-- ===================== HEBERGEMENT ===================== -->
+  <section id="hebergement" class="section section-cream-grad">
+    <div class="section-inner section-wide" style="margin-bottom:20px">
+      <div class="kicker" data-i18n="hotelKicker"></div>
+      <h2 class="section-title" data-i18n="hotelTitle"></h2>
+      <div class="divider" style="margin:24px auto 4px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+      <p class="section-text-narrow" data-i18n="hotelIntro"></p>
+    </div>
+    <div class="hotels-grid" id="hotels-grid"></div>
+    <div class="shuttle-box">
+      <div class="cal shuttle-glyph">车</div>
+      <p data-i18n="shuttle"></p>
+    </div>
+  </section>
+
+  <!-- ===================== RSVP ===================== -->
+  <section id="rsvp" class="section section-bordeaux-radial">
+    <div class="rsvp-xi cal">囍</div>
+    <div class="section-inner section-form">
+      <div class="section-inner section-narrow" style="margin-bottom:40px">
+        <div class="kicker kicker-light" data-i18n="rsvpKicker"></div>
+        <h2 class="section-title section-title-light" data-i18n="rsvpTitle"></h2>
+        <p class="section-sub" data-i18n="rsvpIntro"></p>
+      </div>
+
+      <form id="rsvp-form" class="rsvp-form">
+        <label class="field">
+          <span class="field-label" data-i18n="fName"></span>
+          <input id="r-name" type="text" required>
+        </label>
+        <div class="field field-row">
+          <label class="field">
+            <span class="field-label" data-i18n="fAdults"></span>
+            <input id="r-adults" type="number" min="1" max="12" value="1">
+          </label>
+          <label class="field">
+            <span class="field-label" data-i18n="fChildren"></span>
+            <input id="r-children" type="number" min="0" max="12" value="0">
+          </label>
+        </div>
+        <div class="field">
+          <span class="field-label" data-i18n="fPresence"></span>
+          <div id="rsvp-events" class="rsvp-events"></div>
+        </div>
+        <label class="field">
+          <span class="field-label" data-i18n="fDiet"></span>
+          <input id="r-diet" type="text">
+        </label>
+        <label class="field">
+          <span class="field-label" data-i18n="fMsg"></span>
+          <textarea id="r-msg" rows="3"></textarea>
+        </label>
+        <button type="submit" class="btn-submit" data-i18n="fSubmit"></button>
+      </form>
+
+      <div id="rsvp-thanks" class="rsvp-thanks" hidden>
+        <div class="cal rsvp-thanks-glyph">囍</div>
+        <h3 class="rsvp-thanks-title" data-i18n="thankTitle"></h3>
+        <p id="rsvp-confirm-line" class="rsvp-confirm-line"></p>
+        <p class="rsvp-demo-note" data-i18n="demoNote"></p>
+        <button id="rsvp-edit-btn" class="btn-outline" data-i18n="editBtn"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CADEAU + DRESS CODE ===================== -->
+  <section class="section section-cream">
+    <div class="cadeau-grid">
+      <div id="cadeau" class="card-cadeau">
+        <div class="cal card-glyph">礼</div>
+        <div class="kicker" data-i18n="giftKicker"></div>
+        <h3 class="card-title" data-i18n="giftTitle"></h3>
+        <p class="card-text" data-i18n="giftText"></p>
+      </div>
+      <div id="dresscode" class="card-dresscode">
+        <div class="cal card-glyph card-glyph-gold">衣</div>
+        <div class="kicker kicker-light" data-i18n="dressKicker"></div>
+        <h3 class="card-title card-title-light" data-i18n="dressTitle"></h3>
+        <p class="card-text card-text-light" data-i18n="dressText"></p>
+        <div id="avoid-colors" class="avoid-colors"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== GALERIE ===================== -->
+  <section id="galerie" class="section section-cream-grad2">
+    <div class="section-inner section-wide" style="margin-bottom:44px">
+      <div class="kicker" data-i18n="galKicker"></div>
+      <h2 class="section-title" data-i18n="galTitle"></h2>
+      <div class="divider" style="margin-top:24px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+      <p class="section-text-narrow" data-i18n="galHint"></p>
+    </div>
+    <div class="gallery-grid">
+      <div class="gallery-slot" aria-label="Photo 1"></div>
+      <div class="gallery-slot" aria-label="Photo 2"></div>
+      <div class="gallery-slot" aria-label="Photo 3"></div>
+      <div class="gallery-slot" aria-label="Photo 4"></div>
+      <div class="gallery-slot" aria-label="Photo 5"></div>
+      <div class="gallery-slot" aria-label="Photo 6"></div>
+    </div>
+  </section>
+
+  <!-- ===================== CONTACT / FOOTER ===================== -->
+  <footer id="contact" class="footer">
+    <div class="footer-xi cal">囍</div>
+    <div class="footer-inner">
+      <div class="footer-monogram">
+        <div class="footer-monogram-ring footer-monogram-ring-1"></div>
+        <div class="footer-monogram-ring footer-monogram-ring-2"></div>
+        <div class="footer-monogram-letters">S<span class="amp-sm">&amp;</span>R</div>
+        <div class="cal footer-monogram-xi">囍</div>
+      </div>
+      <h2 class="footer-title" data-i18n="contactTitle"></h2>
+      <p class="footer-text" data-i18n="contactText"></p>
+      <div class="footer-contacts">
+        <a href="mailto:sophie.ruiyuan@example.com" class="footer-email">✉︎ sophie.ruiyuan@example.com</a>
+        <span class="footer-phone">☎ +33 6 00 00 00 00</span>
+      </div>
+      <div class="footer-rule"></div>
+      <div class="footer-names">Sophie <span class="amp">&amp;</span> Ruiyuan</div>
+      <div class="footer-date">24 · 07 · 2027 — LOGNES</div>
+    </div>
+  </footer>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
