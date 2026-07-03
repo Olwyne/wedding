@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Back office — Sophie &amp; Ruiyuan</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="login-screen" class="login-screen">
+  <form id="login-form" class="login-form">
+    <h1>Back office</h1>
+    <label class="field">
+      <span>Email</span>
+      <input id="login-email" type="email" required>
+    </label>
+    <label class="field">
+      <span>Mot de passe</span>
+      <input id="login-password" type="password" required>
+    </label>
+    <p id="login-error" class="login-error" hidden></p>
+    <button type="submit" class="btn-primary">Se connecter</button>
+  </form>
+</div>
+
+<div id="dashboard" class="dashboard" hidden>
+  <header class="topbar">
+    <h1>Back office — Sophie &amp; Ruiyuan</h1>
+    <button id="logout-btn" class="btn-secondary">Se déconnecter</button>
+  </header>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="guests">Invités</button>
+    <button class="tab-btn" data-tab="events">Événements</button>
+  </nav>
+  <section id="tab-guests" class="tab-panel"></section>
+  <section id="tab-events" class="tab-panel" hidden></section>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
