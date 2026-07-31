@@ -1,14 +1,17 @@
 // admin/guests.js
 import { db } from '../firebase-init.js';
-import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import {
+  collection, getDocs, doc, setDoc, updateDoc, deleteDoc
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { loadEvents } from './events.js';
 
 const guestsCol = collection(db, 'guests');
 
 const SIDE_LABELS = { marie: 'Marié', mariee: 'Mariée', deux: 'Les deux' };
+const SIDE_BADGE  = { marie: 'badge-marie', mariee: 'badge-mariee', deux: 'badge-deux' };
 
 function escapeHtml(str) {
-  if (typeof str !== 'string') return str;
+  if (typeof str !== 'string') return '';
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
@@ -28,98 +31,175 @@ async function loadGuests() {
 }
 
 function renderGuestRow(g, eventById) {
-  const chips = (g.assignedEvents || []).map(id => eventById[id] ? eventById[id].title_fr : id).join(', ');
+  const side = g.side || 'deux';
+  const pills = (g.assignedEvents || [])
+    .map(id => eventById[id]
+      ? `<span class="pill">${escapeHtml(eventById[id].title_fr)}</span>`
+      : '')
+    .join('');
   const rsvp = g.rsvp || {};
   const statusLabel = rsvp.status === 'confirmed' ? 'Confirmé' : 'En attente';
   const statusClass = rsvp.status === 'confirmed' ? 'badge-confirmed' : 'badge-pending';
   return `
     <tr>
       <td>${escapeHtml(g.name)}</td>
-      <td>${SIDE_LABELS[g.side] || g.side}</td>
-      <td>${chips}</td>
+      <td><span class="badge ${SIDE_BADGE[side]}">${SIDE_LABELS[side]}</span></td>
+      <td><div class="pills">${pills}</div></td>
       <td><span class="badge ${statusClass}">${statusLabel}</span></td>
       <td>${rsvp.adults ?? ''}</td>
       <td>${rsvp.children ?? ''}</td>
-      <td>${escapeHtml(rsvp.diet ?? '')}</td>
-      <td>${escapeHtml(rsvp.message ?? '')}</td>
-      <td><button class="btn-copy-link" data-token="${g.id}">Copier le lien</button></td>
       <td>
-        <button class="btn-edit-guest" data-id="${g.id}">Modifier</button>
-        <button class="btn-delete-guest" data-id="${g.id}">Supprimer</button>
+        <button class="btn-icon btn-copy-link" data-token="${escapeHtml(g.id)}" title="Copier le lien">📋</button>
+      </td>
+      <td>
+        <div class="table-actions">
+          <button class="btn-secondary btn-edit-guest" data-id="${escapeHtml(g.id)}">Modifier</button>
+          <button class="btn-danger btn-delete-guest" data-id="${escapeHtml(g.id)}">Supprimer</button>
+        </div>
       </td>
     </tr>`;
 }
 
 export async function renderGuestsTab() {
   const panel = document.getElementById('tab-guests');
+  panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
+
+  document.getElementById('section-action').innerHTML =
+    '<button id="add-guest-btn" class="btn-primary">+ Ajouter un invité</button>';
+
   const [guests, events] = await Promise.all([loadGuests(), loadEvents()]);
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
 
   panel.innerHTML = `
-    <button id="add-guest-btn" class="btn-primary">+ Ajouter un invité</button>
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Nom</th><th>Côté</th><th>Événements</th><th>Statut RSVP</th>
-          <th>Adultes</th><th>Enfants</th><th>Régime</th><th>Message</th><th>Lien</th><th>Actions</th>
+          <th>Nom</th><th>Côté</th><th>Événements</th><th>RSVP</th>
+          <th>Adultes</th><th>Enfants</th><th>Lien</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        ${guests.map(g => renderGuestRow(g, eventById)).join('')}
+        ${guests.length
+          ? guests.map(g => renderGuestRow(g, eventById)).join('')
+          : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">Aucun invité.</td></tr>'}
       </tbody>
-    </table>
-    <form id="guest-form" class="guest-form" hidden>
-      <input type="hidden" id="guest-id">
-      <label class="field"><span>Nom</span><input id="guest-name" required></label>
-      <fieldset class="field">
-        <legend>Côté</legend>
-        <label><input type="radio" name="guest-side" value="marie"> Marié</label>
-        <label><input type="radio" name="guest-side" value="mariee"> Mariée</label>
-        <label><input type="radio" name="guest-side" value="deux" checked> Les deux</label>
-      </fieldset>
-      <fieldset class="field">
-        <legend>Événements</legend>
-        ${events.map(e => `<label><input type="checkbox" class="guest-event-cb" value="${e.id}"> ${e.title_fr}</label>`).join('')}
-      </fieldset>
-      <div class="form-actions">
-        <button type="submit" class="btn-primary">Enregistrer</button>
-        <button type="button" id="guest-cancel-btn" class="btn-secondary">Annuler</button>
-      </div>
-      <p id="guest-link-result" class="guest-link-result" hidden></p>
-    </form>
-  `;
+    </table>`;
 
-  document.getElementById('add-guest-btn').addEventListener('click', () => openGuestForm(null, guests));
-  panel.querySelectorAll('.btn-edit-guest').forEach(btn => {
-    btn.addEventListener('click', () => openGuestForm(btn.dataset.id, guests));
-  });
-  panel.querySelectorAll('.btn-delete-guest').forEach(btn => {
+  document.getElementById('add-guest-btn').addEventListener('click', () =>
+    openGuestPanel(null, guests, events)
+  );
+  panel.querySelectorAll('.btn-edit-guest').forEach(btn =>
+    btn.addEventListener('click', () => openGuestPanel(btn.dataset.id, guests, events))
+  );
+  panel.querySelectorAll('.btn-delete-guest').forEach(btn =>
     btn.addEventListener('click', async () => {
       if (!confirm('Supprimer cet invité ?')) return;
       await deleteDoc(doc(db, 'guests', btn.dataset.id));
       renderGuestsTab();
-    });
-  });
+    })
+  );
   panel.querySelectorAll('.btn-copy-link').forEach(btn => {
     btn.addEventListener('click', async () => {
       const url = `${location.origin}/?invite=${btn.dataset.token}`;
       await navigator.clipboard.writeText(url);
-      btn.textContent = 'Copié !';
-      setTimeout(() => { btn.textContent = 'Copier le lien'; }, 1500);
+      const orig = btn.textContent;
+      btn.textContent = '✓';
+      setTimeout(() => { btn.textContent = orig; }, 1500);
     });
   });
-  document.getElementById('guest-cancel-btn').addEventListener('click', () => {
-    document.getElementById('guest-form').hidden = true;
+}
+
+function openGuestPanel(id, guests, events) {
+  const guest = id ? guests.find(g => g.id === id) : null;
+  const isNew = !guest;
+
+  const assignedSet = new Set(guest?.assignedEvents || []);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'panel-overlay';
+  const panelEl = document.createElement('div');
+  panelEl.className = 'panel';
+
+  panelEl.innerHTML = `
+    <div class="panel-header">
+      <h3>${isNew ? 'Nouvel invité' : 'Modifier l\'invité'}</h3>
+      <button class="btn-icon" id="panel-close">✕</button>
+    </div>
+    <div class="panel-body">
+      <label class="field">
+        <span>Nom</span>
+        <input id="guest-name" value="${escapeHtml(guest?.name || '')}" required>
+      </label>
+      <div class="field">
+        <span>Côté</span>
+        <div class="btn-group" id="side-group">
+          ${['marie','mariee','deux'].map(s => `
+            <button type="button" class="btn-group-item ${(guest?.side || 'deux') === s ? 'active' : ''}" data-side="${s}">
+              ${SIDE_LABELS[s]}
+            </button>`).join('')}
+        </div>
+      </div>
+      <div class="field">
+        <span>Événements</span>
+        <div class="event-cards" id="event-cards">
+          ${events.map(e => `
+            <div class="event-card ${assignedSet.has(e.id) ? 'selected' : ''}" data-event-id="${escapeHtml(e.id)}">
+              <div class="event-card-check">${assignedSet.has(e.id) ? '✓' : ''}</div>
+              <div class="event-card-info">
+                <div class="event-card-title">${escapeHtml(e.title_fr)}</div>
+                <div class="event-card-meta">${escapeHtml(e.time_fr)}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div id="invite-result" hidden></div>
+    </div>
+    <div class="panel-footer">
+      <button class="btn-primary" id="panel-save">${isNew ? 'Créer' : 'Enregistrer'}</button>
+      <button class="btn-secondary" id="panel-cancel">Annuler</button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(panelEl);
+
+  function close() { overlay.remove(); panelEl.remove(); renderGuestsTab(); }
+  panelEl.querySelector('#panel-close').addEventListener('click', close);
+  panelEl.querySelector('#panel-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', close);
+
+  // Side toggle
+  panelEl.querySelectorAll('.btn-group-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      panelEl.querySelectorAll('.btn-group-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
   });
-  document.getElementById('guest-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('guest-id').value || null;
-    const name = document.getElementById('guest-name').value;
-    const side = document.querySelector('input[name="guest-side"]:checked').value;
-    const assignedEvents = Array.from(document.querySelectorAll('.guest-event-cb:checked')).map(cb => cb.value);
+
+  // Event card toggle
+  panelEl.querySelectorAll('.event-card').forEach(card => {
+    card.addEventListener('click', () => {
+      card.classList.toggle('selected');
+      card.querySelector('.event-card-check').textContent =
+        card.classList.contains('selected') ? '✓' : '';
+    });
+  });
+
+  panelEl.querySelector('#panel-save').addEventListener('click', async () => {
+    const saveBtn = panelEl.querySelector('#panel-save');
+    saveBtn.disabled = true;
+    saveBtn.textContent = isNew ? 'Création…' : 'Enregistrement…';
+
+    const name = panelEl.querySelector('#guest-name').value.trim();
+    if (!name) { saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer'; return; }
+
+    const side = panelEl.querySelector('.btn-group-item.active')?.dataset.side || 'deux';
+    const assignedEvents = Array.from(
+      panelEl.querySelectorAll('.event-card.selected')
+    ).map(c => c.dataset.eventId);
 
     if (id) {
       await updateDoc(doc(db, 'guests', id), { name, side, assignedEvents });
+      close();
     } else {
       const token = generateToken();
       await setDoc(doc(db, 'guests', token), {
@@ -127,25 +207,20 @@ export async function renderGuestsTab() {
         createdAt: new Date().toISOString(),
         rsvp: { status: 'pending', name: '', adults: 0, children: 0, diet: '', message: '', confirmedEvents: {}, respondedAt: null },
       });
-      const result = document.getElementById('guest-link-result');
-      result.textContent = `Lien créé : ${location.origin}/?invite=${token}`;
-      result.hidden = false;
+      const inviteUrl = `${location.origin}/?invite=${token}`;
+      const resultEl = panelEl.querySelector('#invite-result');
+      resultEl.hidden = false;
+      resultEl.innerHTML = `
+        <div class="guest-invite-result">
+          <span style="flex:1">${escapeHtml(inviteUrl)}</span>
+          <button class="btn-secondary" id="copy-new-link">Copier</button>
+        </div>`;
+      resultEl.querySelector('#copy-new-link').addEventListener('click', async () => {
+        await navigator.clipboard.writeText(inviteUrl);
+        resultEl.querySelector('#copy-new-link').textContent = 'Copié !';
+      });
+      saveBtn.textContent = 'Créé ✓';
+      panelEl.querySelector('#panel-cancel').textContent = 'Fermer';
     }
-    renderGuestsTab();
   });
-}
-
-function openGuestForm(id, guests) {
-  const form = document.getElementById('guest-form');
-  const g = id ? guests.find(x => x.id === id) : null;
-  document.getElementById('guest-id').value = id || '';
-  document.getElementById('guest-name').value = g ? g.name : '';
-  document.querySelectorAll('input[name="guest-side"]').forEach(r => {
-    r.checked = g ? r.value === g.side : r.value === 'deux';
-  });
-  document.querySelectorAll('.guest-event-cb').forEach(cb => {
-    cb.checked = g ? (g.assignedEvents || []).includes(cb.value) : false;
-  });
-  document.getElementById('guest-link-result').hidden = true;
-  form.hidden = false;
 }
