@@ -185,7 +185,7 @@ function renderBlockForm(block) {
         </div>
         <div id="img-upload-field" ${hasUrl ? 'hidden' : ''} class="field">
           <input type="file" id="block-image-file" accept="image/*">
-          ${hasUrl ? `<img src="${v('image_url')}" class="image-preview">` : ''}
+          <div id="img-existing-preview"></div>
         </div>
       </fieldset>
       <label class="field">
@@ -274,26 +274,36 @@ function openBlockPanel(id, blocks) {
     });
   } else {
     attachImageToggle(panelEl);
+    // Inject existing image preview via DOM API to avoid attribute injection
+    if (block?.type === 'image' && block?.image_url) {
+      const previewContainer = panelEl.querySelector('#img-existing-preview');
+      if (previewContainer) {
+        const img = document.createElement('img');
+        img.className = 'image-preview';
+        img.src = block.image_url;
+        previewContainer.appendChild(img);
+      }
+    }
   }
 
   panelEl.querySelector('#panel-save').addEventListener('click', async () => {
     const saveBtn = panelEl.querySelector('#panel-save');
     saveBtn.disabled = true;
-    saveBtn.textContent = 'Enregistrement…';
+    saveBtn.textContent = isNew ? 'Création…' : 'Enregistrement…';
     try {
       await saveBlock(id, blocks, panelEl);
       close();
     } catch (err) {
-      console.error(err);
       saveBtn.disabled = false;
       saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer';
+      if (err.message !== 'no-type') console.error(err);
     }
   });
 }
 
 async function saveBlock(id, blocks, panelEl) {
   const type = panelEl.querySelector('#block-type')?.value;
-  if (!type) return;
+  if (!type) throw new Error('no-type');
 
   const now = new Date().toISOString();
   const get = (sel) => panelEl.querySelector(sel)?.value || '';
