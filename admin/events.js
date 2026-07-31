@@ -69,7 +69,10 @@ export async function renderEventsTab() {
 function openEventPanel(id, events) {
   const ev = id ? events.find(e => e.id === id) : null;
   const isNew = !ev;
-  const v = (key) => escapeHtml(ev?.[key] ?? '');
+  const v = (key) => {
+    const val = ev?.[key] ?? '';
+    return typeof val === 'string' ? escapeHtml(val) : val;
+  };
 
   const overlay = document.createElement('div');
   overlay.className = 'panel-overlay';
