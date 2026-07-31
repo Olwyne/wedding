@@ -46,6 +46,9 @@ input:focus,textarea:focus,select:focus{outline:none}
 .reveal{animation:fadeUp .9s cubic-bezier(.2,.7,.2,1) both}
 
 /* ===================== ENVELOPE ===================== */
+.loading-screen{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:#6E1A1A;color:#E7D6AE}
+.loading-glyph{font-size:64px;animation:fadeIn 1s both}
+
 .envelope-overlay{
   position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:24px;cursor:pointer;
   background:radial-gradient(130% 100% at 50% 30%, var(--bordeaux-deep) 0%, var(--bordeaux2) 55%, var(--bordeaux-deep3) 100%);

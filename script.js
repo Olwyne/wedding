@@ -1,12 +1,5 @@
-(() => {
-  const INVITES = {
-    'FAMILLE':  { group: 'complet' },
-    'SOPHIE27': { group: 'complet' },
-    'THE2027':  { group: 'complet' },
-    'AMIS':     { group: 'mairie_soiree' },
-    'LOGNES':   { group: 'mairie_soiree' },
-    'SOIREE77': { group: 'mairie_soiree' },
-  };
+import { db } from './firebase-init.js';
+import { doc, getDoc, getDocs, collection, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
   const TARGET = new Date('2027-07-24T08:00:00+02:00').getTime();
 
@@ -77,21 +70,6 @@
     },
   };
 
-  const EVENTS = {
-    fr: [
-      { id: 'the',    access: 'complet', time: '8h00',  zh: '茶',   title: 'Cérémonie du thé',   place: 'Au domicile de la famille', desc: "Un moment intime, réservé aux proches : la cérémonie du thé, geste de respect et de gratitude envers les familles." },
-      { id: 'resto',  access: 'complet', time: '12h00', zh: '宴',   title: 'Déjeuner chinois',   place: 'Restaurant (à confirmer)',  desc: "Un déjeuner convivial autour d'un banquet chinois, pour prolonger la matinée en famille et amis proches." },
-      { id: 'mairie', access: 'all',     time: '16h00', zh: '证婚', title: 'Mariage civil',       place: 'Mairie de Lognes',          desc: "L'échange des consentements et des alliances, entouré de tous nos invités." },
-      { id: 'soiree', access: 'all',     time: '19h00', zh: '喜宴', title: 'Soirée',              place: 'Domaine de la Pointe',      desc: "Dîner, discours et danse jusqu'au bout de la nuit pour célébrer ensemble." },
-    ],
-    zh: [
-      { id: 'the',    access: 'complet', time: '8:00',  zh: '茶',   title: '敬茶仪式',   place: '于家中',           desc: '温馨私密的环节，仅限至亲：敬茶仪式，向双方长辈表达敬意与感恩。' },
-      { id: 'resto',  access: 'complet', time: '12:00', zh: '宴',   title: '中式午宴',   place: '餐厅（待定）',      desc: '与至亲好友共享中式宴席，延续上午的温馨时光。' },
-      { id: 'mairie', access: 'all',     time: '16:00', zh: '证婚', title: '公证结婚',   place: '洛涅市政厅',        desc: '在所有来宾的见证下，交换誓言与戒指。' },
-      { id: 'soiree', access: 'all',     time: '19:00', zh: '喜宴', title: '晚宴派对',   place: '拉普安特庄园',      desc: '晚宴、致辞与舞会，欢庆至深夜。' },
-    ],
-  };
-
   const HOTELS = {
     fr: [
       { tag: '4 km', name: 'Hôtel Marne-la-Vallée', desc: "Confort moderne à quelques minutes du Domaine, idéal pour la nuit du samedi. (Exemple.)" },
@@ -122,26 +100,67 @@
     env: 'sealed',
     menuOpen: false,
     submitted: false,
+    dataReady: false,
+    guestToken: null,
+    rawEvents: [],
+    assignedEventIds: [],
     rsvp: { name: '', adults: 1, children: 0, events: {}, diet: '', message: '' },
     cd: { d: 0, h: 0, m: 0, s: 0, passed: false },
   };
 
-  function resolveAccess() {
-    let code = '';
-    try { code = (new URLSearchParams(window.location.search).get('invite') || '').trim().toUpperCase(); } catch (e) {}
-    const rec = INVITES[code];
-    return rec ? rec.group : 'public';
+  function localizeEvent(raw, lang) {
+    return {
+      id: raw.id,
+      zh: raw.zh,
+      time: lang === 'zh' ? raw.time_zh : raw.time_fr,
+      title: lang === 'zh' ? raw.title_zh : raw.title_fr,
+      place: lang === 'zh' ? raw.place_zh : raw.place_fr,
+      desc: lang === 'zh' ? raw.desc_zh : raw.desc_fr,
+    };
   }
 
   function visibleEvents() {
-    const all = EVENTS[state.lang];
-    return all.filter(e => state.access === 'complet' ? true : e.access === 'all');
+    return state.rawEvents
+      .filter(e => state.assignedEventIds.includes(e.id))
+      .sort((a, b) => a.order - b.order)
+      .map(e => localizeEvent(e, state.lang));
+  }
+
+  async function loadGuestData() {
+    let token = '';
+    try { token = (new URLSearchParams(window.location.search).get('invite') || '').trim(); } catch (e) {}
+    if (!token) { state.access = 'public'; return; }
+
+    try {
+      const guestSnap = await getDoc(doc(db, 'guests', token));
+      if (!guestSnap.exists()) { state.access = 'public'; return; }
+      const guest = guestSnap.data();
+      const eventsSnap = await getDocs(collection(db, 'events'));
+      state.access = 'guest';
+      state.guestToken = token;
+      state.assignedEventIds = guest.assignedEvents || [];
+      state.rawEvents = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (guest.rsvp && guest.rsvp.status === 'confirmed') {
+        state.submitted = true;
+        state.rsvp = {
+          name: guest.rsvp.name || '',
+          adults: guest.rsvp.adults ?? 1,
+          children: guest.rsvp.children ?? 0,
+          diet: guest.rsvp.diet || '',
+          message: guest.rsvp.message || '',
+          events: guest.rsvp.confirmedEvents || {},
+        };
+      }
+    } catch (e) {
+      console.error('Guest lookup failed', e);
+      state.access = 'public';
+    }
   }
 
   // ---- Envelope ----
   const envOverlay = document.getElementById('envelope-overlay');
   envOverlay.addEventListener('click', () => {
-    if (state.env !== 'sealed') return;
+    if (!state.dataReady || state.env !== 'sealed') return;
     state.env = 'opening';
     renderEnvelope();
     setTimeout(() => { state.env = 'closing'; renderEnvelope(); }, 1500);
@@ -158,6 +177,14 @@
     envOverlay.classList.toggle('env-closing', state.env === 'closing' || state.env === 'done');
     envOverlay.style.display = state.env === 'done' ? 'none' : 'flex';
     envOverlay.style.cursor = state.env === 'sealed' ? 'pointer' : 'default';
+  }
+
+  function showLoading(show) {
+    document.getElementById('loading-screen').hidden = !show;
+  }
+
+  function revealEnvelope() {
+    document.getElementById('envelope-overlay').hidden = false;
   }
 
   function syncScroll() {
@@ -394,11 +421,16 @@
     renderAccessView();
   }
 
-  function init() {
-    state.access = resolveAccess();
+  async function init() {
+    showLoading(true);
+    await loadGuestData();
+    state.dataReady = true;
+    showLoading(false);
+
     let opened = false;
     try { opened = sessionStorage.getItem('sr_env_opened') === '1'; } catch (e) {}
     state.env = opened ? 'done' : 'sealed';
+    revealEnvelope();
     renderEnvelope();
     syncScroll();
     fullRender();
@@ -407,4 +439,3 @@
   }
 
   init();
-})();

@@ -11,8 +11,13 @@
 </head>
 <body>
 
+<!-- ===================== LOADING ===================== -->
+<div id="loading-screen" class="loading-screen">
+  <div class="cal loading-glyph">囍</div>
+</div>
+
 <!-- ===================== ENVELOPE INTRO ===================== -->
-<div id="envelope-overlay" class="envelope-overlay">
+<div id="envelope-overlay" class="envelope-overlay" hidden>
   <div class="envelope-xi cal">囍</div>
   <div class="envelope" id="envelope">
     <div class="envelope-letter" id="envelope-letter">
@@ -319,6 +324,6 @@
 
 </div>
 
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
