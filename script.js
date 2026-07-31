@@ -455,7 +455,7 @@ function escapeHtml(str) {
         if (caption) {
           const cap = document.createElement('p');
           cap.className = `block-caption${lang === 'zh' ? ' block-caption-zh' : ''}`;
-          cap.textContent = escapeHtml(caption);
+          cap.textContent = caption;
           item.appendChild(cap);
         }
       }
