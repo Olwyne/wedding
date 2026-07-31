@@ -7,6 +7,13 @@ const guestsCol = collection(db, 'guests');
 
 const SIDE_LABELS = { marie: 'Marié', mariee: 'Mariée', deux: 'Les deux' };
 
+function escapeHtml(str) {
+  if (typeof str !== 'string') return str;
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function generateToken(length = 12) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
   const bytes = crypto.getRandomValues(new Uint8Array(length));
@@ -27,14 +34,14 @@ function renderGuestRow(g, eventById) {
   const statusClass = rsvp.status === 'confirmed' ? 'badge-confirmed' : 'badge-pending';
   return `
     <tr>
-      <td>${g.name}</td>
+      <td>${escapeHtml(g.name)}</td>
       <td>${SIDE_LABELS[g.side] || g.side}</td>
       <td>${chips}</td>
       <td><span class="badge ${statusClass}">${statusLabel}</span></td>
       <td>${rsvp.adults ?? ''}</td>
       <td>${rsvp.children ?? ''}</td>
-      <td>${rsvp.diet ?? ''}</td>
-      <td>${rsvp.message ?? ''}</td>
+      <td>${escapeHtml(rsvp.diet ?? '')}</td>
+      <td>${escapeHtml(rsvp.message ?? '')}</td>
       <td><button class="btn-copy-link" data-token="${g.id}">Copier le lien</button></td>
     </tr>`;
 }
