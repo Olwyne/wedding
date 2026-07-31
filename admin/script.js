@@ -1,5 +1,6 @@
 // admin/script.js
 import { initAuth } from './auth.js';
+import { renderEventsTab } from './events.js';
 
 function initTabs() {
   const buttons = document.querySelectorAll('.tab-btn');
@@ -15,6 +16,6 @@ function initTabs() {
 
 initTabs();
 initAuth({
-  onSignedIn: () => {},
+  onSignedIn: () => { renderEventsTab(); },
   onSignedOut: () => {},
 });
