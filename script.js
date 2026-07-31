@@ -1,5 +1,5 @@
 import { db } from './firebase-init.js';
-import { doc, getDoc, getDocs, collection, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { doc, getDoc, getDocs, collection, updateDoc, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
   const TARGET = new Date('2027-07-24T08:00:00+02:00').getTime();
 
@@ -407,10 +407,51 @@ import { doc, getDoc, getDocs, collection, updateDoc } from 'https://www.gstatic
     renderRsvpFormState();
   });
 
+  async function renderBlocks() {
+    const snap = await getDocs(
+      query(collection(db, 'blocks'), where('visible', '==', true), orderBy('order'))
+    );
+    const blocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const section = document.getElementById('blocks-section');
+    const list = document.getElementById('blocks-list');
+    if (!blocks.length) { section.hidden = true; return; }
+    section.hidden = false;
+    list.innerHTML = '';
+    blocks.forEach(block => {
+      const item = document.createElement('div');
+      item.className = 'block-item';
+      const lang = state.lang;
+      const titleFr = block.title_fr || '';
+      const titleZh = block.title_zh || '';
+      const titleHtml = (titleFr || titleZh) ? `
+        <div class="block-title">
+          ${titleFr}
+          ${titleZh ? `<span class="block-title-zh">${titleZh}</span>` : ''}
+        </div>` : '';
+      if (block.type === 'text') {
+        const contentFr = block.content_fr || '';
+        const contentZh = block.content_zh || '';
+        item.innerHTML = `
+          ${titleHtml}
+          ${contentFr ? `<p class="block-content">${contentFr}</p>` : ''}
+          ${contentZh ? `<p class="block-content-zh">${contentZh}</p>` : ''}`;
+      } else if (block.type === 'image') {
+        const alt = lang === 'zh' ? (block.alt_zh || block.alt_fr || '') : (block.alt_fr || '');
+        const caption = lang === 'zh' ? block.caption_zh : block.caption_fr;
+        item.innerHTML = `
+          ${titleHtml}
+          <img src="${block.image_url || ''}" alt="${alt}" class="block-image" loading="lazy">
+          ${caption ? `<p class="block-caption ${lang === 'zh' ? 'block-caption-zh' : ''}">${caption}</p>` : ''}`;
+      }
+      list.appendChild(item);
+    });
+  }
+
   function fullRender() {
     applyText();
     renderNav();
     renderProgramme();
+    renderBlocks();
     renderRsvpEvents();
     renderPlaces();
     renderHotels();
