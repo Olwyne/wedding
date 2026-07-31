@@ -1,6 +1,6 @@
 // admin/guests.js
 import { db } from '../firebase-init.js';
-import { collection, getDocs, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { loadEvents } from './events.js';
 
 const guestsCol = collection(db, 'guests');
@@ -43,6 +43,10 @@ function renderGuestRow(g, eventById) {
       <td>${escapeHtml(rsvp.diet ?? '')}</td>
       <td>${escapeHtml(rsvp.message ?? '')}</td>
       <td><button class="btn-copy-link" data-token="${g.id}">Copier le lien</button></td>
+      <td>
+        <button class="btn-edit-guest" data-id="${g.id}">Modifier</button>
+        <button class="btn-delete-guest" data-id="${g.id}">Supprimer</button>
+      </td>
     </tr>`;
 }
 
@@ -57,7 +61,7 @@ export async function renderGuestsTab() {
       <thead>
         <tr>
           <th>Nom</th><th>Côté</th><th>Événements</th><th>Statut RSVP</th>
-          <th>Adultes</th><th>Enfants</th><th>Régime</th><th>Message</th><th>Lien</th>
+          <th>Adultes</th><th>Enfants</th><th>Régime</th><th>Message</th><th>Lien</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -86,6 +90,16 @@ export async function renderGuestsTab() {
   `;
 
   document.getElementById('add-guest-btn').addEventListener('click', () => openGuestForm(null, guests));
+  panel.querySelectorAll('.btn-edit-guest').forEach(btn => {
+    btn.addEventListener('click', () => openGuestForm(btn.dataset.id, guests));
+  });
+  panel.querySelectorAll('.btn-delete-guest').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Supprimer cet invité ?')) return;
+      await deleteDoc(doc(db, 'guests', btn.dataset.id));
+      renderGuestsTab();
+    });
+  });
   panel.querySelectorAll('.btn-copy-link').forEach(btn => {
     btn.addEventListener('click', async () => {
       const url = `${location.origin}/?invite=${btn.dataset.token}`;
@@ -99,18 +113,24 @@ export async function renderGuestsTab() {
   });
   document.getElementById('guest-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const id = document.getElementById('guest-id').value || null;
     const name = document.getElementById('guest-name').value;
     const side = document.querySelector('input[name="guest-side"]:checked').value;
     const assignedEvents = Array.from(document.querySelectorAll('.guest-event-cb:checked')).map(cb => cb.value);
-    const token = generateToken();
-    await setDoc(doc(db, 'guests', token), {
-      name, side, assignedEvents,
-      createdAt: new Date().toISOString(),
-      rsvp: { status: 'pending', name: '', adults: 0, children: 0, diet: '', message: '', confirmedEvents: {}, respondedAt: null },
-    });
-    const result = document.getElementById('guest-link-result');
-    result.textContent = `Lien créé : ${location.origin}/?invite=${token}`;
-    result.hidden = false;
+
+    if (id) {
+      await updateDoc(doc(db, 'guests', id), { name, side, assignedEvents });
+    } else {
+      const token = generateToken();
+      await setDoc(doc(db, 'guests', token), {
+        name, side, assignedEvents,
+        createdAt: new Date().toISOString(),
+        rsvp: { status: 'pending', name: '', adults: 0, children: 0, diet: '', message: '', confirmedEvents: {}, respondedAt: null },
+      });
+      const result = document.getElementById('guest-link-result');
+      result.textContent = `Lien créé : ${location.origin}/?invite=${token}`;
+      result.hidden = false;
+    }
     renderGuestsTab();
   });
 }
