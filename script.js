@@ -1,5 +1,5 @@
 import { db } from './firebase-init.js';
-import { doc, getDoc, getDocs, collection, updateDoc, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { doc, getDoc, getDocs, collection, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -12,115 +12,36 @@ function escapeHtml(str) {
 
   const T = {
     fr: {
-      pubKicker: 'Save the date', pubMsg: "Nous nous marions ! Les détails du programme sont réservés à nos invités. Si vous avez reçu une invitation, ouvrez le lien personnalisé qui l'accompagne pour découvrir la journée.",
-      envInvite: 'Vous êtes convié·e au mariage de', envHint: 'Touchez pour ouvrir votre faire-part',
-      heroKicker: 'Nous nous marions', heroPlace: 'Lognes, France', heroFusion: 'Un mariage franco-chinois',
       cdD: 'jours', cdH: 'heures', cdM: 'min', cdS: 'sec', cdPassed: 'Le grand jour est arrivé !',
-      storyKicker: 'Notre histoire', storyTitle: 'Deux cultures, une histoire',
-      storyP1: "Nos chemins se sont croisés entre Paris et Shanghai, entre un café en terrasse et une tasse de thé. De cette rencontre est née une évidence, faite de tendresse, de rires et de deux familles qui n'attendaient qu'à se réunir.",
-      storyP2: "Aujourd'hui, nous unissons nos vies — et nos traditions. Nous serions honorés de vous compter parmi nous pour célébrer ce jour. (Texte à personnaliser.)",
-      progKicker: 'Le déroulé', progTitle: 'La journée', progSub: "Le programme ci-dessous correspond aux moments auxquels vous êtes convié·e.",
-      infoKicker: 'Sur place', infoTitle: 'Informations pratiques', mapBtn: 'Voir sur la carte',
-      hotelKicker: 'Où dormir', hotelTitle: 'Hébergement & transport',
-      hotelIntro: "Quelques suggestions autour de Lognes et Marne-la-Vallée pour prolonger la fête sereinement. (Exemples à ajuster.)",
-      shuttle: "Une navette pourra être organisée entre la mairie de Lognes et le Domaine de la Pointe selon le nombre d'invités — précisez-le dans votre RSVP.",
-      rsvpKicker: 'Répondez-nous', rsvpTitle: 'Confirmez votre présence',
-      rsvpIntro: "Merci de répondre avant le 1er juin 2027. Cochez uniquement les moments auxquels vous participerez.",
       fName: 'Votre nom', fNamePh: 'Nom et prénom', fAdults: "Nombre d'adultes", fChildren: "Nombre d'enfants", fPresence: 'Je serai présent·e à :',
       fDiet: 'Allergies / régime', fDietPh: 'Ex : végétarien, sans gluten…', fMsg: 'Un petit mot', fMsgPh: 'Un message pour les mariés…',
       fSubmit: 'Envoyer ma réponse', thankTitle: 'Merci du fond du cœur',
       demoNote: "(Démonstration — aucun envoi réel n'est effectué. À connecter à votre outil de suivi.)",
       editBtn: 'Modifier ma réponse',
-      giftKicker: 'Liste de mariage', giftTitle: 'Votre présence, notre plus beau cadeau',
-      giftText: "Si vous souhaitez nous gâter, une boîte sera prévue sur place le jour J pour recueillir vos petits mots et cadeaux. Votre présence reste le plus précieux des présents.",
-      dressKicker: 'Tenue', dressTitle: 'Dress code',
-      dressText: "Tenue habillée et élégante souhaitée. Par respect des traditions de nos deux familles, merci d'éviter le rouge et le blanc/ivoire (réservés aux mariés) ainsi que le noir intégral. Une touche de couleur est la bienvenue !",
-      galKicker: 'Souvenirs', galTitle: 'Galerie', galHint: 'Déposez ici vos plus belles photos.',
-      contactTitle: 'Une question ?', contactText: "N'hésitez pas à nous écrire pour toute question sur la journée, le transport ou l'hébergement.",
       langBtn: '中文',
-      avoid: [ { hex: '#B03A2E', label: 'Rouge' }, { hex: '#FBF6EC', label: 'Blanc / ivoire' }, { hex: '#1a1a1a', label: 'Noir intégral' } ],
       confirmPrefix: 'Nous avons hâte de vous retrouver pour : ',
       confirmNone: "C'est noté. Nous avons bien reçu votre réponse.",
       navFull: [ ['Histoire','#histoire'], ['Programme','#programme'], ['Infos','#infos'], ['Séjour','#hebergement'], ['RSVP','#rsvp'], ['Cadeaux','#cadeau'], ['Galerie','#galerie'], ['Contact','#contact'] ],
     },
     zh: {
-      pubKicker: '敬请留意', pubMsg: '我们要结婚啦！婚礼行程详情仅向受邀嘉宾开放。若您已收到邀请，请打开随附的专属链接，查看当天的完整安排。',
-      envInvite: '诚邀您出席我们的婚礼', envHint: '轻触开启您的请柬',
-      heroKicker: '我们结婚啦', heroPlace: '法国 · 洛涅', heroFusion: '中 · 法 喜结良缘',
       cdD: '天', cdH: '时', cdM: '分', cdS: '秒', cdPassed: '大喜之日到啦！',
-      storyKicker: '我们的故事', storyTitle: '两种文化，一段情缘',
-      storyP1: '我们的缘分在巴黎与上海之间悄然开启——一杯露天咖啡，一盏清茶。自那一刻起，温柔、欢笑与两个家庭的期盼，让一切变得水到渠成。',
-      storyP2: '今天，我们携手共度余生，也将两种传统融为一体。诚挚期盼您的到来，与我们共同见证这美好的一天。（内容可自定义。）',
-      progKicker: '当日流程', progTitle: '婚礼当天', progSub: '以下行程为您受邀参加的环节。',
-      infoKicker: '场地信息', infoTitle: '实用信息', mapBtn: '查看地图',
-      hotelKicker: '住宿', hotelTitle: '住宿与交通',
-      hotelIntro: '为您推荐洛涅及马恩拉瓦莱周边的几处住宿，方便您安心欢聚。（示例，可调整。）',
-      shuttle: '我们将视人数在洛涅市政厅与拉普安特庄园之间安排接驳车，请在回执中注明您的需求。',
-      rsvpKicker: '恳请回复', rsvpTitle: '确认出席',
-      rsvpIntro: '烦请于 2027 年 6 月 1 日前回复。请仅勾选您将参加的环节。',
       fName: '您的姓名', fNamePh: '姓名', fAdults: '成人人数', fChildren: '儿童人数', fPresence: '我将出席：',
       fDiet: '过敏 / 饮食', fDietPh: '如：素食、无麸质…', fMsg: '留言', fMsgPh: '给新人的祝福…',
       fSubmit: '提交回复', thankTitle: '衷心感谢',
       demoNote: '（演示 — 不会实际发送，请连接您的统计工具。）',
       editBtn: '修改回复',
-      giftKicker: '婚礼礼单', giftTitle: '您的到来便是最好的礼物',
-      giftText: '若您愿意送上心意，当天现场将备有礼盒，收纳您的祝福与礼物。您的到来，已是最珍贵的礼物。',
-      dressKicker: '着装', dressTitle: '着装建议',
-      dressText: '恳请着正式、优雅的服装。为尊重两个家庭的传统，敬请避免红色与白色/象牙色（新人专属）以及全黑装扮。欢迎点缀亮丽色彩！',
-      galKicker: '回忆', galTitle: '相册', galHint: '在此上传您最美的照片。',
-      contactTitle: '有疑问吗？', contactText: '关于当天行程、交通或住宿的任何问题，欢迎随时与我们联系。',
       langBtn: 'FR',
-      avoid: [ { hex: '#B03A2E', label: '红色' }, { hex: '#FBF6EC', label: '白/象牙色' }, { hex: '#1a1a1a', label: '全黑' } ],
       confirmPrefix: '期待与您相聚于：',
       confirmNone: '已收到您的回复，谢谢！',
       navFull: [ ['故事','#histoire'], ['流程','#programme'], ['信息','#infos'], ['住宿','#hebergement'], ['回执','#rsvp'], ['礼物','#cadeau'], ['相册','#galerie'], ['联系','#contact'] ],
     },
   };
 
-  const SECTION_TEXT_MAP = {
-    pubKicker: ['teaser', 'kicker'], pubMsg: ['teaser', 'message'],
-    heroKicker: ['hero', 'kicker'], heroPlace: ['hero', 'place'], heroFusion: ['hero', 'fusion'],
-    envInvite: ['hero', 'envInvite'], envHint: ['hero', 'envHint'],
-    storyKicker: ['story', 'kicker'], storyTitle: ['story', 'title'], storyP1: ['story', 'p1'], storyP2: ['story', 'p2'],
-    progKicker: ['programme', 'kicker'], progTitle: ['programme', 'title'], progSub: ['programme', 'subtitle'],
-    infoKicker: ['infos', 'kicker'], infoTitle: ['infos', 'title'],
-    hotelKicker: ['hebergement', 'kicker'], hotelTitle: ['hebergement', 'title'], hotelIntro: ['hebergement', 'intro'], shuttle: ['hebergement', 'shuttle'],
-    rsvpKicker: ['rsvp', 'kicker'], rsvpTitle: ['rsvp', 'title'], rsvpIntro: ['rsvp', 'intro'],
-    giftKicker: ['gift', 'kicker'], giftTitle: ['gift', 'title'], giftText: ['gift', 'text'],
-    dressKicker: ['dress', 'kicker'], dressTitle: ['dress', 'title'], dressText: ['dress', 'text'],
-    galKicker: ['gallery', 'kicker'], galTitle: ['gallery', 'title'], galHint: ['gallery', 'hint'],
-    contactTitle: ['contact', 'title'], contactText: ['contact', 'text'],
-  };
-
-  const SECTION_DOM_ID = {
-    hero: 'top', story: 'histoire', programme: 'programme',
-    infos: 'infos', hebergement: 'hebergement', rsvp: 'rsvp', gift: 'cadeau',
-    dress: 'dresscode', gallery: 'galerie', contact: 'contact',
-  };
-
-  const HOTELS = {
-    fr: [
-      { tag: '4 km', name: 'Hôtel Marne-la-Vallée', desc: "Confort moderne à quelques minutes du Domaine, idéal pour la nuit du samedi. (Exemple.)" },
-      { tag: '6 km', name: 'Ibis Noisy-le-Grand', desc: "Option pratique et économique, bien desservie par le RER A. (Exemple.)" },
-      { tag: '8 km', name: "Maison d'hôtes de charme", desc: "Pour un séjour plus intimiste, à réserver tôt. (Exemple.)" },
-    ],
-    zh: [
-      { tag: '4 公里', name: '马恩拉瓦莱酒店', desc: '现代舒适，距庄园仅数分钟，适合周六过夜。（示例。）' },
-      { tag: '6 公里', name: '宜必思 Noisy-le-Grand', desc: '实惠便捷，RER A 线交通便利。（示例。）' },
-      { tag: '8 公里', name: '精品民宿', desc: '更为私密的住宿选择，建议尽早预订。（示例。）' },
-    ],
-  };
-
-  const PLACES = {
-    fr: [
-      { zh: '证婚', name: 'Mairie de Lognes', addr: "Place de l'Hôtel de Ville, 77185 Lognes", map: 'https://www.google.com/maps/search/?api=1&query=Mairie+de+Lognes' },
-      { zh: '喜宴', name: 'Domaine de la Pointe', addr: "Adresse à préciser — région de Lognes", map: 'https://www.google.com/maps/search/?api=1&query=Domaine+de+la+Pointe' },
-    ],
-    zh: [
-      { zh: '证婚', name: '洛涅市政厅', addr: '市政厅广场，77185 洛涅', map: 'https://www.google.com/maps/search/?api=1&query=Mairie+de+Lognes' },
-      { zh: '喜宴', name: '拉普安特庄园', addr: '地址待定 — 洛涅地区', map: 'https://www.google.com/maps/search/?api=1&query=Domaine+de+la+Pointe' },
-    ],
-  };
+  // Localized field getter for block content: bf(block, 'kicker', lang) -> block.kicker_fr / block.kicker_zh, cross-language fallback
+  function bf(block, key, lang) {
+    const fr = block[`${key}_fr`], zh = block[`${key}_zh`];
+    return (lang === 'zh' ? (zh || fr) : (fr || zh)) || '';
+  }
 
   const state = {
     lang: 'fr',
@@ -219,33 +140,10 @@ function escapeHtml(str) {
     document.body.style.overflow = state.env !== 'done' ? 'hidden' : '';
   }
 
-  // ---- Text / language ----
+  // ---- Chrome text (langBtn + nav) ----
   function applyText() {
     const L = T[state.lang];
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (L[key] !== undefined) el.textContent = L[key];
-      const map = SECTION_TEXT_MAP[key];
-      if (map) {
-        const [type, field] = map;
-        const suffix = state.lang === 'zh' ? '_zh' : '_fr';
-        const val = sectionsMap[type]?.[field + suffix];
-        if (val) el.textContent = val;
-      }
-    });
     document.getElementById('lang-btn').textContent = L.langBtn;
-    document.getElementById('lang-btn-teaser').textContent = L.langBtn;
-    document.getElementById('r-name').placeholder = L.fNamePh;
-    document.getElementById('r-diet').placeholder = L.fDietPh;
-    document.getElementById('r-msg').placeholder = L.fMsgPh;
-  }
-
-  function applySectionVisibility() {
-    Object.entries(SECTION_DOM_ID).forEach(([type, id]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.hidden = sectionsMap[type]?.visible === false;
-    });
   }
 
   function renderNav() {
@@ -276,125 +174,9 @@ function escapeHtml(str) {
   document.getElementById('mobile-menu-close').addEventListener('click', closeMenu);
   document.getElementById('nav-brand-link').addEventListener('click', closeMenu);
 
-  function renderProgramme() {
-    const list = document.getElementById('prog-list');
-    list.innerHTML = '';
-    visibleEvents().forEach(ev => {
-      const item = document.createElement('div');
-      item.className = 'prog-item';
-      item.innerHTML = `
-        <div class="prog-time-col">
-          <div class="prog-time">${ev.time}</div>
-          <div class="cal prog-zh">${ev.zh}</div>
-        </div>
-        <div class="prog-body">
-          <h3 class="prog-title">${ev.title}</h3>
-          <div class="prog-place">${ev.place}</div>
-          <p class="prog-desc">${ev.desc}</p>
-        </div>`;
-      list.appendChild(item);
-    });
-  }
-
-  function renderRsvpEvents() {
-    const wrap = document.getElementById('rsvp-events');
-    wrap.innerHTML = '';
-    visibleEvents().forEach(ev => {
-      const sel = !!state.rsvp.events[ev.id];
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'rsvp-event-btn' + (sel ? ' selected' : '');
-      btn.innerHTML = `
-        <span class="rsvp-event-check">${sel ? '✓' : ''}</span>
-        <span><span class="rsvp-event-title">${ev.title}</span> <span class="rsvp-event-meta">· ${ev.time} · ${ev.place}</span></span>`;
-      btn.addEventListener('click', () => {
-        state.rsvp.events[ev.id] = !state.rsvp.events[ev.id];
-        renderRsvpEvents();
-      });
-      wrap.appendChild(btn);
-    });
-  }
-
-  function renderPlaces() {
-    const L = T[state.lang];
-    const grid = document.getElementById('places-grid');
-    grid.innerHTML = '';
-    const mapBtnLabel = sectionsMap.infos?.[state.lang === 'zh' ? 'mapBtnLabel_zh' : 'mapBtnLabel_fr'] || L.mapBtn;
-    const items = sectionsMap.infos?.places?.length
-      ? sectionsMap.infos.places.map(p => ({
-          zh: p.zh,
-          name: state.lang === 'zh' ? (p.name_zh || p.name_fr) : (p.name_fr || p.name_zh),
-          addr: state.lang === 'zh' ? (p.addr_zh || p.addr_fr) : (p.addr_fr || p.addr_zh),
-          map: p.mapUrl,
-        }))
-      : PLACES[state.lang];
-    items.forEach(pl => {
-      const card = document.createElement('div');
-      card.className = 'place-card';
-      card.innerHTML = `
-        <div class="cal place-zh">${pl.zh}</div>
-        <h3 class="place-name">${pl.name}</h3>
-        <p class="place-addr">${pl.addr}</p>
-        <a href="${pl.map}" target="_blank" rel="noopener" class="place-map-btn">${mapBtnLabel}</a>`;
-      grid.appendChild(card);
-    });
-  }
-
-  function renderHotels() {
-    const grid = document.getElementById('hotels-grid');
-    grid.innerHTML = '';
-    const items = sectionsMap.hebergement?.hotels?.length
-      ? sectionsMap.hebergement.hotels.map(h => ({
-          tag: state.lang === 'zh' ? (h.tag_zh || h.tag_fr) : (h.tag_fr || h.tag_zh),
-          name: state.lang === 'zh' ? (h.name_zh || h.name_fr) : (h.name_fr || h.name_zh),
-          desc: state.lang === 'zh' ? (h.desc_zh || h.desc_fr) : (h.desc_fr || h.desc_zh),
-        }))
-      : HOTELS[state.lang];
-    items.forEach(h => {
-      const card = document.createElement('div');
-      card.className = 'hotel-card';
-      card.innerHTML = `
-        <div class="hotel-tag">${h.tag}</div>
-        <h3 class="hotel-name">${h.name}</h3>
-        <p class="hotel-desc">${h.desc}</p>`;
-      grid.appendChild(card);
-    });
-  }
-
-  function renderAvoidColors() {
-    const L = T[state.lang];
-    const wrap = document.getElementById('avoid-colors');
-    wrap.innerHTML = '';
-    const items = sectionsMap.dress?.avoidColors?.length
-      ? sectionsMap.dress.avoidColors.map(c => ({
-          hex: c.hex,
-          label: state.lang === 'zh' ? (c.label_zh || c.label_fr) : (c.label_fr || c.label_zh),
-        }))
-      : L.avoid;
-    items.forEach(c => {
-      const chip = document.createElement('span');
-      chip.className = 'avoid-chip';
-      chip.innerHTML = `<span class="avoid-swatch" style="background:${c.hex}"></span>${c.label}`;
-      wrap.appendChild(chip);
-    });
-  }
-
-  function renderConfirmLine() {
-    const L = T[state.lang];
-    const chosen = visibleEvents().filter(e => state.rsvp.events[e.id]).map(e => e.title);
-    document.getElementById('rsvp-confirm-line').textContent =
-      chosen.length ? (L.confirmPrefix + chosen.join(' · ')) : L.confirmNone;
-  }
-
-  function renderRsvpFormState() {
-    document.getElementById('rsvp-form').hidden = state.submitted;
-    document.getElementById('rsvp-thanks').hidden = !state.submitted;
-  }
-
   // ---- Countdown ----
   function tick() {
     let diff = TARGET - Date.now();
-    const L = T[state.lang];
     if (diff <= 0) {
       state.cd = { d: 0, h: 0, m: 0, s: 0, passed: true };
     } else {
@@ -411,6 +193,7 @@ function escapeHtml(str) {
     const L = T[state.lang];
     const cdEl = document.getElementById('countdown');
     const passedEl = document.getElementById('hero-cd-passed');
+    if (!cdEl || !passedEl) return;
     if (state.cd.passed) {
       cdEl.hidden = true;
       passedEl.hidden = false;
@@ -445,49 +228,43 @@ function escapeHtml(str) {
     fullRender();
   }
   document.getElementById('lang-btn').addEventListener('click', toggleLang);
-  document.getElementById('lang-btn-teaser').addEventListener('click', toggleLang);
 
-  // ---- RSVP form ----
-  const rsvpForm = document.getElementById('rsvp-form');
-  document.getElementById('r-name').addEventListener('input', e => state.rsvp.name = e.target.value);
-  document.getElementById('r-adults').addEventListener('input', e => state.rsvp.adults = e.target.value);
-  document.getElementById('r-children').addEventListener('input', e => state.rsvp.children = e.target.value);
-  document.getElementById('r-diet').addEventListener('input', e => state.rsvp.diet = e.target.value);
-  document.getElementById('r-msg').addEventListener('input', e => state.rsvp.message = e.target.value);
-  rsvpForm.addEventListener('submit', e => {
-    e.preventDefault();
-    state.submitted = true;
-    renderConfirmLine();
-    renderRsvpFormState();
-  });
-  document.getElementById('rsvp-edit-btn').addEventListener('click', () => {
-    state.submitted = false;
-    state.rsvp = { name: '', adults: 1, children: 0, events: {}, diet: '', message: '' };
-    document.getElementById('r-name').value = '';
-    document.getElementById('r-adults').value = 1;
-    document.getElementById('r-children').value = 0;
-    document.getElementById('r-diet').value = '';
-    document.getElementById('r-msg').value = '';
-    renderRsvpEvents();
-    renderRsvpFormState();
-  });
-
-  let cachedBlocks = null;
-
-  async function fetchBlocks() {
-    const snap = await getDocs(
-      query(collection(db, 'blocks'), where('visible', '==', true), orderBy('order'))
-    );
-    cachedBlocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // ---- RSVP helpers (called from buildRsvpBlock) ----
+  function renderRsvpEventsInto(wrap) {
+    wrap.innerHTML = '';
+    visibleEvents().forEach(ev => {
+      const sel = !!state.rsvp.events[ev.id];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rsvp-event-btn' + (sel ? ' selected' : '');
+      btn.innerHTML = `
+        <span class="rsvp-event-check">${sel ? '✓' : ''}</span>
+        <span><span class="rsvp-event-title">${ev.title}</span> <span class="rsvp-event-meta">· ${ev.time} · ${ev.place}</span></span>`;
+      btn.addEventListener('click', () => {
+        state.rsvp.events[ev.id] = !state.rsvp.events[ev.id];
+        renderRsvpEventsInto(wrap);
+      });
+      wrap.appendChild(btn);
+    });
   }
 
-  let sectionsMap = {};
-
-  async function fetchSections() {
-    const snap = await getDocs(collection(db, 'sections'));
-    sectionsMap = {};
-    snap.docs.forEach(d => { sectionsMap[d.id] = d.data(); });
+  function renderConfirmLine() {
+    const L = T[state.lang];
+    const el = document.getElementById('rsvp-confirm-line');
+    if (!el) return;
+    const chosen = visibleEvents().filter(e => state.rsvp.events[e.id]).map(e => e.title);
+    el.textContent = chosen.length ? (L.confirmPrefix + chosen.join(' · ')) : L.confirmNone;
   }
+
+  function renderRsvpFormState() {
+    const form = document.getElementById('rsvp-form');
+    const thanks = document.getElementById('rsvp-thanks');
+    if (!form || !thanks) return;
+    form.hidden = state.submitted;
+    thanks.hidden = !state.submitted;
+  }
+
+  // ==================== Block type builders ====================
 
   function buildBlockItem(block, lang) {
     const item = document.createElement('div');
@@ -521,30 +298,436 @@ function escapeHtml(str) {
     return item;
   }
 
-  function applyBlocks() {
-    const all = cachedBlocks || [];
+  function buildFreeformBlock(block, lang) {
+    const section = document.createElement('section');
+    section.className = 'section section-cream blocks-section';
+    const list = document.createElement('div');
+    list.className = 'blocks-list';
+    list.appendChild(buildBlockItem(block, lang));
+    section.appendChild(list);
+    return section;
+  }
+
+  function buildTeaserBlock(block, lang) {
+    const L = T[lang];
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <div class="teaser-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
+      <h1 class="teaser-names">Sophie <span class="amp-italic">&amp;</span> Ruiyuan</h1>
+      <div class="cal teaser-zh">苏菲 &amp; 瑞元</div>
+      <div class="teaser-rule"></div>
+      <div class="teaser-date">24 · 07 · 2027</div>
+      <p class="teaser-msg">${escapeHtml(bf(block, 'message', lang))}</p>
+      <button class="btn-outline" id="lang-btn-teaser">${escapeHtml(L.langBtn)}</button>`;
+    wrap.querySelector('#lang-btn-teaser').addEventListener('click', toggleLang);
+    return wrap;
+  }
+
+  function buildHeroBlock(block, lang) {
+    const header = document.createElement('header');
+    header.id = 'top';
+    header.className = 'hero';
+    header.innerHTML = `
+      <div class="hero-xi cal">囍</div>
+      <svg class="hero-peony" viewBox="-56 -56 112 112" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z"/>
+        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(45)"/>
+        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(90)"/>
+        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(135)"/>
+        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(180)"/>
+        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(225)"/>
+        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(270)"/>
+        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(315)"/>
+        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(22.5)"/>
+        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(67.5)"/>
+        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(112.5)"/>
+        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(157.5)"/>
+        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(202.5)"/>
+        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(247.5)"/>
+        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(292.5)"/>
+        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(337.5)"/>
+        <circle r="5"/>
+      </svg>
+      <svg class="hero-rose" viewBox="-45 -45 90 90" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M-3 -1 C-1 -6 5 -6 6 -1 C7 4 1 8 -3 5 C-10 2 -9 -8 -2 -12"/>
+        <path d="M-13 -4 C-16 -15 -5 -23 6 -20 C18 -17 22 -4 16 5 C11 13 0 18 -9 14"/>
+        <path d="M-24 2 C-29 -12 -18 -28 -2 -30"/>
+        <path d="M4 -30 C20 -27 31 -13 29 3"/>
+        <path d="M28 8 C25 23 11 33 -5 30"/>
+        <path d="M-10 31 C-25 27 -33 12 -30 -4"/>
+      </svg>
+      <div class="hero-content">
+        <div class="monogram">
+          <div class="monogram-ring monogram-ring-1"></div>
+          <div class="monogram-ring monogram-ring-2"></div>
+          <div class="monogram-dot dot-top"></div>
+          <div class="monogram-dot dot-bottom"></div>
+          <div class="monogram-dot dot-left"></div>
+          <div class="monogram-dot dot-right"></div>
+          <div class="monogram-letters">S<span class="amp-sm">&amp;</span>R</div>
+          <div class="cal monogram-xi">囍</div>
+        </div>
+        <div class="kicker hero-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
+        <div class="hero-names">
+          <h1 class="hero-name">Sophie</h1>
+          <span class="cal hero-amp">&amp;</span>
+          <h1 class="hero-name">Ruiyuan</h1>
+        </div>
+        <div class="cal hero-zh">苏菲 &amp; 瑞元</div>
+        <div class="hero-date-row">
+          <span class="rule"></span>
+          <span class="hero-date">24 JUILLET 2027</span>
+          <span class="rule"></span>
+        </div>
+        <p class="hero-place">${escapeHtml(bf(block, 'place', lang))}</p>
+        <div class="hero-fusion-row">
+          <span class="rule rule-sm"></span>
+          <span class="hero-fusion">${escapeHtml(bf(block, 'fusion', lang))}</span>
+          <span class="rule rule-sm"></span>
+        </div>
+      </div>
+      <div class="hero-cd-passed cal" id="hero-cd-passed" hidden></div>
+      <div class="countdown" id="countdown"></div>`;
+    return header;
+  }
+
+  function buildStoryBlock(block, lang) {
+    const section = document.createElement('section');
+    section.id = 'histoire';
+    section.className = 'section section-cream section-toile';
+    section.innerHTML = `
+      <svg class="toile-bg" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <pattern id="toile" width="180" height="180" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="#2B4A8B" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M30 176 C55 146 40 116 70 100 C58 78 78 56 66 38"></path>
+              <path d="M70 100 C86 94 96 104 90 118 C80 120 70 112 70 100Z"></path>
+              <path d="M52 132 C40 124 40 110 52 104 C60 114 60 126 52 132Z"></path>
+              <circle cx="66" cy="34" r="5"></circle>
+              <path d="M66 34 L66 24 M66 34 L57 29 M66 34 L75 29 M66 34 L59 41 M66 34 L73 41"></path>
+              <path d="M124 22 C144 47 132 76 154 92"></path>
+              <path d="M154 92 C164 86 174 94 170 106 C160 108 154 100 154 92Z"></path>
+              <circle cx="124" cy="18" r="4"></circle>
+              <path d="M124 18 L124 10 M124 18 L117 14 M124 18 L131 14"></path>
+              <path d="M104 148 q9 -9 18 0 q-9 -5 -18 0Z"></path>
+            </g>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#toile)"></rect>
+      </svg>
+      <div class="section-inner section-narrow">
+        <div class="cal section-glyph">缘</div>
+        <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
+        <h2 class="section-title">${escapeHtml(bf(block, 'title', lang))}</h2>
+        <div class="divider"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+        <p class="section-text">${escapeHtml(bf(block, 'p1', lang))}</p>
+        <p class="section-text">${escapeHtml(bf(block, 'p2', lang))}</p>
+      </div>`;
+    return section;
+  }
+
+  function buildProgrammeBlock(block, lang) {
+    const section = document.createElement('section');
+    section.id = 'programme';
+    section.className = 'section section-bordeaux';
+    section.innerHTML = `
+      <div class="prog-xi cal">囍</div>
+      <div class="section-inner section-narrow" style="margin-bottom:56px">
+        <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
+        <h2 class="section-title section-title-light">${escapeHtml(bf(block, 'title', lang))}</h2>
+        <div class="divider" style="margin-top:22px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue2"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+        <p class="section-sub">${escapeHtml(bf(block, 'subtitle', lang))}</p>
+      </div>
+      <div class="prog-list" id="prog-list"></div>`;
+    const list = section.querySelector('#prog-list');
+    visibleEvents().forEach(ev => {
+      const item = document.createElement('div');
+      item.className = 'prog-item';
+      item.innerHTML = `
+        <div class="prog-time-col">
+          <div class="prog-time">${ev.time}</div>
+          <div class="cal prog-zh">${ev.zh}</div>
+        </div>
+        <div class="prog-body">
+          <h3 class="prog-title">${ev.title}</h3>
+          <div class="prog-place">${ev.place}</div>
+          <p class="prog-desc">${ev.desc}</p>
+        </div>`;
+      list.appendChild(item);
+    });
+    return section;
+  }
+
+  function buildInfosBlock(block, lang) {
+    const section = document.createElement('section');
+    section.id = 'infos';
+    section.className = 'section section-cream';
+    section.innerHTML = `
+      <div class="section-inner section-wide" style="margin-bottom:52px">
+        <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
+        <h2 class="section-title">${escapeHtml(bf(block, 'title', lang))}</h2>
+        <div class="divider" style="margin-top:24px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+      </div>
+      <div class="places-grid" id="places-grid"></div>`;
+    const mapBtnLabel = escapeHtml(bf(block, 'mapBtnLabel', lang));
+    const grid = section.querySelector('#places-grid');
+    (block.places || []).forEach(p => {
+      const name = lang === 'zh' ? (p.name_zh || p.name_fr) : (p.name_fr || p.name_zh);
+      const addr = lang === 'zh' ? (p.addr_zh || p.addr_fr) : (p.addr_fr || p.addr_zh);
+      const card = document.createElement('div');
+      card.className = 'place-card';
+      card.innerHTML = `
+        <div class="cal place-zh">${escapeHtml(p.zh || '')}</div>
+        <h3 class="place-name">${escapeHtml(name || '')}</h3>
+        <p class="place-addr">${escapeHtml(addr || '')}</p>
+        <a href="${escapeHtml(p.mapUrl || '#')}" target="_blank" rel="noopener" class="place-map-btn">${mapBtnLabel}</a>`;
+      grid.appendChild(card);
+    });
+    return section;
+  }
+
+  function buildHebergementBlock(block, lang) {
+    const section = document.createElement('section');
+    section.id = 'hebergement';
+    section.className = 'section section-cream-grad';
+    section.innerHTML = `
+      <div class="section-inner section-wide" style="margin-bottom:20px">
+        <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
+        <h2 class="section-title">${escapeHtml(bf(block, 'title', lang))}</h2>
+        <div class="divider" style="margin:24px auto 4px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+        <p class="section-text-narrow">${escapeHtml(bf(block, 'intro', lang))}</p>
+      </div>
+      <div class="hotels-grid" id="hotels-grid"></div>
+      <div class="shuttle-box">
+        <div class="cal shuttle-glyph">车</div>
+        <p>${escapeHtml(bf(block, 'shuttle', lang))}</p>
+      </div>`;
+    const grid = section.querySelector('#hotels-grid');
+    (block.hotels || []).forEach(h => {
+      const tag = lang === 'zh' ? (h.tag_zh || h.tag_fr) : (h.tag_fr || h.tag_zh);
+      const name = lang === 'zh' ? (h.name_zh || h.name_fr) : (h.name_fr || h.name_zh);
+      const desc = lang === 'zh' ? (h.desc_zh || h.desc_fr) : (h.desc_fr || h.desc_zh);
+      const card = document.createElement('div');
+      card.className = 'hotel-card';
+      card.innerHTML = `
+        <div class="hotel-tag">${escapeHtml(tag || '')}</div>
+        <h3 class="hotel-name">${escapeHtml(name || '')}</h3>
+        <p class="hotel-desc">${escapeHtml(desc || '')}</p>`;
+      grid.appendChild(card);
+    });
+    return section;
+  }
+
+  function buildRsvpBlock(block, lang) {
+    const L = T[lang];
+    const section = document.createElement('section');
+    section.id = 'rsvp';
+    section.className = 'section section-bordeaux-radial';
+    section.innerHTML = `
+      <div class="rsvp-xi cal">囍</div>
+      <div class="section-inner section-form">
+        <div class="section-inner section-narrow" style="margin-bottom:40px">
+          <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
+          <h2 class="section-title section-title-light">${escapeHtml(bf(block, 'title', lang))}</h2>
+          <p class="section-sub">${escapeHtml(bf(block, 'intro', lang))}</p>
+        </div>
+
+        <form id="rsvp-form" class="rsvp-form">
+          <label class="field">
+            <span class="field-label">${escapeHtml(L.fName)}</span>
+            <input id="r-name" type="text" required placeholder="${escapeHtml(L.fNamePh)}" value="${escapeHtml(state.rsvp.name)}">
+          </label>
+          <div class="field field-row">
+            <label class="field">
+              <span class="field-label">${escapeHtml(L.fAdults)}</span>
+              <input id="r-adults" type="number" min="1" max="12" value="${escapeHtml(String(state.rsvp.adults))}">
+            </label>
+            <label class="field">
+              <span class="field-label">${escapeHtml(L.fChildren)}</span>
+              <input id="r-children" type="number" min="0" max="12" value="${escapeHtml(String(state.rsvp.children))}">
+            </label>
+          </div>
+          <div class="field">
+            <span class="field-label">${escapeHtml(L.fPresence)}</span>
+            <div id="rsvp-events" class="rsvp-events"></div>
+          </div>
+          <label class="field">
+            <span class="field-label">${escapeHtml(L.fDiet)}</span>
+            <input id="r-diet" type="text" placeholder="${escapeHtml(L.fDietPh)}" value="${escapeHtml(state.rsvp.diet)}">
+          </label>
+          <label class="field">
+            <span class="field-label">${escapeHtml(L.fMsg)}</span>
+            <textarea id="r-msg" rows="3" placeholder="${escapeHtml(L.fMsgPh)}">${escapeHtml(state.rsvp.message)}</textarea>
+          </label>
+          <button type="submit" class="btn-submit">${escapeHtml(L.fSubmit)}</button>
+        </form>
+
+        <div id="rsvp-thanks" class="rsvp-thanks" hidden>
+          <div class="cal rsvp-thanks-glyph">囍</div>
+          <h3 class="rsvp-thanks-title">${escapeHtml(L.thankTitle)}</h3>
+          <p id="rsvp-confirm-line" class="rsvp-confirm-line"></p>
+          <p class="rsvp-demo-note">${escapeHtml(L.demoNote)}</p>
+          <button id="rsvp-edit-btn" class="btn-outline">${escapeHtml(L.editBtn)}</button>
+        </div>
+      </div>`;
+
+    section.querySelector('#r-name').addEventListener('input', e => state.rsvp.name = e.target.value);
+    section.querySelector('#r-adults').addEventListener('input', e => state.rsvp.adults = e.target.value);
+    section.querySelector('#r-children').addEventListener('input', e => state.rsvp.children = e.target.value);
+    section.querySelector('#r-diet').addEventListener('input', e => state.rsvp.diet = e.target.value);
+    section.querySelector('#r-msg').addEventListener('input', e => state.rsvp.message = e.target.value);
+    section.querySelector('#rsvp-form').addEventListener('submit', e => {
+      e.preventDefault();
+      state.submitted = true;
+      renderConfirmLine();
+      renderRsvpFormState();
+    });
+    section.querySelector('#rsvp-edit-btn').addEventListener('click', () => {
+      state.submitted = false;
+      state.rsvp = { name: '', adults: 1, children: 0, events: {}, diet: '', message: '' };
+      fullRender();
+    });
+    renderRsvpEventsInto(section.querySelector('#rsvp-events'));
+    return section;
+  }
+
+  function buildGiftBlock(block, lang) {
+    const section = document.createElement('section');
+    section.className = 'section section-cream';
+    section.innerHTML = `
+      <div class="cadeau-grid">
+        <div id="cadeau" class="card-cadeau">
+          <div class="cal card-glyph">礼</div>
+          <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
+          <h3 class="card-title">${escapeHtml(bf(block, 'title', lang))}</h3>
+          <p class="card-text">${escapeHtml(bf(block, 'text', lang))}</p>
+        </div>
+      </div>`;
+    return section;
+  }
+
+  function buildDressBlock(block, lang) {
+    const section = document.createElement('section');
+    section.className = 'section section-cream';
+    section.innerHTML = `
+      <div class="cadeau-grid">
+        <div id="dresscode" class="card-dresscode">
+          <div class="cal card-glyph card-glyph-gold">衣</div>
+          <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
+          <h3 class="card-title card-title-light">${escapeHtml(bf(block, 'title', lang))}</h3>
+          <p class="card-text card-text-light">${escapeHtml(bf(block, 'text', lang))}</p>
+          <div id="avoid-colors" class="avoid-colors"></div>
+        </div>
+      </div>`;
+    const wrap = section.querySelector('#avoid-colors');
+    (block.avoidColors || []).forEach(c => {
+      const label = lang === 'zh' ? (c.label_zh || c.label_fr) : (c.label_fr || c.label_zh);
+      const chip = document.createElement('span');
+      chip.className = 'avoid-chip';
+      chip.innerHTML = `<span class="avoid-swatch" style="background:${escapeHtml(c.hex || '')}"></span>${escapeHtml(label || '')}`;
+      wrap.appendChild(chip);
+    });
+    return section;
+  }
+
+  function buildGalleryBlock(block, lang) {
+    const section = document.createElement('section');
+    section.id = 'galerie';
+    section.className = 'section section-cream-grad2';
+    section.innerHTML = `
+      <div class="section-inner section-wide" style="margin-bottom:44px">
+        <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
+        <h2 class="section-title">${escapeHtml(bf(block, 'title', lang))}</h2>
+        <div class="divider" style="margin-top:24px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
+        <p class="section-text-narrow">${escapeHtml(bf(block, 'hint', lang))}</p>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-slot" aria-label="Photo 1"></div>
+        <div class="gallery-slot" aria-label="Photo 2"></div>
+        <div class="gallery-slot" aria-label="Photo 3"></div>
+        <div class="gallery-slot" aria-label="Photo 4"></div>
+        <div class="gallery-slot" aria-label="Photo 5"></div>
+        <div class="gallery-slot" aria-label="Photo 6"></div>
+      </div>`;
+    return section;
+  }
+
+  function buildContactBlock(block, lang) {
+    const footer = document.createElement('footer');
+    footer.id = 'contact';
+    footer.className = 'footer';
+    footer.innerHTML = `
+      <div class="footer-xi cal">囍</div>
+      <div class="footer-inner">
+        <div class="footer-monogram">
+          <div class="footer-monogram-ring footer-monogram-ring-1"></div>
+          <div class="footer-monogram-ring footer-monogram-ring-2"></div>
+          <div class="footer-monogram-letters">S<span class="amp-sm">&amp;</span>R</div>
+          <div class="cal footer-monogram-xi">囍</div>
+        </div>
+        <h2 class="footer-title">${escapeHtml(bf(block, 'title', lang))}</h2>
+        <p class="footer-text">${escapeHtml(bf(block, 'text', lang))}</p>
+        <div class="footer-contacts">
+          <a href="mailto:sophie.ruiyuan@example.com" class="footer-email">✉︎ sophie.ruiyuan@example.com</a>
+          <span class="footer-phone">☎ +33 6 00 00 00 00</span>
+        </div>
+        <div class="footer-rule"></div>
+        <div class="footer-names">Sophie <span class="amp">&amp;</span> Ruiyuan</div>
+        <div class="footer-date">24 · 07 · 2027 — LOGNES</div>
+      </div>`;
+    return footer;
+  }
+
+  const BLOCK_BUILDERS = {
+    text: buildFreeformBlock,
+    image: buildFreeformBlock,
+    teaser: buildTeaserBlock,
+    hero: buildHeroBlock,
+    story: buildStoryBlock,
+    programme: buildProgrammeBlock,
+    infos: buildInfosBlock,
+    hebergement: buildHebergementBlock,
+    rsvp: buildRsvpBlock,
+    gift: buildGiftBlock,
+    dress: buildDressBlock,
+    gallery: buildGalleryBlock,
+    contact: buildContactBlock,
+  };
+
+  let cachedBlocks = null;
+
+  async function fetchBlocks() {
+    const snap = await getDocs(
+      query(collection(db, 'blocks'), where('visible', '==', true), orderBy('order'))
+    );
+    cachedBlocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+
+  function renderDynamicBlocks() {
     const lang = state.lang;
-    const section = document.getElementById('blocks-section');
-    const list = document.getElementById('blocks-list');
-    list.innerHTML = '';
-    if (all.length) {
-      section.hidden = false;
-      all.forEach(b => list.appendChild(buildBlockItem(b, lang)));
-    } else {
-      section.hidden = true;
-    }
+    const inviteMount = document.getElementById('site-blocks');
+    const publicMount = document.getElementById('teaser-blocks');
+    inviteMount.innerHTML = '';
+    publicMount.innerHTML = '';
+    (cachedBlocks || []).forEach(block => {
+      const builder = BLOCK_BUILDERS[block.type];
+      if (!builder) return;
+      const el = builder(block, lang);
+      if (!el) return;
+      (block.audience === 'public' ? publicMount : inviteMount).appendChild(el);
+    });
+
+    const heroBlock = (cachedBlocks || []).find(b => b.type === 'hero' && b.audience !== 'public');
+    const envKicker = document.querySelector('.envelope-letter-kicker');
+    const envHint = document.querySelector('.envelope-hint-text');
+    if (envKicker) envKicker.textContent = heroBlock ? bf(heroBlock, 'envInvite', lang) : '';
+    if (envHint) envHint.textContent = heroBlock ? bf(heroBlock, 'envHint', lang) : '';
   }
 
   function fullRender() {
     applyText();
-    applySectionVisibility();
+    renderDynamicBlocks();
     renderNav();
-    renderProgramme();
-    applyBlocks();
-    renderRsvpEvents();
-    renderPlaces();
-    renderHotels();
-    renderAvoidColors();
     renderConfirmLine();
     renderRsvpFormState();
     renderCountdown();
@@ -556,7 +739,6 @@ function escapeHtml(str) {
     await Promise.all([
       loadGuestData(),
       fetchBlocks().catch(err => console.error('fetchBlocks failed:', err)),
-      fetchSections().catch(err => console.error('fetchSections failed:', err)),
     ]);
     state.dataReady = true;
     showLoading(false);

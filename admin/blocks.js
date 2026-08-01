@@ -6,6 +6,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const blocksCol = collection(db, 'blocks');
+let activeAudience = 'invite';
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -13,6 +14,90 @@ function escapeHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
+
+// Every block type's schema. audience: 'invite' | 'public' | 'both' controls which
+// sub-tab it's offered in when creating a new block.
+const TYPE_DEFS = {
+  text: { label: 'Texte', icon: '📝', audience: 'both', fields: [
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'content', label: 'Contenu', kind: 'textarea' },
+    ] },
+  image: { label: 'Image', icon: '🖼️', audience: 'both', fields: [
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'image_url', label: 'URL image', kind: 'url' },
+      { key: 'alt', label: 'Alt (accessibilité)', kind: 'text' },
+      { key: 'caption', label: 'Légende', kind: 'text' },
+    ] },
+  teaser: { label: 'Teaser', icon: '👋', audience: 'public', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'message', label: 'Message', kind: 'textarea' },
+    ] },
+  hero: { label: 'Hero', icon: '💍', audience: 'invite', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'place', label: 'Lieu', kind: 'text' },
+      { key: 'fusion', label: 'Accroche fusion', kind: 'text' },
+      { key: 'envInvite', label: 'Enveloppe — invitation', kind: 'text' },
+      { key: 'envHint', label: 'Enveloppe — indice', kind: 'text' },
+    ] },
+  story: { label: 'Histoire', icon: '📖', audience: 'invite', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'p1', label: 'Paragraphe 1', kind: 'textarea' },
+      { key: 'p2', label: 'Paragraphe 2', kind: 'textarea' },
+    ] },
+  programme: { label: 'Programme', icon: '📅', audience: 'invite', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'subtitle', label: 'Sous-titre', kind: 'textarea' },
+    ] },
+  infos: { label: 'Infos pratiques', icon: '📍', audience: 'invite', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'mapBtnLabel', label: 'Libellé bouton carte', kind: 'text' },
+    ], list: { key: 'places', label: 'Lieux', itemFields: [
+        { key: 'zh', label: 'Repère (中文)' },
+        { key: 'name_fr', label: 'Nom FR' }, { key: 'name_zh', label: 'Nom ZH' },
+        { key: 'addr_fr', label: 'Adresse FR' }, { key: 'addr_zh', label: 'Adresse ZH' },
+        { key: 'mapUrl', label: 'URL carte' },
+      ] } },
+  hebergement: { label: 'Hébergement', icon: '🏨', audience: 'invite', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'intro', label: 'Intro', kind: 'textarea' },
+      { key: 'shuttle', label: 'Navette', kind: 'textarea' },
+    ], list: { key: 'hotels', label: 'Hôtels', itemFields: [
+        { key: 'tag_fr', label: 'Tag FR' }, { key: 'tag_zh', label: 'Tag ZH' },
+        { key: 'name_fr', label: 'Nom FR' }, { key: 'name_zh', label: 'Nom ZH' },
+        { key: 'desc_fr', label: 'Description FR' }, { key: 'desc_zh', label: 'Description ZH' },
+      ] } },
+  rsvp: { label: 'RSVP', icon: '💌', audience: 'invite', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'intro', label: 'Intro', kind: 'textarea' },
+    ] },
+  gift: { label: 'Cadeaux', icon: '🎁', audience: 'invite', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'text', label: 'Texte', kind: 'textarea' },
+    ] },
+  dress: { label: 'Dress code', icon: '👗', audience: 'invite', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'text', label: 'Texte', kind: 'textarea' },
+    ], list: { key: 'avoidColors', label: 'Couleurs à éviter', itemFields: [
+        { key: 'hex', label: 'Couleur (hex)' },
+        { key: 'label_fr', label: 'Libellé FR' }, { key: 'label_zh', label: 'Libellé ZH' },
+      ] } },
+  gallery: { label: 'Galerie', icon: '🌸', audience: 'invite', fields: [
+      { key: 'kicker', label: 'Kicker', kind: 'text' },
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'hint', label: 'Indice', kind: 'textarea' },
+    ] },
+  contact: { label: 'Contact', icon: '✉️', audience: 'invite', fields: [
+      { key: 'title', label: 'Titre', kind: 'text' },
+      { key: 'text', label: 'Texte', kind: 'textarea' },
+    ] },
+};
 
 async function loadBlocks() {
   const snap = await getDocs(query(blocksCol, orderBy('order')));
@@ -37,16 +122,17 @@ async function toggleVisible(id, value) {
 }
 
 function renderBlockRow(block, idx, total) {
-  const typeLabel = block.type === 'text' ? 'TEXTE' : 'IMAGE';
-  const typeClass = block.type === 'text' ? 'badge-text' : 'badge-image';
-  const title = escapeHtml(block.title_fr || '(sans titre)');
+  const def = TYPE_DEFS[block.type] || { label: block.type };
+  const title = (block.type === 'text' || block.type === 'image')
+    ? escapeHtml(block.title_fr || '(sans titre)')
+    : escapeHtml(def.label);
   return `
     <tr>
       <td>
         <button class="btn-icon btn-up" data-idx="${idx}" ${idx === 0 ? 'disabled' : ''}>↑</button>
         <button class="btn-icon btn-down" data-idx="${idx}" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
       </td>
-      <td><span class="badge ${typeClass}">${typeLabel}</span></td>
+      <td><span class="badge">${def.icon || ''} ${escapeHtml(def.label)}</span></td>
       <td>${title}</td>
       <td>
         <label class="toggle">
@@ -75,13 +161,25 @@ export async function renderBlocksTab() {
     return;
   }
 
-  const filtered = allBlocks;
+  const filtered = allBlocks.filter(b => (b.audience || 'invite') === activeAudience);
 
   document.getElementById('section-action').innerHTML =
     '<button id="add-block-btn" class="btn-primary">+ Ajouter un bloc</button>';
 
+  const desc = activeAudience === 'invite'
+    ? 'Blocs affichés sur le site invité (lien personnel), dans cet ordre.'
+    : 'Blocs affichés sur la page publique (sans lien d\'invitation), dans cet ordre.';
+
   panel.innerHTML = `
-    <p class="subtab-desc">Contenu additionnel affiché après le programme, sur le site invité.</p>
+    <div class="subtab-nav">
+      <button class="subtab-btn ${activeAudience === 'invite' ? 'active' : ''}" data-aud="invite">
+        🔒 Vue connectée
+      </button>
+      <button class="subtab-btn ${activeAudience === 'public' ? 'active' : ''}" data-aud="public">
+        🌐 Vue non connectée
+      </button>
+    </div>
+    <p class="subtab-desc">${escapeHtml(desc)}</p>
     <table class="admin-table">
       <thead>
         <tr>
@@ -95,8 +193,15 @@ export async function renderBlocksTab() {
       </tbody>
     </table>`;
 
+  panel.querySelectorAll('.subtab-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      activeAudience = btn.dataset.aud;
+      renderBlocksTab();
+    })
+  );
+
   document.getElementById('add-block-btn').addEventListener('click', () =>
-    openBlockPanel(null, allBlocks, 'invite')
+    openBlockPanel(null, allBlocks, activeAudience)
   );
   panel.querySelectorAll('.btn-up').forEach(btn =>
     btn.addEventListener('click', () => moveBlock(filtered, Number(btn.dataset.idx), -1))
@@ -108,7 +213,7 @@ export async function renderBlocksTab() {
     cb.addEventListener('change', () => toggleVisible(cb.dataset.id, cb.checked))
   );
   panel.querySelectorAll('.btn-edit').forEach(btn =>
-    btn.addEventListener('click', () => openBlockPanel(btn.dataset.id, allBlocks, 'invite'))
+    btn.addEventListener('click', () => openBlockPanel(btn.dataset.id, allBlocks, activeAudience))
   );
   panel.querySelectorAll('.btn-delete').forEach(btn =>
     btn.addEventListener('click', async () => {
@@ -119,84 +224,118 @@ export async function renderBlocksTab() {
   );
 }
 
-function renderTypeSelector() {
+function renderTypeSelector(audience) {
+  const options = Object.entries(TYPE_DEFS).filter(([, def]) => def.audience === 'both' || def.audience === audience);
   return `
     <p style="color:var(--muted);font-size:14px;margin-bottom:4px">Choisissez le type de bloc :</p>
     <div class="type-cards">
-      <div class="type-card" data-type="text">
-        <div class="type-card-icon">📝</div>
-        <div class="type-card-label">Texte</div>
-      </div>
-      <div class="type-card" data-type="image">
-        <div class="type-card-icon">🖼️</div>
-        <div class="type-card-label">Image</div>
-      </div>
+      ${options.map(([id, def]) => `
+        <div class="type-card" data-type="${id}">
+          <div class="type-card-icon">${def.icon}</div>
+          <div class="type-card-label">${escapeHtml(def.label)}</div>
+        </div>`).join('')}
     </div>`;
+}
+
+function buildScalarFieldHtml(field, data) {
+  if (field.kind === 'url') {
+    const v = escapeHtml(data?.[field.key] || '');
+    return `
+      <label class="field">
+        <span>${escapeHtml(field.label)}</span>
+        <input id="blk-${field.key}" value="${v}" placeholder="https://…">
+      </label>`;
+  }
+  const vFr = escapeHtml(data?.[`${field.key}_fr`] || '');
+  const vZh = escapeHtml(data?.[`${field.key}_zh`] || '');
+  const tag = field.kind === 'textarea' ? 'textarea' : 'input';
+  const attrs = field.kind === 'textarea' ? 'rows="4"' : '';
+  const valAttr = (v) => field.kind === 'textarea' ? `>${v}</textarea>` : ` value="${v}">`;
+  return `
+    <label class="field">
+      <span>${escapeHtml(field.label)} FR</span>
+      <${tag} id="blk-${field.key}-fr" ${attrs}${valAttr(vFr)}
+    </label>
+    <label class="field">
+      <span>${escapeHtml(field.label)} ZH</span>
+      <${tag} id="blk-${field.key}-zh" ${attrs}${valAttr(vZh)}
+    </label>`;
+}
+
+function buildListItemHtml(listDef, item, idx) {
+  const fields = listDef.itemFields.map(f => `
+      <label class="field">
+        <span>${escapeHtml(f.label)}</span>
+        <input class="list-item-field" data-field="${f.key}" value="${escapeHtml(item?.[f.key] || '')}">
+      </label>`).join('');
+  return `
+    <div class="section-list-item" data-idx="${idx}">
+      <button type="button" class="btn-icon btn-remove-item">✕</button>
+      ${fields}
+    </div>`;
+}
+
+function buildListHtml(listDef, items) {
+  const rows = (items || []).map((item, idx) => buildListItemHtml(listDef, item, idx)).join('');
+  return `
+    <div class="field">
+      <span>${escapeHtml(listDef.label)}</span>
+      <div class="section-list" id="blk-list-${listDef.key}">${rows}</div>
+      <button type="button" class="btn-secondary section-list-add" id="blk-list-add-${listDef.key}">+ Ajouter un item</button>
+    </div>`;
+}
+
+function readListFromPanel(panelEl, listDef) {
+  const items = [];
+  panelEl.querySelectorAll(`#blk-list-${listDef.key} .section-list-item`).forEach(row => {
+    const item = {};
+    row.querySelectorAll('.list-item-field').forEach(input => {
+      item[input.dataset.field] = input.value;
+    });
+    items.push(item);
+  });
+  return items;
+}
+
+function attachListHandlers(panelEl, def) {
+  if (!def.list) return;
+  const listEl = panelEl.querySelector(`#blk-list-${def.list.key}`);
+
+  function bindRemoveButtons() {
+    listEl.querySelectorAll('.btn-remove-item').forEach(btn => {
+      btn.onclick = () => { btn.closest('.section-list-item').remove(); };
+    });
+  }
+  bindRemoveButtons();
+
+  panelEl.querySelector(`#blk-list-add-${def.list.key}`).addEventListener('click', () => {
+    const idx = listEl.children.length;
+    listEl.insertAdjacentHTML('beforeend', buildListItemHtml(def.list, {}, idx));
+    bindRemoveButtons();
+  });
 }
 
 function renderBlockForm(block) {
   const type = block?.type || '';
-  if (!type) return renderTypeSelector();
+  if (!type) return '';
+  const def = TYPE_DEFS[type];
+  const data = block || {};
+  const scalarHtml = def.fields.map(f => buildScalarFieldHtml(f, data)).join('');
+  const listHtml = def.list ? buildListHtml(def.list, data[def.list.key]) : '';
+  const imagePreview = type === 'image' ? '<div id="img-existing-preview"></div>' : '';
 
-  const v = (key) => escapeHtml(block?.[key] || '');
-  const checked = (key) => block?.[key] !== false ? 'checked' : '';
-
-  const common = `
+  return `
     <input type="hidden" id="block-type" value="${type}">
-    <label class="field">
-      <span>Titre FR <span style="color:var(--muted);font-weight:400">(optionnel)</span></span>
-      <input id="block-title-fr" value="${v('title_fr')}">
-    </label>
-    <label class="field">
-      <span>Titre ZH</span>
-      <input id="block-title-zh" value="${v('title_zh')}">
-    </label>
-    <div class="field" style="flex-direction:row;align-items:center;gap:10px;margin-bottom:0">
+    <div class="field" style="flex-direction:row;align-items:center;gap:10px;margin-bottom:14px">
       <span>Visible sur le site</span>
       <label class="toggle">
-        <input type="checkbox" id="block-visible" ${checked('visible')}>
+        <input type="checkbox" id="block-visible" ${data.visible !== false ? 'checked' : ''}>
         <span class="toggle-track"></span>
       </label>
-    </div>`;
-
-  if (type === 'text') {
-    return `${common}
-      <label class="field">
-        <span>Contenu FR</span>
-        <textarea id="block-content-fr" rows="6">${v('content_fr')}</textarea>
-      </label>
-      <label class="field">
-        <span>Contenu ZH</span>
-        <textarea id="block-content-zh" rows="6">${v('content_zh')}</textarea>
-      </label>`;
-  }
-
-  if (type === 'image') {
-    return `${common}
-      <label class="field">
-        <span>URL image</span>
-        <input id="block-image-url" value="${v('image_url')}" placeholder="https://…">
-      </label>
-      <div id="img-existing-preview"></div>
-      <label class="field">
-        <span>Alt FR <span style="color:var(--muted);font-weight:400">(accessibilité)</span></span>
-        <input id="block-alt-fr" value="${v('alt_fr')}">
-      </label>
-      <label class="field">
-        <span>Alt ZH</span>
-        <input id="block-alt-zh" value="${v('alt_zh')}">
-      </label>
-      <label class="field">
-        <span>Légende FR <span style="color:var(--muted);font-weight:400">(optionnel)</span></span>
-        <input id="block-caption-fr" value="${v('caption_fr')}">
-      </label>
-      <label class="field">
-        <span>Légende ZH</span>
-        <input id="block-caption-zh" value="${v('caption_zh')}">
-      </label>`;
-  }
-
-  return '';
+    </div>
+    ${scalarHtml}
+    ${imagePreview}
+    ${listHtml}`;
 }
 
 function attachImagePreview(panelEl, imageUrl) {
@@ -221,16 +360,14 @@ function openBlockPanel(id, allBlocks, audience) {
 
   panelEl.innerHTML = `
     <div class="panel-header">
-      <div>
-        <h3>${isNew ? 'Nouveau bloc' : 'Modifier le bloc'}</h3>
-      </div>
+      <h3>${isNew ? 'Nouveau bloc' : 'Modifier le bloc'}</h3>
       <button class="btn-icon" id="panel-close">✕</button>
     </div>
     <div class="panel-body" id="panel-body">
-      ${isNew ? renderTypeSelector() : renderBlockForm(block)}
+      ${isNew ? renderTypeSelector(audience) : renderBlockForm(block)}
     </div>
     <div class="panel-footer">
-      <button class="btn-primary" id="panel-save">${isNew ? 'Créer' : 'Enregistrer'}</button>
+      <button class="btn-primary" id="panel-save" ${isNew ? 'disabled' : ''}>${isNew ? 'Créer' : 'Enregistrer'}</button>
       <button class="btn-secondary" id="panel-cancel">Annuler</button>
     </div>`;
 
@@ -249,10 +386,13 @@ function openBlockPanel(id, allBlocks, audience) {
         card.classList.add('selected');
         panelEl.querySelector('#panel-body').innerHTML =
           renderBlockForm({ type: card.dataset.type, visible: true });
+        panelEl.querySelector('#panel-save').disabled = false;
+        attachListHandlers(panelEl, TYPE_DEFS[card.dataset.type]);
       });
     });
   } else {
     attachImagePreview(panelEl, block?.image_url);
+    attachListHandlers(panelEl, TYPE_DEFS[block.type]);
   }
 
   panelEl.querySelector('#panel-save').addEventListener('click', async () => {
@@ -265,7 +405,7 @@ function openBlockPanel(id, allBlocks, audience) {
     } catch (err) {
       saveBtn.disabled = false;
       saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer';
-      if (err.message !== 'no-type') console.error(err);
+      console.error(err);
     }
   });
 }
@@ -273,30 +413,26 @@ function openBlockPanel(id, allBlocks, audience) {
 async function saveBlock(id, filteredBlocks, panelEl, audience) {
   const type = panelEl.querySelector('#block-type')?.value;
   if (!type) throw new Error('no-type');
-
+  const def = TYPE_DEFS[type];
   const now = new Date().toISOString();
-  const get = (sel) => panelEl.querySelector(sel)?.value || '';
 
   const data = {
     type,
-    title_fr: get('#block-title-fr'),
-    title_zh: get('#block-title-zh'),
     visible: panelEl.querySelector('#block-visible')?.checked ?? true,
     audience,
     updatedAt: now,
   };
 
-  if (type === 'text') {
-    data.content_fr = get('#block-content-fr');
-    data.content_zh = get('#block-content-zh');
-  }
-
-  if (type === 'image') {
-    data.image_url = get('#block-image-url');
-    data.alt_fr = get('#block-alt-fr');
-    data.alt_zh = get('#block-alt-zh');
-    data.caption_fr = get('#block-caption-fr');
-    data.caption_zh = get('#block-caption-zh');
+  def.fields.forEach(f => {
+    if (f.kind === 'url') {
+      data[f.key] = panelEl.querySelector(`#blk-${f.key}`)?.value || '';
+    } else {
+      data[`${f.key}_fr`] = panelEl.querySelector(`#blk-${f.key}-fr`)?.value || '';
+      data[`${f.key}_zh`] = panelEl.querySelector(`#blk-${f.key}-zh`)?.value || '';
+    }
+  });
+  if (def.list) {
+    data[def.list.key] = readListFromPanel(panelEl, def.list);
   }
 
   if (id) {

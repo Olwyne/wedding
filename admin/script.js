@@ -1,13 +1,11 @@
 // admin/script.js
 import { initAuth } from './auth.js';
-import { renderBlocksTab } from './blocks.js?v=2';
-import { renderSectionsTab } from './sections.js?v=2';
+import { renderBlocksTab } from './blocks.js?v=3';
 import { renderGuestsTab } from './guests.js';
 import { renderEventsTab } from './events.js';
 
 const SECTIONS = {
   blocks: { title: 'Blocs', render: renderBlocksTab },
-  sections: { title: 'Sections', render: renderSectionsTab },
   guests: { title: 'Invités', render: renderGuestsTab },
   events: { title: 'Événements', render: renderEventsTab },
 };
