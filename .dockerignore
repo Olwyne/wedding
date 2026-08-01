@@ -1,0 +1,9 @@
+.git
+.claude
+.rtk
+docs/
+node_modules/
+*.md
+.firebaserc
+firestore.*
+firebase.json
