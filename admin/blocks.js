@@ -6,6 +6,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const blocksCol = collection(db, 'blocks');
+let activeAudience = 'invite';
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -40,8 +41,6 @@ function renderBlockRow(block, idx, total) {
   const typeLabel = block.type === 'text' ? 'TEXTE' : 'IMAGE';
   const typeClass = block.type === 'text' ? 'badge-text' : 'badge-image';
   const title = escapeHtml(block.title_fr || '(sans titre)');
-  const audLabel = block.audience === 'public' ? '🌐 Public' : '🔒 Invités';
-  const audClass = block.audience === 'public' ? 'badge-confirmed' : 'badge-pending';
   return `
     <tr>
       <td>
@@ -50,7 +49,6 @@ function renderBlockRow(block, idx, total) {
       </td>
       <td><span class="badge ${typeClass}">${typeLabel}</span></td>
       <td>${title}</td>
-      <td><span class="badge ${audClass}">${audLabel}</span></td>
       <td>
         <label class="toggle">
           <input type="checkbox" class="toggle-visible" data-id="${block.id}" ${block.visible ? 'checked' : ''}>
@@ -70,45 +68,67 @@ export async function renderBlocksTab() {
   const panel = document.getElementById('tab-blocks');
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
 
-  document.getElementById('section-action').innerHTML =
-    '<button id="add-block-btn" class="btn-primary">+ Ajouter un bloc</button>';
-
-  let blocks;
+  let allBlocks;
   try {
-    blocks = await loadBlocks();
+    allBlocks = await loadBlocks();
   } catch (err) {
     panel.innerHTML = `<p style="padding:20px;color:var(--danger)">Erreur : ${escapeHtml(err.message)}</p>`;
     return;
   }
 
+  const filtered = allBlocks.filter(b => (b.audience || 'invite') === activeAudience);
+
+  document.getElementById('section-action').innerHTML =
+    '<button id="add-block-btn" class="btn-primary">+ Ajouter un bloc</button>';
+
+  const desc = activeAudience === 'invite'
+    ? 'Blocs visibles pour les invités ayant un lien personnel'
+    : 'Blocs visibles sur la page publique (sans lien d\'invitation)';
+
   panel.innerHTML = `
+    <div class="subtab-nav">
+      <button class="subtab-btn ${activeAudience === 'invite' ? 'active' : ''}" data-aud="invite">
+        🔒 Vue connectée
+      </button>
+      <button class="subtab-btn ${activeAudience === 'public' ? 'active' : ''}" data-aud="public">
+        🌐 Vue non connectée
+      </button>
+    </div>
+    <p class="subtab-desc">${escapeHtml(desc)}</p>
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Ordre</th><th>Type</th><th>Titre</th><th>Vue</th><th>Visible</th><th>Actions</th>
+          <th>Ordre</th><th>Type</th><th>Titre</th><th>Visible</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        ${blocks.length
-          ? blocks.map((b, i) => renderBlockRow(b, i, blocks.length)).join('')
+        ${filtered.length
+          ? filtered.map((b, i) => renderBlockRow(b, i, filtered.length)).join('')
           : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:40px">Aucun bloc — ajoutez-en un !</td></tr>'}
       </tbody>
     </table>`;
 
+  panel.querySelectorAll('.subtab-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      activeAudience = btn.dataset.aud;
+      renderBlocksTab();
+    })
+  );
+
   document.getElementById('add-block-btn').addEventListener('click', () =>
-    openBlockPanel(null, blocks)
+    openBlockPanel(null, allBlocks, activeAudience)
   );
   panel.querySelectorAll('.btn-up').forEach(btn =>
-    btn.addEventListener('click', () => moveBlock(blocks, Number(btn.dataset.idx), -1))
+    btn.addEventListener('click', () => moveBlock(filtered, Number(btn.dataset.idx), -1))
   );
   panel.querySelectorAll('.btn-down').forEach(btn =>
-    btn.addEventListener('click', () => moveBlock(blocks, Number(btn.dataset.idx), 1))
+    btn.addEventListener('click', () => moveBlock(filtered, Number(btn.dataset.idx), 1))
   );
   panel.querySelectorAll('.toggle-visible').forEach(cb =>
     cb.addEventListener('change', () => toggleVisible(cb.dataset.id, cb.checked))
   );
   panel.querySelectorAll('.btn-edit').forEach(btn =>
-    btn.addEventListener('click', () => openBlockPanel(btn.dataset.id, blocks))
+    btn.addEventListener('click', () => openBlockPanel(btn.dataset.id, allBlocks, activeAudience))
   );
   panel.querySelectorAll('.btn-delete').forEach(btn =>
     btn.addEventListener('click', async () => {
@@ -141,7 +161,6 @@ function renderBlockForm(block) {
   const v = (key) => escapeHtml(block?.[key] || '');
   const checked = (key) => block?.[key] !== false ? 'checked' : '';
 
-  const audience = block?.audience || 'invite';
   const common = `
     <input type="hidden" id="block-type" value="${type}">
     <label class="field">
@@ -158,18 +177,10 @@ function renderBlockForm(block) {
         <input type="checkbox" id="block-visible" ${checked('visible')}>
         <span class="toggle-track"></span>
       </label>
-    </div>
-    <div class="field">
-      <span>Vue</span>
-      <select id="block-audience">
-        <option value="invite" ${audience === 'invite' ? 'selected' : ''}>🔒 Connectée — invités avec lien perso</option>
-        <option value="public" ${audience === 'public' ? 'selected' : ''}>🌐 Publique — visible sans lien</option>
-      </select>
     </div>`;
 
   if (type === 'text') {
-    return `
-      ${common}
+    return `${common}
       <label class="field">
         <span>Contenu FR</span>
         <textarea id="block-content-fr" rows="6">${v('content_fr')}</textarea>
@@ -181,8 +192,7 @@ function renderBlockForm(block) {
   }
 
   if (type === 'image') {
-    return `
-      ${common}
+    return `${common}
       <label class="field">
         <span>URL image</span>
         <input id="block-image-url" value="${v('image_url')}" placeholder="https://…">
@@ -219,18 +229,24 @@ function attachImagePreview(panelEl, imageUrl) {
   container.appendChild(img);
 }
 
-function openBlockPanel(id, blocks) {
-  const block = id ? blocks.find(b => b.id === id) : null;
+function openBlockPanel(id, allBlocks, audience) {
+  const block = id ? allBlocks.find(b => b.id === id) : null;
   const isNew = !block;
+  const filtered = allBlocks.filter(b => (b.audience || 'invite') === audience);
 
   const overlay = document.createElement('div');
   overlay.className = 'panel-overlay';
   const panelEl = document.createElement('div');
   panelEl.className = 'panel';
 
+  const audLabel = audience === 'public' ? '🌐 Vue non connectée' : '🔒 Vue connectée';
+
   panelEl.innerHTML = `
     <div class="panel-header">
-      <h3>${isNew ? 'Nouveau bloc' : 'Modifier le bloc'}</h3>
+      <div>
+        <h3>${isNew ? 'Nouveau bloc' : 'Modifier le bloc'}</h3>
+        <p style="font-size:12px;color:var(--muted);margin-top:2px">${audLabel}</p>
+      </div>
       <button class="btn-icon" id="panel-close">✕</button>
     </div>
     <div class="panel-body" id="panel-body">
@@ -267,7 +283,7 @@ function openBlockPanel(id, blocks) {
     saveBtn.disabled = true;
     saveBtn.textContent = isNew ? 'Création…' : 'Enregistrement…';
     try {
-      await saveBlock(id, blocks, panelEl);
+      await saveBlock(id, filtered, panelEl, audience);
       close();
     } catch (err) {
       saveBtn.disabled = false;
@@ -277,7 +293,7 @@ function openBlockPanel(id, blocks) {
   });
 }
 
-async function saveBlock(id, blocks, panelEl) {
+async function saveBlock(id, filteredBlocks, panelEl, audience) {
   const type = panelEl.querySelector('#block-type')?.value;
   if (!type) throw new Error('no-type');
 
@@ -289,7 +305,7 @@ async function saveBlock(id, blocks, panelEl) {
     title_fr: get('#block-title-fr'),
     title_zh: get('#block-title-zh'),
     visible: panelEl.querySelector('#block-visible')?.checked ?? true,
-    audience: get('#block-audience') || 'invite',
+    audience,
     updatedAt: now,
   };
 
@@ -309,7 +325,7 @@ async function saveBlock(id, blocks, panelEl) {
   if (id) {
     await updateDoc(doc(db, 'blocks', id), data);
   } else {
-    const maxOrder = blocks.length ? Math.max(...blocks.map(b => b.order ?? 0)) : 0;
+    const maxOrder = filteredBlocks.length ? Math.max(...filteredBlocks.map(b => b.order ?? 0)) : 0;
     await addDoc(blocksCol, { ...data, order: maxOrder + 1, createdAt: now });
   }
 }

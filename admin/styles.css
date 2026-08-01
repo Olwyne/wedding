@@ -135,3 +135,11 @@ button{cursor:pointer;font-family:inherit}
 .guest-invite-result{background:#f0fdf4;border:1px solid #bbf7d0;padding:11px 14px;border-radius:6px;font-size:12.5px;word-break:break-all;display:flex;align-items:center;gap:10px}
 .pills{display:flex;flex-wrap:wrap;gap:4px}
 .pill{padding:2px 8px;background:var(--admin-bg);border:1px solid var(--border);border-radius:4px;font-size:12px;color:var(--muted)}
+
+/* ── Sub-tabs (Blocs page) ── */
+.subtab-nav{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px;background:var(--admin-bg)}
+.subtab-btn{flex:1;padding:9px 16px;background:transparent;border:none;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:background .12s,color .12s;text-align:left}
+.subtab-btn:not(:last-child){border-right:1px solid var(--border)}
+.subtab-btn.active{background:var(--accent);color:#fff}
+.subtab-btn:hover:not(.active){background:#f3f4f6;color:var(--text)}
+.subtab-desc{font-size:12px;color:var(--muted);margin-bottom:16px;padding-left:2px}

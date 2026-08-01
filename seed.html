@@ -14,10 +14,17 @@
 </head>
 <body>
 <h1>Seed blocs Firestore</h1>
-<p>Insère les blocs de contenu initiaux dans la collection <code>blocks</code>. À utiliser une seule fois.</p>
 <p><strong>⚠ Connectez-vous d'abord sur le <a href="/admin/">back-office</a> dans un autre onglet</strong> (auth requise pour écriture).</p>
-<button id="seed-btn">Insérer les blocs</button>
+
+<h2 style="margin:28px 0 8px;font-size:16px">Vue connectée — blocs invités</h2>
+<p style="margin-bottom:12px;font-size:14px">10 blocs pour la page avec lien personnel (bannière, histoire, déroulé…). À utiliser une seule fois.</p>
+<button id="seed-btn">Insérer les blocs (Vue connectée)</button>
 <pre id="log">En attente…</pre>
+
+<h2 style="margin:28px 0 8px;font-size:16px">Vue non connectée — blocs publics</h2>
+<p style="margin-bottom:12px;font-size:14px">Blocs visibles sur la page publique (sans lien d'invitation) : kicker + message principal. À utiliser une seule fois.</p>
+<button id="seed-public-btn">Insérer les blocs (Vue non connectée)</button>
+<pre id="log-public">En attente…</pre>
 
 <script type="module">
 import { db, auth } from './firebase-init.js';
@@ -175,11 +182,69 @@ btn.addEventListener('click', async () => {
 });
 
 onAuthStateChanged(auth, user => {
-  if (user) {
-    log.textContent = `✓ Auth détectée : ${user.email}\nCliquez sur le bouton pour insérer les blocs.`;
-  } else {
-    log.textContent = '⚠ Non connecté. Connectez-vous sur /admin/ dans un autre onglet, puis revenez ici.';
+  const msg = user
+    ? `✓ Auth détectée : ${user.email}\nCliquez sur le bouton pour insérer les blocs.`
+    : '⚠ Non connecté. Connectez-vous sur /admin/ dans un autre onglet, puis revenez ici.';
+  log.textContent = msg;
+  logPublic.textContent = msg;
+});
+
+// ── Blocs publics (Vue non connectée) ──
+const PUBLIC_BLOCKS = [
+  {
+    type: 'text',
+    order: 1,
+    visible: true,
+    audience: 'public',
+    title_fr: 'Save the date',
+    title_zh: '敬请留意',
+    content_fr: "Nous nous marions ! Les détails du programme sont réservés à nos invités. Si vous avez reçu une invitation, ouvrez le lien personnalisé qui l'accompagne pour découvrir la journée.",
+    content_zh: '我们要结婚啦！婚礼行程详情仅向受邀嘉宾开放。若您已收到邀请，请打开随附的专属链接，查看当天的完整安排。',
+  },
+];
+
+const btnPublic = document.getElementById('seed-public-btn');
+const logPublic = document.getElementById('log-public');
+
+btnPublic.addEventListener('click', async () => {
+  btnPublic.disabled = true;
+  logPublic.textContent = '';
+
+  const user = auth.currentUser;
+  if (!user) {
+    logPublic.innerHTML = '<span class="err">Non connecté. Connectez-vous d\'abord sur /admin/ dans un autre onglet.</span>';
+    btnPublic.disabled = false;
+    return;
   }
+
+  logPublic.textContent += `Connecté en tant que ${user.email}\n\n`;
+
+  const col = collection(db, 'blocks');
+  const existing = await getDocs(query(col, orderBy('order')));
+  const alreadyPublic = existing.docs.filter(d => d.data().audience === 'public');
+  if (alreadyPublic.length > 0) {
+    logPublic.innerHTML += `<span class="err">⚠ ${alreadyPublic.length} bloc(s) public(s) existent déjà. Seed ignoré.</span>`;
+    btnPublic.disabled = false;
+    return;
+  }
+
+  const now = new Date().toISOString();
+  let ok = 0;
+  for (const block of PUBLIC_BLOCKS) {
+    try {
+      const ref = await addDoc(col, { ...block, createdAt: now, updatedAt: now });
+      logPublic.textContent += `✓ Bloc "${block.title_fr}" → ${ref.id}\n`;
+      ok++;
+    } catch (err) {
+      logPublic.innerHTML += `<span class="err">✗ Erreur sur "${block.title_fr}": ${err.message}</span>\n`;
+    }
+  }
+
+  logPublic.innerHTML += `\n<span class="${ok === PUBLIC_BLOCKS.length ? 'ok' : 'err'}">${ok}/${PUBLIC_BLOCKS.length} blocs créés.</span>`;
+  if (ok > 0) {
+    logPublic.textContent += '\n\nRetournez sur /admin/ → Blocs → Vue non connectée pour les voir.';
+  }
+  btnPublic.disabled = false;
 });
 </script>
 </body>

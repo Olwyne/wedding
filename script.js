@@ -459,13 +459,14 @@ function escapeHtml(str) {
     const all = cachedBlocks || [];
     const lang = state.lang;
 
-    // Invite site: all visible blocks (public + invite)
+    // Invite site: only audience === 'invite' blocks (or legacy blocks without audience)
+    const inviteBlocks = all.filter(b => !b.audience || b.audience === 'invite');
     const section = document.getElementById('blocks-section');
     const list = document.getElementById('blocks-list');
     list.innerHTML = '';
-    if (all.length) {
+    if (inviteBlocks.length) {
       section.hidden = false;
-      all.forEach(b => list.appendChild(buildBlockItem(b, lang)));
+      inviteBlocks.forEach(b => list.appendChild(buildBlockItem(b, lang)));
     } else {
       section.hidden = true;
     }
