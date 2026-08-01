@@ -1,12 +1,9 @@
 // admin/blocks.js
-import { db, storage } from '../firebase-init.js';
+import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc,
   query, orderBy, writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import {
-  ref, uploadBytes, getDownloadURL
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 const blocksCol = collection(db, 'blocks');
 
@@ -167,27 +164,13 @@ function renderBlockForm(block) {
   }
 
   if (type === 'image') {
-    const hasUrl = !!block?.image_url;
     return `
       ${common}
-      <fieldset style="border:none;padding:0;display:flex;flex-direction:column;gap:10px">
-        <legend style="font-size:14px;font-weight:600;margin-bottom:4px">Source image</legend>
-        <div style="display:flex;gap:20px">
-          <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer">
-            <input type="radio" name="img-source" value="url" ${hasUrl ? 'checked' : ''}> URL externe
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer">
-            <input type="radio" name="img-source" value="upload" ${!hasUrl ? 'checked' : ''}> Upload
-          </label>
-        </div>
-        <div id="img-url-field" ${hasUrl ? '' : 'hidden'} class="field">
-          <input id="block-image-url" value="${v('image_url')}" placeholder="https://…">
-        </div>
-        <div id="img-upload-field" ${hasUrl ? 'hidden' : ''} class="field">
-          <input type="file" id="block-image-file" accept="image/*">
-          <div id="img-existing-preview"></div>
-        </div>
-      </fieldset>
+      <label class="field">
+        <span>URL image</span>
+        <input id="block-image-url" value="${v('image_url')}" placeholder="https://…">
+      </label>
+      <div id="img-existing-preview"></div>
       <label class="field">
         <span>Alt FR <span style="color:var(--muted);font-weight:400">(accessibilité)</span></span>
         <input id="block-alt-fr" value="${v('alt_fr')}">
@@ -209,27 +192,14 @@ function renderBlockForm(block) {
   return '';
 }
 
-function attachImageToggle(panelEl) {
-  panelEl.querySelectorAll('input[name="img-source"]').forEach(radio => {
-    radio.addEventListener('change', () => {
-      const isUrl = panelEl.querySelector('input[name="img-source"]:checked').value === 'url';
-      panelEl.querySelector('#img-url-field').hidden = !isUrl;
-      panelEl.querySelector('#img-upload-field').hidden = isUrl;
-    });
-  });
-  const fileInput = panelEl.querySelector('#block-image-file');
-  if (fileInput) {
-    fileInput.addEventListener('change', () => {
-      const file = fileInput.files[0];
-      if (!file) return;
-      const existing = panelEl.querySelector('.image-preview');
-      if (existing) existing.remove();
-      const img = document.createElement('img');
-      img.className = 'image-preview';
-      img.src = URL.createObjectURL(file);
-      fileInput.parentElement.appendChild(img);
-    });
-  }
+function attachImagePreview(panelEl, imageUrl) {
+  if (!imageUrl) return;
+  const container = panelEl.querySelector('#img-existing-preview');
+  if (!container) return;
+  const img = document.createElement('img');
+  img.className = 'image-preview';
+  img.src = imageUrl;
+  container.appendChild(img);
 }
 
 function openBlockPanel(id, blocks) {
@@ -269,21 +239,10 @@ function openBlockPanel(id, blocks) {
         card.classList.add('selected');
         panelEl.querySelector('#panel-body').innerHTML =
           renderBlockForm({ type: card.dataset.type, visible: true });
-        attachImageToggle(panelEl);
       });
     });
   } else {
-    attachImageToggle(panelEl);
-    // Inject existing image preview via DOM API to avoid attribute injection
-    if (block?.type === 'image' && block?.image_url) {
-      const previewContainer = panelEl.querySelector('#img-existing-preview');
-      if (previewContainer) {
-        const img = document.createElement('img');
-        img.className = 'image-preview';
-        img.src = block.image_url;
-        previewContainer.appendChild(img);
-      }
-    }
+    attachImagePreview(panelEl, block?.image_url);
   }
 
   panelEl.querySelector('#panel-save').addEventListener('click', async () => {
@@ -322,21 +281,7 @@ async function saveBlock(id, blocks, panelEl) {
   }
 
   if (type === 'image') {
-    const imgSource = panelEl.querySelector('input[name="img-source"]:checked')?.value;
-    if (imgSource === 'url') {
-      data.image_url = get('#block-image-url');
-    } else {
-      const file = panelEl.querySelector('#block-image-file')?.files[0];
-      if (file) {
-        const storageRef = ref(storage, `blocks/${Date.now()}-${file.name}`);
-        const snap = await uploadBytes(storageRef, file);
-        data.image_url = await getDownloadURL(snap.ref);
-      } else if (id) {
-        data.image_url = blocks.find(b => b.id === id)?.image_url || '';
-      } else {
-        data.image_url = '';
-      }
-    }
+    data.image_url = get('#block-image-url');
     data.alt_fr = get('#block-alt-fr');
     data.alt_zh = get('#block-alt-zh');
     data.caption_fr = get('#block-caption-fr');
