@@ -70,7 +70,13 @@ export async function renderBlocksTab() {
   document.getElementById('section-action').innerHTML =
     '<button id="add-block-btn" class="btn-primary">+ Ajouter un bloc</button>';
 
-  const blocks = await loadBlocks();
+  let blocks;
+  try {
+    blocks = await loadBlocks();
+  } catch (err) {
+    panel.innerHTML = `<p style="padding:20px;color:var(--danger)">Erreur : ${escapeHtml(err.message)}</p>`;
+    return;
+  }
 
   panel.innerHTML = `
     <table class="admin-table">
