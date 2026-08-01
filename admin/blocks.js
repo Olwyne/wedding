@@ -40,6 +40,8 @@ function renderBlockRow(block, idx, total) {
   const typeLabel = block.type === 'text' ? 'TEXTE' : 'IMAGE';
   const typeClass = block.type === 'text' ? 'badge-text' : 'badge-image';
   const title = escapeHtml(block.title_fr || '(sans titre)');
+  const audLabel = block.audience === 'public' ? '🌐 Public' : '🔒 Invités';
+  const audClass = block.audience === 'public' ? 'badge-confirmed' : 'badge-pending';
   return `
     <tr>
       <td>
@@ -48,6 +50,7 @@ function renderBlockRow(block, idx, total) {
       </td>
       <td><span class="badge ${typeClass}">${typeLabel}</span></td>
       <td>${title}</td>
+      <td><span class="badge ${audClass}">${audLabel}</span></td>
       <td>
         <label class="toggle">
           <input type="checkbox" class="toggle-visible" data-id="${block.id}" ${block.visible ? 'checked' : ''}>
@@ -82,7 +85,7 @@ export async function renderBlocksTab() {
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Ordre</th><th>Type</th><th>Titre</th><th>Visible</th><th>Actions</th>
+          <th>Ordre</th><th>Type</th><th>Titre</th><th>Vue</th><th>Visible</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -138,6 +141,7 @@ function renderBlockForm(block) {
   const v = (key) => escapeHtml(block?.[key] || '');
   const checked = (key) => block?.[key] !== false ? 'checked' : '';
 
+  const audience = block?.audience || 'invite';
   const common = `
     <input type="hidden" id="block-type" value="${type}">
     <label class="field">
@@ -148,12 +152,19 @@ function renderBlockForm(block) {
       <span>Titre ZH</span>
       <input id="block-title-zh" value="${v('title_zh')}">
     </label>
-    <div class="field" style="flex-direction:row;align-items:center;gap:10px">
+    <div class="field" style="flex-direction:row;align-items:center;gap:10px;margin-bottom:0">
       <span>Visible sur le site</span>
       <label class="toggle">
         <input type="checkbox" id="block-visible" ${checked('visible')}>
         <span class="toggle-track"></span>
       </label>
+    </div>
+    <div class="field">
+      <span>Vue</span>
+      <select id="block-audience">
+        <option value="invite" ${audience === 'invite' ? 'selected' : ''}>🔒 Connectée — invités avec lien perso</option>
+        <option value="public" ${audience === 'public' ? 'selected' : ''}>🌐 Publique — visible sans lien</option>
+      </select>
     </div>`;
 
   if (type === 'text') {
@@ -278,6 +289,7 @@ async function saveBlock(id, blocks, panelEl) {
     title_fr: get('#block-title-fr'),
     title_zh: get('#block-title-zh'),
     visible: panelEl.querySelector('#block-visible')?.checked ?? true,
+    audience: get('#block-audience') || 'invite',
     updatedAt: now,
   };
 

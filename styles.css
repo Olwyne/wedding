@@ -283,3 +283,6 @@ input:focus,textarea:focus,select:focus{outline:none}
 .block-image { width: 100%; border-radius: 4px; display: block; }
 .block-caption { text-align: center; font-size: 13px; color: var(--taupe); margin-top: 8px; font-style: italic; }
 .block-caption-zh { font-family: 'Noto Serif SC', serif; }
+.blocks-list-teaser { max-width: 600px; margin: 48px auto 0; padding: 0 24px; gap: 36px; }
+.blocks-list-teaser .block-title { color: rgba(255,255,255,.85); font-size: clamp(16px,2.5vw,20px); }
+.blocks-list-teaser .block-content { color: rgba(255,255,255,.75); font-size: clamp(13px,1.8vw,15px); }

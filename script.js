@@ -423,50 +423,63 @@ function escapeHtml(str) {
     cachedBlocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   }
 
+  function buildBlockItem(block, lang) {
+    const item = document.createElement('div');
+    item.className = 'block-item';
+    const title = lang === 'zh'
+      ? (block.title_zh || block.title_fr || '')
+      : (block.title_fr || block.title_zh || '');
+    const titleHtml = title ? `<div class="block-title">${escapeHtml(title)}</div>` : '';
+    if (block.type === 'text') {
+      const content = lang === 'zh'
+        ? (block.content_zh || block.content_fr || '')
+        : (block.content_fr || block.content_zh || '');
+      item.innerHTML = `${titleHtml}${content ? `<p class="block-content">${escapeHtml(content)}</p>` : ''}`;
+    } else if (block.type === 'image') {
+      const alt = lang === 'zh' ? (block.alt_zh || block.alt_fr || '') : (block.alt_fr || block.alt_zh || '');
+      const caption = lang === 'zh' ? (block.caption_zh || block.caption_fr || '') : (block.caption_fr || block.caption_zh || '');
+      item.innerHTML = titleHtml;
+      const img = document.createElement('img');
+      img.className = 'block-image';
+      img.loading = 'lazy';
+      img.src = block.image_url || '';
+      img.alt = alt;
+      item.appendChild(img);
+      if (caption) {
+        const cap = document.createElement('p');
+        cap.className = 'block-caption';
+        cap.textContent = caption;
+        item.appendChild(cap);
+      }
+    }
+    return item;
+  }
+
   function applyBlocks() {
+    const all = cachedBlocks || [];
+    const lang = state.lang;
+
+    // Invite site: all visible blocks (public + invite)
     const section = document.getElementById('blocks-section');
     const list = document.getElementById('blocks-list');
-    const blocks = cachedBlocks || [];
-    if (!blocks.length) { section.hidden = true; return; }
-    section.hidden = false;
     list.innerHTML = '';
-    const lang = state.lang;
-    blocks.forEach(block => {
-      const item = document.createElement('div');
-      item.className = 'block-item';
-      const title = lang === 'zh'
-        ? (block.title_zh || block.title_fr || '')
-        : (block.title_fr || block.title_zh || '');
-      const titleHtml = title
-        ? `<div class="block-title">${escapeHtml(title)}</div>` : '';
-      if (block.type === 'text') {
-        const content = lang === 'zh'
-          ? (block.content_zh || block.content_fr || '')
-          : (block.content_fr || block.content_zh || '');
-        item.innerHTML = `${titleHtml}${content ? `<p class="block-content">${escapeHtml(content)}</p>` : ''}`;
-      } else if (block.type === 'image') {
-        const alt = lang === 'zh'
-          ? (block.alt_zh || block.alt_fr || '')
-          : (block.alt_fr || block.alt_zh || '');
-        const caption = lang === 'zh'
-          ? (block.caption_zh || block.caption_fr || '')
-          : (block.caption_fr || block.caption_zh || '');
-        item.innerHTML = titleHtml;
-        const img = document.createElement('img');
-        img.className = 'block-image';
-        img.loading = 'lazy';
-        img.src = block.image_url || '';
-        img.alt = alt;
-        item.appendChild(img);
-        if (caption) {
-          const cap = document.createElement('p');
-          cap.className = 'block-caption';
-          cap.textContent = caption;
-          item.appendChild(cap);
-        }
-      }
-      list.appendChild(item);
-    });
+    if (all.length) {
+      section.hidden = false;
+      all.forEach(b => list.appendChild(buildBlockItem(b, lang)));
+    } else {
+      section.hidden = true;
+    }
+
+    // Teaser (public): only audience === 'public' blocks
+    const publicList = document.getElementById('blocks-public');
+    const publicBlocks = all.filter(b => b.audience === 'public');
+    publicList.innerHTML = '';
+    if (publicBlocks.length) {
+      publicList.hidden = false;
+      publicBlocks.forEach(b => publicList.appendChild(buildBlockItem(b, lang)));
+    } else {
+      publicList.hidden = true;
+    }
   }
 
   function fullRender() {
