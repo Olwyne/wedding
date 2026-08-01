@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Seed Firestore — blocs</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 24px; }
+  button { padding: 12px 24px; background: #6E1A1A; color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; }
+  button:disabled { opacity: .5; }
+  pre { background: #f5f5f5; padding: 16px; border-radius: 6px; font-size: 13px; overflow-x: auto; }
+  .ok { color: #15803d; font-weight: 600; }
+  .err { color: #dc2626; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Seed blocs Firestore</h1>
+<p>Insère les blocs de contenu initiaux dans la collection <code>blocks</code>. À utiliser une seule fois.</p>
+<p><strong>⚠ Connectez-vous d'abord sur le <a href="/admin/">back-office</a> dans un autre onglet</strong> (auth requise pour écriture).</p>
+<button id="seed-btn">Insérer les blocs</button>
+<pre id="log">En attente…</pre>
+
+<script type="module">
+import { db, auth } from './firebase-init.js';
+import {
+  collection, addDoc, getDocs, query, orderBy
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+const log = document.getElementById('log');
+const btn = document.getElementById('seed-btn');
+
+const BLOCKS = [
+  {
+    type: 'text',
+    order: 1,
+    visible: false,
+    title_fr: 'Notre histoire',
+    title_zh: '我们的故事',
+    content_fr: "Nos chemins se sont croisés entre Paris et Shanghai, entre un café en terrasse et une tasse de thé. De cette rencontre est née une évidence, faite de tendresse, de rires et de deux familles qui n'attendaient qu'à se réunir.\n\nAujourd'hui, nous unissons nos vies — et nos traditions. Nous serions honorés de vous compter parmi nous pour célébrer ce jour. (Texte à personnaliser.)",
+    content_zh: "我们的缘分在巴黎与上海之间悄然开启——一杯露天咖啡，一盏清茶。自那一刻起，温柔、欢笑与两个家庭的期盼，让一切变得水到渠成。\n\n今天，我们携手共度余生，也将两种传统融为一体。诚挚期盼您的到来，与我们共同见证这美好的一天。（内容可自定义。）",
+  },
+  {
+    type: 'text',
+    order: 2,
+    visible: false,
+    title_fr: 'Dress code',
+    title_zh: '着装要求',
+    content_fr: "Tenue habillée et élégante souhaitée. Par respect des traditions de nos deux familles, merci d'éviter le rouge et le blanc/ivoire (réservés aux mariés) ainsi que le noir intégral. Une touche de couleur est la bienvenue !",
+    content_zh: "恳请着正式、优雅的服装。为尊重两个家庭的传统，敬请避免红色与白色/象牙色（新人专属）以及全黑装扮。欢迎点缀亮丽色彩！",
+  },
+  {
+    type: 'text',
+    order: 3,
+    visible: false,
+    title_fr: 'Liste de mariage',
+    title_zh: '礼物清单',
+    content_fr: "Si vous souhaitez nous gâter, une boîte sera prévue sur place le jour J pour recueillir vos petits mots et cadeaux. Votre présence reste le plus précieux des présents.",
+    content_zh: "若您愿意送上心意，当天现场将备有礼盒，收纳您的祝福与礼物。您的到来，已是最珍贵的礼物。",
+  },
+  {
+    type: 'text',
+    order: 4,
+    visible: false,
+    title_fr: 'Hébergement & navette',
+    title_zh: '住宿与接驳',
+    content_fr: "Quelques suggestions autour de Lognes et Marne-la-Vallée pour prolonger la fête sereinement.\n\nUne navette pourra être organisée entre la mairie de Lognes et le Domaine de la Pointe selon le nombre d'invités — précisez-le dans votre RSVP.",
+    content_zh: "为您推荐洛涅及马恩拉瓦莱周边的几处住宿，方便您安心欢聚。\n\n我们将视人数在洛涅市政厅与拉普安特庄园之间安排接驳车，请在回执中注明您的需求。",
+  },
+  {
+    type: 'text',
+    order: 5,
+    visible: false,
+    title_fr: 'Une question ?',
+    title_zh: '有疑问？',
+    content_fr: "N'hésitez pas à nous écrire pour toute question sur la journée, le transport ou l'hébergement.\n📧 sophie.ruiyuan@example.com\n☎ +33 6 00 00 00 00",
+    content_zh: "如有关于当天流程、交通或住宿的疑问，欢迎随时联系我们。\n📧 sophie.ruiyuan@example.com\n☎ +33 6 00 00 00 00",
+  },
+];
+
+btn.addEventListener('click', async () => {
+  btn.disabled = true;
+  log.textContent = '';
+
+  const user = auth.currentUser;
+  if (!user) {
+    log.innerHTML = '<span class="err">Non connecté. Connectez-vous d\'abord sur /admin/ dans un autre onglet.</span>';
+    btn.disabled = false;
+    return;
+  }
+
+  log.textContent += `Connecté en tant que ${user.email}\n\n`;
+
+  const col = collection(db, 'blocks');
+
+  // Check if already seeded
+  const existing = await getDocs(query(col, orderBy('order')));
+  if (existing.size > 0) {
+    log.innerHTML += `<span class="err">⚠ La collection contient déjà ${existing.size} bloc(s). Seed ignoré pour éviter les doublons.</span>`;
+    btn.disabled = false;
+    return;
+  }
+
+  const now = new Date().toISOString();
+  let ok = 0;
+  for (const block of BLOCKS) {
+    try {
+      const ref = await addDoc(col, { ...block, createdAt: now, updatedAt: now });
+      log.textContent += `✓ Bloc "${block.title_fr}" → ${ref.id}\n`;
+      ok++;
+    } catch (err) {
+      log.innerHTML += `<span class="err">✗ Erreur sur "${block.title_fr}": ${err.message}</span>\n`;
+    }
+  }
+
+  log.innerHTML += `\n<span class="${ok === BLOCKS.length ? 'ok' : 'err'}">${ok}/${BLOCKS.length} blocs créés.</span>`;
+  if (ok > 0) {
+    log.textContent += '\n\nRetournez sur /admin/ → Blocs pour les voir et les activer.';
+  }
+  btn.disabled = false;
+});
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    log.textContent = `✓ Auth détectée : ${user.email}\nCliquez sur le bouton pour insérer les blocs.`;
+  } else {
+    log.textContent = '⚠ Non connecté. Connectez-vous sur /admin/ dans un autre onglet, puis revenez ici.';
+  }
+});
+</script>
+</body>
+</html>
