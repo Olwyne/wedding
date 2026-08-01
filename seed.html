@@ -16,128 +16,101 @@
 <h1>Seed blocs Firestore</h1>
 <p><strong>⚠ Connectez-vous d'abord sur le <a href="/admin/">back-office</a> dans un autre onglet</strong> (auth requise pour écriture).</p>
 
-<h2 style="margin:28px 0 8px;font-size:16px">Vue connectée — blocs invités</h2>
-<p style="margin-bottom:12px;font-size:14px">10 blocs pour la page avec lien personnel (bannière, histoire, déroulé…). À utiliser une seule fois.</p>
-<button id="seed-btn">Insérer les blocs (Vue connectée)</button>
-<pre id="log">En attente…</pre>
-
-<h2 style="margin:28px 0 8px;font-size:16px">Vue non connectée — blocs publics</h2>
-<p style="margin-bottom:12px;font-size:14px">Blocs visibles sur la page publique (sans lien d'invitation) : kicker + message principal. À utiliser une seule fois.</p>
-<button id="seed-public-btn">Insérer les blocs (Vue non connectée)</button>
-<pre id="log-public">En attente…</pre>
+<h2 style="margin:28px 0 8px;font-size:16px">Sections structurées</h2>
+<p style="margin-bottom:12px;font-size:14px">Crée les 11 documents <code>sections/*</code> avec le texte actuellement affiché sur le site comme valeur initiale. À utiliser une seule fois.</p>
+<button id="seed-sections-btn">Insérer les sections</button>
+<pre id="log-sections">En attente…</pre>
 
 <script type="module">
 import { db, auth } from './firebase-init.js';
-import {
-  collection, addDoc, getDocs, query, orderBy
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { collection, doc, setDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-const log = document.getElementById('log');
-const btn = document.getElementById('seed-btn');
+const log = document.getElementById('log-sections');
+const btn = document.getElementById('seed-sections-btn');
 
-const BLOCKS = [
-  {
-    type: 'text',
-    order: 1,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Bannière',
-    title_zh: '横幅',
-    content_fr: "Sophie & Ruiyuan\n苏菲 & 瑞元\n\n24 · 07 · 2027 — Lognes, France\nUn mariage franco-chinois",
-    content_zh: "苏菲 & 瑞元\nSophie & Ruiyuan\n\n2027年7月24日 · 法国 · 洛涅\n中 · 法 喜结良缘",
+const SECTIONS = {
+  teaser: {
+    kicker_fr: 'Save the date', kicker_zh: '敬请留意',
+    message_fr: "Nous nous marions ! Les détails du programme sont réservés à nos invités. Si vous avez reçu une invitation, ouvrez le lien personnalisé qui l'accompagne pour découvrir la journée.",
+    message_zh: '我们要结婚啦！婚礼行程详情仅向受邀嘉宾开放。若您已收到邀请，请打开随附的专属链接，查看当天的完整安排。',
   },
-  {
-    type: 'text',
-    order: 2,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Notre histoire',
-    title_zh: '我们的故事',
-    content_fr: "Nos chemins se sont croisés entre Paris et Shanghai, entre un café en terrasse et une tasse de thé. De cette rencontre est née une évidence, faite de tendresse, de rires et de deux familles qui n'attendaient qu'à se réunir.\n\nAujourd'hui, nous unissons nos vies — et nos traditions. Nous serions honorés de vous compter parmi nous pour célébrer ce jour. (Texte à personnaliser.)",
-    content_zh: "我们的缘分在巴黎与上海之间悄然开启——一杯露天咖啡，一盏清茶。自那一刻起，温柔、欢笑与两个家庭的期盼，让一切变得水到渠成。\n\n今天，我们携手共度余生，也将两种传统融为一体。诚挚期盼您的到来，与我们共同见证这美好的一天。（内容可自定义。）",
+  hero: {
+    kicker_fr: 'Nous nous marions', kicker_zh: '我们结婚啦',
+    place_fr: 'Lognes, France', place_zh: '法国 · 洛涅',
+    fusion_fr: 'Un mariage franco-chinois', fusion_zh: '中 · 法 喜结良缘',
+    envInvite_fr: 'Vous êtes convié·e au mariage de', envInvite_zh: '诚邀您出席我们的婚礼',
+    envHint_fr: 'Touchez pour ouvrir votre faire-part', envHint_zh: '轻触开启您的请柬',
   },
-  {
-    type: 'text',
-    order: 3,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Le déroulé — La journée',
-    title_zh: '当日流程 — 婚礼当天',
-    content_fr: "Le programme ci-dessous correspond aux moments auxquels vous êtes convié·e.\n\n(Le programme détaillé est géré via l'onglet Événements du back-office.)",
-    content_zh: "以下行程为您受邀参加的环节。\n\n（详细流程请在后台「活动」标签中管理。）",
+  story: {
+    kicker_fr: 'Notre histoire', kicker_zh: '我们的故事',
+    title_fr: 'Deux cultures, une histoire', title_zh: '两种文化，一段情缘',
+    p1_fr: "Nos chemins se sont croisés entre Paris et Shanghai, entre un café en terrasse et une tasse de thé. De cette rencontre est née une évidence, faite de tendresse, de rires et de deux familles qui n'attendaient qu'à se réunir.",
+    p1_zh: '我们的缘分在巴黎与上海之间悄然开启——一杯露天咖啡，一盏清茶。自那一刻起，温柔、欢笑与两个家庭的期盼，让一切变得水到渠成。',
+    p2_fr: "Aujourd'hui, nous unissons nos vies — et nos traditions. Nous serions honorés de vous compter parmi nous pour célébrer ce jour. (Texte à personnaliser.)",
+    p2_zh: '今天，我们携手共度余生，也将两种传统融为一体。诚挚期盼您的到来，与我们共同见证这美好的一天。（内容可自定义。）',
   },
-  {
-    type: 'text',
-    order: 4,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Sur place — Informations pratiques',
-    title_zh: '场地信息 — 实用信息',
-    content_fr: "🏛 Cérémonie civile\nMairie de Lognes\nPlace de l'Hôtel de Ville, 77185 Lognes\n\n🍽 Réception\nDomaine de la Pointe\nAdresse à préciser — région de Lognes",
-    content_zh: "🏛 证婚仪式\n洛涅市政厅\n市政厅广场，77185 洛涅\n\n🍽 婚宴\n拉普安特庄园\n地址待定 — 洛涅地区",
+  programme: {
+    kicker_fr: 'Le déroulé', kicker_zh: '当日流程',
+    title_fr: 'La journée', title_zh: '婚礼当天',
+    subtitle_fr: "Le programme ci-dessous correspond aux moments auxquels vous êtes convié·e.", subtitle_zh: '以下行程为您受邀参加的环节。',
   },
-  {
-    type: 'text',
-    order: 5,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Hébergement & transport',
-    title_zh: '住宿与交通',
-    content_fr: "Quelques suggestions autour de Lognes et Marne-la-Vallée pour prolonger la fête sereinement.\n\n• Hôtel Marne-la-Vallée (4 km) — Confort moderne, idéal pour la nuit du samedi.\n• Ibis Noisy-le-Grand (6 km) — Option pratique et économique, RER A.\n• Maison d'hôtes de charme (8 km) — Séjour intimiste, à réserver tôt.\n\n🚌 Navette : Une navette pourra être organisée entre la mairie de Lognes et le Domaine de la Pointe selon le nombre d'invités — précisez-le dans votre RSVP.",
-    content_zh: "为您推荐洛涅及马恩拉瓦莱周边的几处住宿，方便您安心欢聚。\n\n• 马恩拉瓦莱酒店（4 公里）— 现代舒适，适合周六过夜。\n• 宜必思 Noisy-le-Grand（6 公里）— 实惠便捷，RER A 线交通便利。\n• 精品民宿（8 公里）— 私密住宿，建议尽早预订。\n\n🚌 接驳车：我们将视人数在洛涅市政厅与拉普安特庄园之间安排接驳车，请在回执中注明您的需求。",
+  infos: {
+    kicker_fr: 'Sur place', kicker_zh: '场地信息',
+    title_fr: 'Informations pratiques', title_zh: '实用信息',
+    mapBtnLabel_fr: 'Voir sur la carte', mapBtnLabel_zh: '查看地图',
+    places: [
+      { zh: '证婚', name_fr: 'Mairie de Lognes', name_zh: '洛涅市政厅', addr_fr: "Place de l'Hôtel de Ville, 77185 Lognes", addr_zh: '市政厅广场，77185 洛涅', mapUrl: 'https://www.google.com/maps/search/?api=1&query=Mairie+de+Lognes' },
+      { zh: '喜宴', name_fr: 'Domaine de la Pointe', name_zh: '拉普安特庄园', addr_fr: 'Adresse à préciser — région de Lognes', addr_zh: '地址待定 — 洛涅地区', mapUrl: 'https://www.google.com/maps/search/?api=1&query=Domaine+de+la+Pointe' },
+    ],
   },
-  {
-    type: 'text',
-    order: 6,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Répondez-nous — Confirmez votre présence',
-    title_zh: '恳请回复 — 确认出席',
-    content_fr: "Merci de répondre avant le 1er juin 2027. Cochez uniquement les moments auxquels vous participerez.\n\n(Le formulaire RSVP est disponible directement sur le site via votre lien d'invitation personnel.)",
-    content_zh: "烦请于 2027 年 6 月 1 日前回复。请仅勾选您将参加的环节。\n\n（RSVP 表单可通过您的专属邀请链接在网站上直接填写。）",
+  hebergement: {
+    kicker_fr: 'Où dormir', kicker_zh: '住宿',
+    title_fr: 'Hébergement & transport', title_zh: '住宿与交通',
+    intro_fr: 'Quelques suggestions autour de Lognes et Marne-la-Vallée pour prolonger la fête sereinement. (Exemples à ajuster.)',
+    intro_zh: '为您推荐洛涅及马恩拉瓦莱周边的几处住宿，方便您安心欢聚。（示例，可调整。）',
+    shuttle_fr: "Une navette pourra être organisée entre la mairie de Lognes et le Domaine de la Pointe selon le nombre d'invités — précisez-le dans votre RSVP.",
+    shuttle_zh: '我们将视人数在洛涅市政厅与拉普安特庄园之间安排接驳车，请在回执中注明您的需求。',
+    hotels: [
+      { tag_fr: '4 km', tag_zh: '4 公里', name_fr: 'Hôtel Marne-la-Vallée', name_zh: '马恩拉瓦莱酒店', desc_fr: 'Confort moderne à quelques minutes du Domaine, idéal pour la nuit du samedi. (Exemple.)', desc_zh: '现代舒适，距庄园仅数分钟，适合周六过夜。（示例。）' },
+      { tag_fr: '6 km', tag_zh: '6 公里', name_fr: 'Ibis Noisy-le-Grand', name_zh: '宜必思 Noisy-le-Grand', desc_fr: 'Option pratique et économique, bien desservie par le RER A. (Exemple.)', desc_zh: '实惠便捷，RER A 线交通便利。（示例。）' },
+      { tag_fr: '8 km', tag_zh: '8 公里', name_fr: "Maison d'hôtes de charme", name_zh: '精品民宿', desc_fr: 'Pour un séjour plus intimiste, à réserver tôt. (Exemple.)', desc_zh: '更为私密的住宿选择，建议尽早预订。（示例。）' },
+    ],
   },
-  {
-    type: 'text',
-    order: 7,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Liste de mariage',
-    title_zh: '婚礼礼单',
-    content_fr: "Votre présence, notre plus beau cadeau.\n\nSi vous souhaitez nous gâter, une boîte sera prévue sur place le jour J pour recueillir vos petits mots et cadeaux. Votre présence reste le plus précieux des présents.",
-    content_zh: "您的到来便是最好的礼物。\n\n若您愿意送上心意，当天现场将备有礼盒，收纳您的祝福与礼物。您的到来，已是最珍贵的礼物。",
+  rsvp: {
+    kicker_fr: 'Répondez-nous', kicker_zh: '恳请回复',
+    title_fr: 'Confirmez votre présence', title_zh: '确认出席',
+    intro_fr: "Merci de répondre avant le 1er juin 2027. Cochez uniquement les moments auxquels vous participerez.",
+    intro_zh: '烦请于 2027 年 6 月 1 日前回复。请仅勾选您将参加的环节。',
   },
-  {
-    type: 'text',
-    order: 8,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Dress code',
-    title_zh: '着装建议',
-    content_fr: "Tenue habillée et élégante souhaitée.\n\nPar respect des traditions de nos deux familles, merci d'éviter :\n🔴 Le rouge (réservé aux mariés côté chinois)\n🤍 Le blanc / ivoire (réservé aux mariés)\n🖤 Le noir intégral\n\nUne touche de couleur est la bienvenue !",
-    content_zh: "恳请着正式、优雅的服装。\n\n为尊重两个家庭的传统，敬请避免：\n🔴 红色（中方新人专属）\n🤍 白色 / 象牙色（新人专属）\n🖤 全黑装扮\n\n欢迎点缀亮丽色彩！",
+  gift: {
+    kicker_fr: 'Liste de mariage', kicker_zh: '婚礼礼单',
+    title_fr: 'Votre présence, notre plus beau cadeau', title_zh: '您的到来便是最好的礼物',
+    text_fr: "Si vous souhaitez nous gâter, une boîte sera prévue sur place le jour J pour recueillir vos petits mots et cadeaux. Votre présence reste le plus précieux des présents.",
+    text_zh: '若您愿意送上心意，当天现场将备有礼盒，收纳您的祝福与礼物。您的到来，已是最珍贵的礼物。',
   },
-  {
-    type: 'text',
-    order: 9,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Souvenirs — Galerie',
-    title_zh: '回忆 — 相册',
-    content_fr: "Déposez ici vos plus belles photos.\n\n(La galerie photo sera accessible après la journée pour partager vos souvenirs.)",
-    content_zh: "在此上传您最美的照片。\n\n（婚礼结束后，相册将开放供大家分享美好回忆。）",
+  dress: {
+    kicker_fr: 'Tenue', kicker_zh: '着装',
+    title_fr: 'Dress code', title_zh: '着装建议',
+    text_fr: "Tenue habillée et élégante souhaitée. Par respect des traditions de nos deux familles, merci d'éviter le rouge et le blanc/ivoire (réservés aux mariés) ainsi que le noir intégral. Une touche de couleur est la bienvenue !",
+    text_zh: '恳请着正式、优雅的服装。为尊重两个家庭的传统，敬请避免红色与白色/象牙色（新人专属）以及全黑装扮。欢迎点缀亮丽色彩！',
+    avoidColors: [
+      { hex: '#B03A2E', label_fr: 'Rouge', label_zh: '红色' },
+      { hex: '#FBF6EC', label_fr: 'Blanc / ivoire', label_zh: '白/象牙色' },
+      { hex: '#1a1a1a', label_fr: 'Noir intégral', label_zh: '全黑' },
+    ],
   },
-  {
-    type: 'text',
-    order: 10,
-    visible: false,
-    audience: 'invite',
-    title_fr: 'Une question ?',
-    title_zh: '有疑问吗？',
-    content_fr: "N'hésitez pas à nous écrire pour toute question sur la journée, le transport ou l'hébergement.\n\n📧 sophie.ruiyuan@example.com\n☎ +33 6 00 00 00 00",
-    content_zh: "关于当天行程、交通或住宿的任何问题，欢迎随时与我们联系。\n\n📧 sophie.ruiyuan@example.com\n☎ +33 6 00 00 00 00",
+  gallery: {
+    kicker_fr: 'Souvenirs', kicker_zh: '回忆',
+    title_fr: 'Galerie', title_zh: '相册',
+    hint_fr: 'Déposez ici vos plus belles photos.', hint_zh: '在此上传您最美的照片。',
   },
-];
+  contact: {
+    title_fr: 'Une question ?', title_zh: '有疑问吗？',
+    text_fr: "N'hésitez pas à nous écrire pour toute question sur la journée, le transport ou l'hébergement.",
+    text_zh: '关于当天行程、交通或住宿的任何问题，欢迎随时与我们联系。',
+  },
+};
 
 btn.addEventListener('click', async () => {
   btn.disabled = true;
@@ -149,102 +122,40 @@ btn.addEventListener('click', async () => {
     btn.disabled = false;
     return;
   }
-
   log.textContent += `Connecté en tant que ${user.email}\n\n`;
 
-  const col = collection(db, 'blocks');
-
-  // Check if already seeded
-  const existing = await getDocs(query(col, orderBy('order')));
+  const col = collection(db, 'sections');
+  const existing = await getDocs(col);
   if (existing.size > 0) {
-    log.innerHTML += `<span class="err">⚠ La collection contient déjà ${existing.size} bloc(s). Seed ignoré pour éviter les doublons.</span>`;
+    log.innerHTML += `<span class="err">⚠ La collection contient déjà ${existing.size} section(s). Seed ignoré pour éviter d'écraser des modifications.</span>`;
     btn.disabled = false;
     return;
   }
 
   const now = new Date().toISOString();
   let ok = 0;
-  for (const block of BLOCKS) {
+  const types = Object.keys(SECTIONS);
+  for (const type of types) {
     try {
-      const ref = await addDoc(col, { ...block, createdAt: now, updatedAt: now });
-      log.textContent += `✓ Bloc "${block.title_fr}" → ${ref.id}\n`;
+      await setDoc(doc(db, 'sections', type), { ...SECTIONS[type], visible: true, createdAt: now, updatedAt: now });
+      log.textContent += `✓ Section "${type}"\n`;
       ok++;
     } catch (err) {
-      log.innerHTML += `<span class="err">✗ Erreur sur "${block.title_fr}": ${err.message}</span>\n`;
+      log.innerHTML += `<span class="err">✗ Erreur sur "${type}": ${err.message}</span>\n`;
     }
   }
 
-  log.innerHTML += `\n<span class="${ok === BLOCKS.length ? 'ok' : 'err'}">${ok}/${BLOCKS.length} blocs créés.</span>`;
+  log.innerHTML += `\n<span class="${ok === types.length ? 'ok' : 'err'}">${ok}/${types.length} sections créées.</span>`;
   if (ok > 0) {
-    log.textContent += '\n\nRetournez sur /admin/ → Blocs pour les voir et les activer.';
+    log.textContent += '\n\nRetournez sur /admin/ → Sections pour les voir et les modifier.';
   }
   btn.disabled = false;
 });
 
 onAuthStateChanged(auth, user => {
-  const msg = user
-    ? `✓ Auth détectée : ${user.email}\nCliquez sur le bouton pour insérer les blocs.`
+  log.textContent = user
+    ? `✓ Auth détectée : ${user.email}\nCliquez sur le bouton pour insérer les sections.`
     : '⚠ Non connecté. Connectez-vous sur /admin/ dans un autre onglet, puis revenez ici.';
-  log.textContent = msg;
-  logPublic.textContent = msg;
-});
-
-// ── Blocs publics (Vue non connectée) ──
-const PUBLIC_BLOCKS = [
-  {
-    type: 'text',
-    order: 1,
-    visible: true,
-    audience: 'public',
-    title_fr: 'Save the date',
-    title_zh: '敬请留意',
-    content_fr: "Nous nous marions ! Les détails du programme sont réservés à nos invités. Si vous avez reçu une invitation, ouvrez le lien personnalisé qui l'accompagne pour découvrir la journée.",
-    content_zh: '我们要结婚啦！婚礼行程详情仅向受邀嘉宾开放。若您已收到邀请，请打开随附的专属链接，查看当天的完整安排。',
-  },
-];
-
-const btnPublic = document.getElementById('seed-public-btn');
-const logPublic = document.getElementById('log-public');
-
-btnPublic.addEventListener('click', async () => {
-  btnPublic.disabled = true;
-  logPublic.textContent = '';
-
-  const user = auth.currentUser;
-  if (!user) {
-    logPublic.innerHTML = '<span class="err">Non connecté. Connectez-vous d\'abord sur /admin/ dans un autre onglet.</span>';
-    btnPublic.disabled = false;
-    return;
-  }
-
-  logPublic.textContent += `Connecté en tant que ${user.email}\n\n`;
-
-  const col = collection(db, 'blocks');
-  const existing = await getDocs(query(col, orderBy('order')));
-  const alreadyPublic = existing.docs.filter(d => d.data().audience === 'public');
-  if (alreadyPublic.length > 0) {
-    logPublic.innerHTML += `<span class="err">⚠ ${alreadyPublic.length} bloc(s) public(s) existent déjà. Seed ignoré.</span>`;
-    btnPublic.disabled = false;
-    return;
-  }
-
-  const now = new Date().toISOString();
-  let ok = 0;
-  for (const block of PUBLIC_BLOCKS) {
-    try {
-      const ref = await addDoc(col, { ...block, createdAt: now, updatedAt: now });
-      logPublic.textContent += `✓ Bloc "${block.title_fr}" → ${ref.id}\n`;
-      ok++;
-    } catch (err) {
-      logPublic.innerHTML += `<span class="err">✗ Erreur sur "${block.title_fr}": ${err.message}</span>\n`;
-    }
-  }
-
-  logPublic.innerHTML += `\n<span class="${ok === PUBLIC_BLOCKS.length ? 'ok' : 'err'}">${ok}/${PUBLIC_BLOCKS.length} blocs créés.</span>`;
-  if (ok > 0) {
-    logPublic.textContent += '\n\nRetournez sur /admin/ → Blocs → Vue non connectée pour les voir.';
-  }
-  btnPublic.disabled = false;
 });
 </script>
 </body>
