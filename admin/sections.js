@@ -11,30 +11,32 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+let activeAudience = 'invite';
+
 const SECTION_TYPES = [
-  { id: 'teaser', label: 'Vue non connectée (Teaser)', fields: [
+  { id: 'teaser', label: 'Teaser', audience: 'public', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'message', label: 'Message', kind: 'textarea' },
     ] },
-  { id: 'hero', label: 'Hero', fields: [
+  { id: 'hero', label: 'Hero', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'place', label: 'Lieu', kind: 'text' },
       { key: 'fusion', label: 'Accroche fusion', kind: 'text' },
       { key: 'envInvite', label: 'Enveloppe — invitation', kind: 'text' },
       { key: 'envHint', label: 'Enveloppe — indice', kind: 'text' },
     ] },
-  { id: 'story', label: 'Histoire', fields: [
+  { id: 'story', label: 'Histoire', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'p1', label: 'Paragraphe 1', kind: 'textarea' },
       { key: 'p2', label: 'Paragraphe 2', kind: 'textarea' },
     ] },
-  { id: 'programme', label: 'Programme', fields: [
+  { id: 'programme', label: 'Programme', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'subtitle', label: 'Sous-titre', kind: 'textarea' },
     ] },
-  { id: 'infos', label: 'Infos pratiques', fields: [
+  { id: 'infos', label: 'Infos pratiques', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'mapBtnLabel', label: 'Libellé bouton carte', kind: 'text' },
@@ -44,7 +46,7 @@ const SECTION_TYPES = [
         { key: 'addr_fr', label: 'Adresse FR' }, { key: 'addr_zh', label: 'Adresse ZH' },
         { key: 'mapUrl', label: 'URL carte' },
       ] } },
-  { id: 'hebergement', label: 'Hébergement', fields: [
+  { id: 'hebergement', label: 'Hébergement', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'intro', label: 'Intro', kind: 'textarea' },
@@ -54,17 +56,17 @@ const SECTION_TYPES = [
         { key: 'name_fr', label: 'Nom FR' }, { key: 'name_zh', label: 'Nom ZH' },
         { key: 'desc_fr', label: 'Description FR' }, { key: 'desc_zh', label: 'Description ZH' },
       ] } },
-  { id: 'rsvp', label: 'RSVP', fields: [
+  { id: 'rsvp', label: 'RSVP', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'intro', label: 'Intro', kind: 'textarea' },
     ] },
-  { id: 'gift', label: 'Cadeaux', fields: [
+  { id: 'gift', label: 'Cadeaux', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
     ] },
-  { id: 'dress', label: 'Dress code', fields: [
+  { id: 'dress', label: 'Dress code', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
@@ -72,12 +74,12 @@ const SECTION_TYPES = [
         { key: 'hex', label: 'Couleur (hex)' },
         { key: 'label_fr', label: 'Libellé FR' }, { key: 'label_zh', label: 'Libellé ZH' },
       ] } },
-  { id: 'gallery', label: 'Galerie', fields: [
+  { id: 'gallery', label: 'Galerie', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'hint', label: 'Indice', kind: 'textarea' },
     ] },
-  { id: 'contact', label: 'Contact', fields: [
+  { id: 'contact', label: 'Contact', audience: 'invite', fields: [
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
     ] },
@@ -127,16 +129,36 @@ export async function renderSectionsTab() {
 
   document.getElementById('section-action').innerHTML = '';
 
+  const filtered = SECTION_TYPES.filter(def => def.audience === activeAudience);
+  const desc = activeAudience === 'invite'
+    ? 'Sections du site affiché aux invités ayant un lien personnel'
+    : 'Section affichée sur la page publique (sans lien d\'invitation)';
+
   panel.innerHTML = `
-    <p class="subtab-desc">Contenu structuré des 11 sections fixes du site (accueil public + site invité).</p>
+    <div class="subtab-nav">
+      <button class="subtab-btn ${activeAudience === 'invite' ? 'active' : ''}" data-aud="invite">
+        🔒 Vue connectée
+      </button>
+      <button class="subtab-btn ${activeAudience === 'public' ? 'active' : ''}" data-aud="public">
+        🌐 Vue non connectée
+      </button>
+    </div>
+    <p class="subtab-desc">${escapeHtml(desc)}</p>
     <table class="admin-table">
       <thead>
         <tr><th>Section</th><th>Visible</th><th>Actions</th></tr>
       </thead>
       <tbody>
-        ${SECTION_TYPES.map(def => renderSectionRow(def, sectionsMap[def.id])).join('')}
+        ${filtered.map(def => renderSectionRow(def, sectionsMap[def.id])).join('')}
       </tbody>
     </table>`;
+
+  panel.querySelectorAll('.subtab-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      activeAudience = btn.dataset.aud;
+      renderSectionsTab();
+    })
+  );
 
   panel.querySelectorAll('.toggle-visible').forEach(cb =>
     cb.addEventListener('change', async () => {

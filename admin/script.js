@@ -1,7 +1,7 @@
 // admin/script.js
 import { initAuth } from './auth.js';
 import { renderBlocksTab } from './blocks.js?v=2';
-import { renderSectionsTab } from './sections.js';
+import { renderSectionsTab } from './sections.js?v=2';
 import { renderGuestsTab } from './guests.js';
 import { renderEventsTab } from './events.js';
 
