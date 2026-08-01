@@ -77,6 +77,27 @@ function escapeHtml(str) {
     },
   };
 
+  const SECTION_TEXT_MAP = {
+    pubKicker: ['teaser', 'kicker'], pubMsg: ['teaser', 'message'],
+    heroKicker: ['hero', 'kicker'], heroPlace: ['hero', 'place'], heroFusion: ['hero', 'fusion'],
+    envInvite: ['hero', 'envInvite'], envHint: ['hero', 'envHint'],
+    storyKicker: ['story', 'kicker'], storyTitle: ['story', 'title'], storyP1: ['story', 'p1'], storyP2: ['story', 'p2'],
+    progKicker: ['programme', 'kicker'], progTitle: ['programme', 'title'], progSub: ['programme', 'subtitle'],
+    infoKicker: ['infos', 'kicker'], infoTitle: ['infos', 'title'], mapBtn: ['infos', 'mapBtnLabel'],
+    hotelKicker: ['hebergement', 'kicker'], hotelTitle: ['hebergement', 'title'], hotelIntro: ['hebergement', 'intro'], shuttle: ['hebergement', 'shuttle'],
+    rsvpKicker: ['rsvp', 'kicker'], rsvpTitle: ['rsvp', 'title'], rsvpIntro: ['rsvp', 'intro'],
+    giftKicker: ['gift', 'kicker'], giftTitle: ['gift', 'title'], giftText: ['gift', 'text'],
+    dressKicker: ['dress', 'kicker'], dressTitle: ['dress', 'title'], dressText: ['dress', 'text'],
+    galKicker: ['gallery', 'kicker'], galTitle: ['gallery', 'title'], galHint: ['gallery', 'hint'],
+    contactTitle: ['contact', 'title'], contactText: ['contact', 'text'],
+  };
+
+  const SECTION_DOM_ID = {
+    teaser: 'teaser', hero: 'top', story: 'histoire', programme: 'programme',
+    infos: 'infos', hebergement: 'hebergement', rsvp: 'rsvp', gift: 'cadeau',
+    dress: 'dresscode', gallery: 'galerie', contact: 'contact',
+  };
+
   const HOTELS = {
     fr: [
       { tag: '4 km', name: 'Hôtel Marne-la-Vallée', desc: "Confort moderne à quelques minutes du Domaine, idéal pour la nuit du samedi. (Exemple.)" },
@@ -204,12 +225,27 @@ function escapeHtml(str) {
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       if (L[key] !== undefined) el.textContent = L[key];
+      const map = SECTION_TEXT_MAP[key];
+      if (map) {
+        const [type, field] = map;
+        const suffix = state.lang === 'zh' ? '_zh' : '_fr';
+        const val = sectionsMap[type]?.[field + suffix];
+        if (val) el.textContent = val;
+      }
     });
     document.getElementById('lang-btn').textContent = L.langBtn;
     document.getElementById('lang-btn-teaser').textContent = L.langBtn;
     document.getElementById('r-name').placeholder = L.fNamePh;
     document.getElementById('r-diet').placeholder = L.fDietPh;
     document.getElementById('r-msg').placeholder = L.fMsgPh;
+  }
+
+  function applySectionVisibility() {
+    Object.entries(SECTION_DOM_ID).forEach(([type, id]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.hidden = sectionsMap[type]?.visible === false;
+    });
   }
 
   function renderNav() {
@@ -423,6 +459,14 @@ function escapeHtml(str) {
     cachedBlocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   }
 
+  let sectionsMap = {};
+
+  async function fetchSections() {
+    const snap = await getDocs(collection(db, 'sections'));
+    sectionsMap = {};
+    snap.docs.forEach(d => { sectionsMap[d.id] = d.data(); });
+  }
+
   function buildBlockItem(block, lang) {
     const item = document.createElement('div');
     item.className = 'block-item';
@@ -485,6 +529,7 @@ function escapeHtml(str) {
 
   function fullRender() {
     applyText();
+    applySectionVisibility();
     renderNav();
     renderProgramme();
     applyBlocks();
@@ -503,6 +548,7 @@ function escapeHtml(str) {
     await Promise.all([
       loadGuestData(),
       fetchBlocks().catch(err => console.error('fetchBlocks failed:', err)),
+      fetchSections().catch(err => console.error('fetchSections failed:', err)),
     ]);
     state.dataReady = true;
     showLoading(false);
