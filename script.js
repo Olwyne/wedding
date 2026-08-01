@@ -524,28 +524,14 @@ function escapeHtml(str) {
   function applyBlocks() {
     const all = cachedBlocks || [];
     const lang = state.lang;
-
-    // Invite site: only audience === 'invite' blocks (or legacy blocks without audience)
-    const inviteBlocks = all.filter(b => !b.audience || b.audience === 'invite');
     const section = document.getElementById('blocks-section');
     const list = document.getElementById('blocks-list');
     list.innerHTML = '';
-    if (inviteBlocks.length) {
+    if (all.length) {
       section.hidden = false;
-      inviteBlocks.forEach(b => list.appendChild(buildBlockItem(b, lang)));
+      all.forEach(b => list.appendChild(buildBlockItem(b, lang)));
     } else {
       section.hidden = true;
-    }
-
-    // Teaser (public): only audience === 'public' blocks
-    const publicList = document.getElementById('blocks-public');
-    const publicBlocks = all.filter(b => b.audience === 'public');
-    publicList.innerHTML = '';
-    if (publicBlocks.length) {
-      publicList.hidden = false;
-      publicBlocks.forEach(b => publicList.appendChild(buildBlockItem(b, lang)));
-    } else {
-      publicList.hidden = true;
     }
   }
 

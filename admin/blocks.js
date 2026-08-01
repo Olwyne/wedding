@@ -6,7 +6,6 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const blocksCol = collection(db, 'blocks');
-let activeAudience = 'invite';
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -76,25 +75,13 @@ export async function renderBlocksTab() {
     return;
   }
 
-  const filtered = allBlocks.filter(b => (b.audience || 'invite') === activeAudience);
+  const filtered = allBlocks;
 
   document.getElementById('section-action').innerHTML =
     '<button id="add-block-btn" class="btn-primary">+ Ajouter un bloc</button>';
 
-  const desc = activeAudience === 'invite'
-    ? 'Blocs visibles pour les invités ayant un lien personnel'
-    : 'Blocs visibles sur la page publique (sans lien d\'invitation)';
-
   panel.innerHTML = `
-    <div class="subtab-nav">
-      <button class="subtab-btn ${activeAudience === 'invite' ? 'active' : ''}" data-aud="invite">
-        🔒 Vue connectée
-      </button>
-      <button class="subtab-btn ${activeAudience === 'public' ? 'active' : ''}" data-aud="public">
-        🌐 Vue non connectée
-      </button>
-    </div>
-    <p class="subtab-desc">${escapeHtml(desc)}</p>
+    <p class="subtab-desc">Contenu additionnel affiché après le programme, sur le site invité.</p>
     <table class="admin-table">
       <thead>
         <tr>
@@ -108,15 +95,8 @@ export async function renderBlocksTab() {
       </tbody>
     </table>`;
 
-  panel.querySelectorAll('.subtab-btn').forEach(btn =>
-    btn.addEventListener('click', () => {
-      activeAudience = btn.dataset.aud;
-      renderBlocksTab();
-    })
-  );
-
   document.getElementById('add-block-btn').addEventListener('click', () =>
-    openBlockPanel(null, allBlocks, activeAudience)
+    openBlockPanel(null, allBlocks, 'invite')
   );
   panel.querySelectorAll('.btn-up').forEach(btn =>
     btn.addEventListener('click', () => moveBlock(filtered, Number(btn.dataset.idx), -1))
@@ -128,7 +108,7 @@ export async function renderBlocksTab() {
     cb.addEventListener('change', () => toggleVisible(cb.dataset.id, cb.checked))
   );
   panel.querySelectorAll('.btn-edit').forEach(btn =>
-    btn.addEventListener('click', () => openBlockPanel(btn.dataset.id, allBlocks, activeAudience))
+    btn.addEventListener('click', () => openBlockPanel(btn.dataset.id, allBlocks, 'invite'))
   );
   panel.querySelectorAll('.btn-delete').forEach(btn =>
     btn.addEventListener('click', async () => {
@@ -239,13 +219,10 @@ function openBlockPanel(id, allBlocks, audience) {
   const panelEl = document.createElement('div');
   panelEl.className = 'panel';
 
-  const audLabel = audience === 'public' ? '🌐 Vue non connectée' : '🔒 Vue connectée';
-
   panelEl.innerHTML = `
     <div class="panel-header">
       <div>
         <h3>${isNew ? 'Nouveau bloc' : 'Modifier le bloc'}</h3>
-        <p style="font-size:12px;color:var(--muted);margin-top:2px">${audLabel}</p>
       </div>
       <button class="btn-icon" id="panel-close">✕</button>
     </div>
