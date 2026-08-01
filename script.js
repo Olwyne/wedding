@@ -21,7 +21,6 @@ function escapeHtml(str) {
       langBtn: '中文',
       confirmPrefix: 'Nous avons hâte de vous retrouver pour : ',
       confirmNone: "C'est noté. Nous avons bien reçu votre réponse.",
-      navFull: [ ['Histoire','#histoire'], ['Programme','#programme'], ['Infos','#infos'], ['Séjour','#hebergement'], ['RSVP','#rsvp'], ['Cadeaux','#cadeau'], ['Galerie','#galerie'], ['Contact','#contact'] ],
     },
     zh: {
       cdD: '天', cdH: '时', cdM: '分', cdS: '秒', cdPassed: '大喜之日到啦！',
@@ -33,7 +32,6 @@ function escapeHtml(str) {
       langBtn: 'FR',
       confirmPrefix: '期待与您相聚于：',
       confirmNone: '已收到您的回复，谢谢！',
-      navFull: [ ['故事','#histoire'], ['流程','#programme'], ['信息','#infos'], ['住宿','#hebergement'], ['回执','#rsvp'], ['礼物','#cadeau'], ['相册','#galerie'], ['联系','#contact'] ],
     },
   };
 
@@ -42,6 +40,14 @@ function escapeHtml(str) {
     const fr = block[`${key}_fr`], zh = block[`${key}_zh`];
     return (lang === 'zh' ? (zh || fr) : (fr || zh)) || '';
   }
+
+  // Block types that get a nav link, mapped to the DOM id their builder assigns.
+  // hero/teaser are excluded (hero = top of page, teaser = public-only, no #site nav).
+  const TYPE_TO_ANCHOR = {
+    story: 'histoire', programme: 'programme', infos: 'infos',
+    hebergement: 'hebergement', rsvp: 'rsvp', gift: 'cadeau',
+    dress: 'dresscode', gallery: 'galerie', contact: 'contact',
+  };
 
   const state = {
     lang: 'fr',
@@ -147,20 +153,25 @@ function escapeHtml(str) {
   }
 
   function renderNav() {
-    const L = T[state.lang];
+    const lang = state.lang;
     const navlinks = document.getElementById('navlinks');
     const mobileLinks = document.getElementById('mobile-menu-links');
     navlinks.innerHTML = '';
     mobileLinks.innerHTML = '';
-    L.navFull.forEach(([label, href]) => {
-      const a = document.createElement('a');
-      a.href = href; a.textContent = label;
-      navlinks.appendChild(a);
-      const a2 = document.createElement('a');
-      a2.href = href; a2.textContent = label;
-      a2.addEventListener('click', closeMenu);
-      mobileLinks.appendChild(a2);
-    });
+    (cachedBlocks || [])
+      .filter(b => b.audience !== 'public' && TYPE_TO_ANCHOR[b.type])
+      .forEach(b => {
+        const label = bf(b, 'kicker', lang) || bf(b, 'title', lang);
+        if (!label) return;
+        const href = '#' + TYPE_TO_ANCHOR[b.type];
+        const a = document.createElement('a');
+        a.href = href; a.textContent = label;
+        navlinks.appendChild(a);
+        const a2 = document.createElement('a');
+        a2.href = href; a2.textContent = label;
+        a2.addEventListener('click', closeMenu);
+        mobileLinks.appendChild(a2);
+      });
   }
 
   function closeMenu() {
