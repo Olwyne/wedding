@@ -93,7 +93,7 @@ function escapeHtml(str) {
   };
 
   const SECTION_DOM_ID = {
-    teaser: 'teaser', hero: 'top', story: 'histoire', programme: 'programme',
+    hero: 'top', story: 'histoire', programme: 'programme',
     infos: 'infos', hebergement: 'hebergement', rsvp: 'rsvp', gift: 'cadeau',
     dress: 'dresscode', gallery: 'galerie', contact: 'contact',
   };
