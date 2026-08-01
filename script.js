@@ -414,37 +414,43 @@ function escapeHtml(str) {
     renderRsvpFormState();
   });
 
-  async function renderBlocks() {
+  let cachedBlocks = null;
+
+  async function fetchBlocks() {
     const snap = await getDocs(
       query(collection(db, 'blocks'), where('visible', '==', true), orderBy('order'))
     );
-    const blocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    cachedBlocks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+
+  function applyBlocks() {
     const section = document.getElementById('blocks-section');
     const list = document.getElementById('blocks-list');
+    const blocks = cachedBlocks || [];
     if (!blocks.length) { section.hidden = true; return; }
     section.hidden = false;
     list.innerHTML = '';
+    const lang = state.lang;
     blocks.forEach(block => {
       const item = document.createElement('div');
       item.className = 'block-item';
-      const lang = state.lang;
-      const titleFr = escapeHtml(block.title_fr || '');
-      const titleZh = escapeHtml(block.title_zh || '');
-      const titleHtml = (titleFr || titleZh) ? `
-        <div class="block-title">
-          ${titleFr}
-          ${titleZh ? `<span class="block-title-zh">${titleZh}</span>` : ''}
-        </div>` : '';
+      const title = lang === 'zh'
+        ? (block.title_zh || block.title_fr || '')
+        : (block.title_fr || block.title_zh || '');
+      const titleHtml = title
+        ? `<div class="block-title">${escapeHtml(title)}</div>` : '';
       if (block.type === 'text') {
-        const contentFr = escapeHtml(block.content_fr || '');
-        const contentZh = escapeHtml(block.content_zh || '');
-        item.innerHTML = `
-          ${titleHtml}
-          ${contentFr ? `<p class="block-content">${contentFr}</p>` : ''}
-          ${contentZh ? `<p class="block-content-zh">${contentZh}</p>` : ''}`;
+        const content = lang === 'zh'
+          ? (block.content_zh || block.content_fr || '')
+          : (block.content_fr || block.content_zh || '');
+        item.innerHTML = `${titleHtml}${content ? `<p class="block-content">${escapeHtml(content)}</p>` : ''}`;
       } else if (block.type === 'image') {
-        const alt = lang === 'zh' ? (block.alt_zh || block.alt_fr || '') : (block.alt_fr || '');
-        const caption = lang === 'zh' ? block.caption_zh : block.caption_fr;
+        const alt = lang === 'zh'
+          ? (block.alt_zh || block.alt_fr || '')
+          : (block.alt_fr || block.alt_zh || '');
+        const caption = lang === 'zh'
+          ? (block.caption_zh || block.caption_fr || '')
+          : (block.caption_fr || block.caption_zh || '');
         item.innerHTML = titleHtml;
         const img = document.createElement('img');
         img.className = 'block-image';
@@ -454,7 +460,7 @@ function escapeHtml(str) {
         item.appendChild(img);
         if (caption) {
           const cap = document.createElement('p');
-          cap.className = `block-caption${lang === 'zh' ? ' block-caption-zh' : ''}`;
+          cap.className = 'block-caption';
           cap.textContent = caption;
           item.appendChild(cap);
         }
@@ -467,7 +473,7 @@ function escapeHtml(str) {
     applyText();
     renderNav();
     renderProgramme();
-    renderBlocks().catch(err => console.error('renderBlocks failed:', err));
+    applyBlocks();
     renderRsvpEvents();
     renderPlaces();
     renderHotels();
@@ -480,7 +486,10 @@ function escapeHtml(str) {
 
   async function init() {
     showLoading(true);
-    await loadGuestData();
+    await Promise.all([
+      loadGuestData(),
+      fetchBlocks().catch(err => console.error('fetchBlocks failed:', err)),
+    ]);
     state.dataReady = true;
     showLoading(false);
 
