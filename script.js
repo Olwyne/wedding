@@ -83,7 +83,7 @@ function escapeHtml(str) {
     envInvite: ['hero', 'envInvite'], envHint: ['hero', 'envHint'],
     storyKicker: ['story', 'kicker'], storyTitle: ['story', 'title'], storyP1: ['story', 'p1'], storyP2: ['story', 'p2'],
     progKicker: ['programme', 'kicker'], progTitle: ['programme', 'title'], progSub: ['programme', 'subtitle'],
-    infoKicker: ['infos', 'kicker'], infoTitle: ['infos', 'title'], mapBtn: ['infos', 'mapBtnLabel'],
+    infoKicker: ['infos', 'kicker'], infoTitle: ['infos', 'title'],
     hotelKicker: ['hebergement', 'kicker'], hotelTitle: ['hebergement', 'title'], hotelIntro: ['hebergement', 'intro'], shuttle: ['hebergement', 'shuttle'],
     rsvpKicker: ['rsvp', 'kicker'], rsvpTitle: ['rsvp', 'title'], rsvpIntro: ['rsvp', 'intro'],
     giftKicker: ['gift', 'kicker'], giftTitle: ['gift', 'title'], giftText: ['gift', 'text'],
@@ -319,14 +319,23 @@ function escapeHtml(str) {
     const L = T[state.lang];
     const grid = document.getElementById('places-grid');
     grid.innerHTML = '';
-    PLACES[state.lang].forEach(pl => {
+    const mapBtnLabel = sectionsMap.infos?.[state.lang === 'zh' ? 'mapBtnLabel_zh' : 'mapBtnLabel_fr'] || L.mapBtn;
+    const items = sectionsMap.infos?.places?.length
+      ? sectionsMap.infos.places.map(p => ({
+          zh: p.zh,
+          name: state.lang === 'zh' ? (p.name_zh || p.name_fr) : (p.name_fr || p.name_zh),
+          addr: state.lang === 'zh' ? (p.addr_zh || p.addr_fr) : (p.addr_fr || p.addr_zh),
+          map: p.mapUrl,
+        }))
+      : PLACES[state.lang];
+    items.forEach(pl => {
       const card = document.createElement('div');
       card.className = 'place-card';
       card.innerHTML = `
         <div class="cal place-zh">${pl.zh}</div>
         <h3 class="place-name">${pl.name}</h3>
         <p class="place-addr">${pl.addr}</p>
-        <a href="${pl.map}" target="_blank" rel="noopener" class="place-map-btn">${L.mapBtn}</a>`;
+        <a href="${pl.map}" target="_blank" rel="noopener" class="place-map-btn">${mapBtnLabel}</a>`;
       grid.appendChild(card);
     });
   }
@@ -334,7 +343,14 @@ function escapeHtml(str) {
   function renderHotels() {
     const grid = document.getElementById('hotels-grid');
     grid.innerHTML = '';
-    HOTELS[state.lang].forEach(h => {
+    const items = sectionsMap.hebergement?.hotels?.length
+      ? sectionsMap.hebergement.hotels.map(h => ({
+          tag: state.lang === 'zh' ? (h.tag_zh || h.tag_fr) : (h.tag_fr || h.tag_zh),
+          name: state.lang === 'zh' ? (h.name_zh || h.name_fr) : (h.name_fr || h.name_zh),
+          desc: state.lang === 'zh' ? (h.desc_zh || h.desc_fr) : (h.desc_fr || h.desc_zh),
+        }))
+      : HOTELS[state.lang];
+    items.forEach(h => {
       const card = document.createElement('div');
       card.className = 'hotel-card';
       card.innerHTML = `
@@ -349,7 +365,13 @@ function escapeHtml(str) {
     const L = T[state.lang];
     const wrap = document.getElementById('avoid-colors');
     wrap.innerHTML = '';
-    L.avoid.forEach(c => {
+    const items = sectionsMap.dress?.avoidColors?.length
+      ? sectionsMap.dress.avoidColors.map(c => ({
+          hex: c.hex,
+          label: state.lang === 'zh' ? (c.label_zh || c.label_fr) : (c.label_fr || c.label_zh),
+        }))
+      : L.avoid;
+    items.forEach(c => {
       const chip = document.createElement('span');
       chip.className = 'avoid-chip';
       chip.innerHTML = `<span class="avoid-swatch" style="background:${c.hex}"></span>${c.label}`;
