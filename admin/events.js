@@ -5,6 +5,7 @@ import {
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
+import { sanitizeHtml, mountRichEditor } from './richtext.js';
 
 const eventsCol = collection(db, 'events');
 
@@ -98,8 +99,8 @@ function openEventPanel(id, events) {
       <label class="field"><span>Titre ZH</span><input id="ev-title-zh" value="${v('title_zh')}" required></label>
       <label class="field"><span>Lieu FR</span><input id="ev-place-fr" value="${v('place_fr')}" required></label>
       <label class="field"><span>Lieu ZH</span><input id="ev-place-zh" value="${v('place_zh')}" required></label>
-      <label class="field"><span>Description FR</span><textarea id="ev-desc-fr" rows="3">${v('desc_fr')}</textarea></label>
-      <label class="field"><span>Description ZH</span><textarea id="ev-desc-zh" rows="3">${v('desc_zh')}</textarea></label>
+      <label class="field"><span>Description FR</span><div class="rich-editor-mount" id="ev-desc-fr-mount"></div></label>
+      <label class="field"><span>Description ZH</span><div class="rich-editor-mount" id="ev-desc-zh-mount"></div></label>
     </div>
     <div class="panel-footer">
       <button class="btn-primary" id="panel-save">${isNew ? 'Créer' : 'Enregistrer'}</button>
@@ -108,6 +109,9 @@ function openEventPanel(id, events) {
 
   document.body.appendChild(overlay);
   document.body.appendChild(panelEl);
+
+  const descFrEditor = mountRichEditor(panelEl.querySelector('#ev-desc-fr-mount'), ev?.desc_fr || '');
+  const descZhEditor = mountRichEditor(panelEl.querySelector('#ev-desc-zh-mount'), ev?.desc_zh || '');
 
   function close() { overlay.remove(); panelEl.remove(); renderEventsTab(); }
   panelEl.querySelector('#panel-close').addEventListener('click', close);
@@ -125,8 +129,8 @@ function openEventPanel(id, events) {
       title_zh: get('#ev-title-zh'),
       place_fr: get('#ev-place-fr'),
       place_zh: get('#ev-place-zh'),
-      desc_fr: get('#ev-desc-fr'),
-      desc_zh: get('#ev-desc-zh'),
+      desc_fr: sanitizeHtml(descFrEditor.getHtml()),
+      desc_zh: sanitizeHtml(descZhEditor.getHtml()),
     };
     if (id) {
       await updateDoc(doc(db, 'events', id), data);
