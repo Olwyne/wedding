@@ -35,6 +35,15 @@ button{cursor:pointer;font-family:inherit}
 .field input,.field textarea,.field select{padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s}
 .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,26,26,.1)}
 .field textarea{resize:vertical;min-height:80px}
+.rich-editor-toolbar{display:flex;gap:4px;margin-bottom:6px}
+.rich-editor-btn{background:#fff;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:13px;font-weight:600;color:var(--text)}
+.rich-editor-btn:hover{background:#f9fafb;border-color:#d1d5db}
+.rich-editor-content{padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;color:var(--text);min-height:80px;transition:border-color .15s,box-shadow .15s}
+.rich-editor-content:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,26,26,.1)}
+.rich-editor-content p{margin-bottom:8px}
+.rich-editor-content p:last-child{margin-bottom:0}
+.rich-editor-content ul{margin:0 0 8px 20px}
+.rich-editor-content ul:last-child{margin-bottom:0}
 .login-form .btn-primary{margin-top:18px}
 
 /* ── Buttons ── */
