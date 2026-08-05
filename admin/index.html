@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Back office — Sophie &amp; Ruiyuan</title>
-<link rel="stylesheet" href="styles.css?v=8">
+<link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
 
@@ -39,17 +39,21 @@
       <button class="nav-item active" data-section="dashboard">
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg></span> Accueil
       </button>
-      <button class="nav-item" data-section="blocks">
+      <button class="nav-item" data-section="blocks" hidden>
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span> Blocs
       </button>
-      <button class="nav-item" data-section="guests">
+      <button class="nav-item" data-section="guests" hidden>
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Invités
       </button>
-      <button class="nav-item" data-section="events">
+      <button class="nav-item" data-section="events" hidden>
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> Événements
+      </button>
+      <button class="nav-item" data-section="users" hidden>
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg></span> Utilisateurs
       </button>
     </nav>
     <div class="sidebar-footer">
+      <button id="account-btn" class="btn-secondary sidebar-logout">Mon compte</button>
       <button id="logout-btn" class="btn-secondary sidebar-logout">Se déconnecter</button>
     </div>
   </aside>
@@ -63,10 +67,11 @@
       <div id="tab-blocks" class="tab-panel" hidden></div>
       <div id="tab-guests" class="tab-panel" hidden></div>
       <div id="tab-events" class="tab-panel" hidden></div>
+      <div id="tab-users" class="tab-panel" hidden></div>
     </div>
   </main>
 </div>
 
-<script type="module" src="script.js?v=8"></script>
+<script type="module" src="script.js?v=9"></script>
 </body>
 </html>
