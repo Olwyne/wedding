@@ -24,6 +24,10 @@
 
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none !important}
+.rich-text p{margin-bottom:.6em}
+.rich-text p:last-child{margin-bottom:0}
+.rich-text ul{margin:0 0 .6em 1.25em}
+.rich-text ul:last-child{margin-bottom:0}
 html{scroll-behavior:smooth}
 body{background:var(--cream);color:var(--ink);font-family:'EB Garamond',serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 ::selection{background:var(--red);color:var(--cream)}
