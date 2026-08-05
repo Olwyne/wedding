@@ -173,3 +173,8 @@ button{cursor:pointer;font-family:inherit}
 .section-list-item{border:1px solid var(--border);border-radius:8px;padding:12px;position:relative;display:flex;flex-direction:column;gap:8px}
 .section-list-item .btn-remove-item{position:absolute;top:4px;right:4px}
 .section-list-add{align-self:flex-start}
+
+/* ── Utilisateurs / Mon compte ── */
+.password-reveal{display:flex;align-items:center;gap:8px}
+.password-reveal code{flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-family:ui-monospace,monospace;background:#f9fafb}
+.sidebar-footer .sidebar-logout + .sidebar-logout{margin-top:6px}
