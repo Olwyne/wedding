@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seed compte admin — Sophie &amp; Ruiyuan</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="login-screen" class="login-screen">
+  <form id="login-form" class="login-form">
+    <h1>Connexion requise</h1>
+    <label class="field"><span>Email</span><input id="login-email" type="email" required></label>
+    <label class="field"><span>Mot de passe</span><input id="login-password" type="password" required></label>
+    <p id="login-error" class="login-error" hidden></p>
+    <button type="submit" class="btn-primary">Se connecter</button>
+  </form>
+</div>
+
+<div id="dashboard" class="dashboard" hidden>
+  <header class="topbar">
+    <h1>Seed compte admin (usage unique)</h1>
+    <button id="logout-btn" class="btn-secondary">Se déconnecter</button>
+  </header>
+  <button id="seed-btn" class="btn-primary">Créer mon compte admin (accès complet)</button>
+  <pre id="seed-log" class="seed-log"></pre>
+</div>
+
+<script type="module" src="seed-admin.js"></script>
+</body>
+</html>
