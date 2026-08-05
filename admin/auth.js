@@ -1,6 +1,7 @@
 // admin/auth.js
 import { auth } from '../firebase-init.js';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { loadPermissions } from './permissions.js';
 
 export function initAuth({ onSignedIn, onSignedOut }) {
   const loginScreen = document.getElementById('login-screen');
@@ -24,8 +25,9 @@ export function initAuth({ onSignedIn, onSignedOut }) {
 
   logoutBtn.addEventListener('click', () => signOut(auth));
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
+      await loadPermissions(user.uid);
       loginScreen.hidden = true;
       dashboard.hidden = false;
       onSignedIn(user);
