@@ -4,6 +4,7 @@ import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc,
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { canWrite } from './permissions.js';
 
 const eventsCol = collection(db, 'events');
 
@@ -23,8 +24,10 @@ export async function renderEventsTab() {
   const panel = document.getElementById('tab-events');
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
 
-  document.getElementById('section-action').innerHTML =
-    '<button id="add-event-btn" class="btn-primary">+ Ajouter un événement</button>';
+  const editable = canWrite('events');
+  document.getElementById('section-action').innerHTML = editable
+    ? '<button id="add-event-btn" class="btn-primary">+ Ajouter un événement</button>'
+    : '';
 
   const events = await loadEvents();
 
@@ -41,29 +44,31 @@ export async function renderEventsTab() {
             <td>${escapeHtml(ev.title_zh)}</td>
             <td>${escapeHtml(ev.time_fr)}</td>
             <td>${escapeHtml(ev.place_fr)}</td>
-            <td>
-              <div class="table-actions">
-                <button class="btn-secondary btn-edit-event" data-id="${ev.id}">Modifier</button>
-                <button class="btn-danger btn-delete-event" data-id="${ev.id}">Supprimer</button>
-              </div>
-            </td>
+            <td>${editable
+              ? `<div class="table-actions">
+                   <button class="btn-secondary btn-edit-event" data-id="${ev.id}">Modifier</button>
+                   <button class="btn-danger btn-delete-event" data-id="${ev.id}">Supprimer</button>
+                 </div>`
+              : ''}</td>
           </tr>`).join('')}
       </tbody>
     </table>`;
 
-  document.getElementById('add-event-btn').addEventListener('click', () =>
-    openEventPanel(null, events)
-  );
-  panel.querySelectorAll('.btn-edit-event').forEach(btn =>
-    btn.addEventListener('click', () => openEventPanel(btn.dataset.id, events))
-  );
-  panel.querySelectorAll('.btn-delete-event').forEach(btn =>
-    btn.addEventListener('click', async () => {
-      if (!confirm('Supprimer cet événement ?')) return;
-      await deleteDoc(doc(db, 'events', btn.dataset.id));
-      renderEventsTab();
-    })
-  );
+  if (editable) {
+    document.getElementById('add-event-btn').addEventListener('click', () =>
+      openEventPanel(null, events)
+    );
+    panel.querySelectorAll('.btn-edit-event').forEach(btn =>
+      btn.addEventListener('click', () => openEventPanel(btn.dataset.id, events))
+    );
+    panel.querySelectorAll('.btn-delete-event').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer cet événement ?')) return;
+        await deleteDoc(doc(db, 'events', btn.dataset.id));
+        renderEventsTab();
+      })
+    );
+  }
 }
 
 function openEventPanel(id, events) {

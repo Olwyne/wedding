@@ -4,6 +4,7 @@ import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc,
   query, orderBy, writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { canWrite } from './permissions.js';
 
 const blocksCol = collection(db, 'blocks');
 let activeAudience = 'invite';
@@ -121,31 +122,34 @@ async function toggleVisible(id, value) {
   });
 }
 
-function renderBlockRow(block, idx, total) {
+function renderBlockRow(block, idx, total, editable) {
   const def = TYPE_DEFS[block.type] || { label: block.type };
   const title = (block.type === 'text' || block.type === 'image')
     ? escapeHtml(block.title_fr || '(sans titre)')
     : escapeHtml(def.label);
+  const moveCell = editable
+    ? `<button class="btn-icon btn-up" data-idx="${idx}" ${idx === 0 ? 'disabled' : ''}>↑</button>
+       <button class="btn-icon btn-down" data-idx="${idx}" ${idx === total - 1 ? 'disabled' : ''}>↓</button>`
+    : '';
+  const visibleCell = editable
+    ? `<label class="toggle">
+         <input type="checkbox" class="toggle-visible" data-id="${block.id}" ${block.visible ? 'checked' : ''}>
+         <span class="toggle-track"></span>
+       </label>`
+    : `<span class="badge ${block.visible ? 'badge-confirmed' : 'badge-declined'}">${block.visible ? 'Oui' : 'Non'}</span>`;
+  const actionsCell = editable
+    ? `<div class="table-actions">
+         <button class="btn-secondary btn-edit" data-id="${block.id}">Modifier</button>
+         <button class="btn-danger btn-delete" data-id="${block.id}">Supprimer</button>
+       </div>`
+    : '';
   return `
     <tr>
-      <td>
-        <button class="btn-icon btn-up" data-idx="${idx}" ${idx === 0 ? 'disabled' : ''}>↑</button>
-        <button class="btn-icon btn-down" data-idx="${idx}" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
-      </td>
+      <td>${moveCell}</td>
       <td><span class="badge">${escapeHtml(def.label)}</span></td>
       <td>${title}</td>
-      <td>
-        <label class="toggle">
-          <input type="checkbox" class="toggle-visible" data-id="${block.id}" ${block.visible ? 'checked' : ''}>
-          <span class="toggle-track"></span>
-        </label>
-      </td>
-      <td>
-        <div class="table-actions">
-          <button class="btn-secondary btn-edit" data-id="${block.id}">Modifier</button>
-          <button class="btn-danger btn-delete" data-id="${block.id}">Supprimer</button>
-        </div>
-      </td>
+      <td>${visibleCell}</td>
+      <td>${actionsCell}</td>
     </tr>`;
 }
 
@@ -161,10 +165,12 @@ export async function renderBlocksTab() {
     return;
   }
 
+  const editable = canWrite('blocks');
   const filtered = allBlocks.filter(b => (b.audience || 'invite') === activeAudience);
 
-  document.getElementById('section-action').innerHTML =
-    '<button id="add-block-btn" class="btn-primary">+ Ajouter un bloc</button>';
+  document.getElementById('section-action').innerHTML = editable
+    ? '<button id="add-block-btn" class="btn-primary">+ Ajouter un bloc</button>'
+    : '';
 
   const desc = activeAudience === 'invite'
     ? 'Blocs affichés sur le site invité (lien personnel), dans cet ordre.'
@@ -188,7 +194,7 @@ export async function renderBlocksTab() {
       </thead>
       <tbody>
         ${filtered.length
-          ? filtered.map((b, i) => renderBlockRow(b, i, filtered.length)).join('')
+          ? filtered.map((b, i) => renderBlockRow(b, i, filtered.length, editable)).join('')
           : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:40px">Aucun bloc — ajoutez-en un !</td></tr>'}
       </tbody>
     </table>`;
@@ -200,28 +206,30 @@ export async function renderBlocksTab() {
     })
   );
 
-  document.getElementById('add-block-btn').addEventListener('click', () =>
-    openBlockPanel(null, allBlocks, activeAudience)
-  );
-  panel.querySelectorAll('.btn-up').forEach(btn =>
-    btn.addEventListener('click', () => moveBlock(filtered, Number(btn.dataset.idx), -1))
-  );
-  panel.querySelectorAll('.btn-down').forEach(btn =>
-    btn.addEventListener('click', () => moveBlock(filtered, Number(btn.dataset.idx), 1))
-  );
-  panel.querySelectorAll('.toggle-visible').forEach(cb =>
-    cb.addEventListener('change', () => toggleVisible(cb.dataset.id, cb.checked))
-  );
-  panel.querySelectorAll('.btn-edit').forEach(btn =>
-    btn.addEventListener('click', () => openBlockPanel(btn.dataset.id, allBlocks, activeAudience))
-  );
-  panel.querySelectorAll('.btn-delete').forEach(btn =>
-    btn.addEventListener('click', async () => {
-      if (!confirm('Supprimer ce bloc ?')) return;
-      await deleteDoc(doc(db, 'blocks', btn.dataset.id));
-      renderBlocksTab();
-    })
-  );
+  if (editable) {
+    document.getElementById('add-block-btn').addEventListener('click', () =>
+      openBlockPanel(null, allBlocks, activeAudience)
+    );
+    panel.querySelectorAll('.btn-up').forEach(btn =>
+      btn.addEventListener('click', () => moveBlock(filtered, Number(btn.dataset.idx), -1))
+    );
+    panel.querySelectorAll('.btn-down').forEach(btn =>
+      btn.addEventListener('click', () => moveBlock(filtered, Number(btn.dataset.idx), 1))
+    );
+    panel.querySelectorAll('.toggle-visible').forEach(cb =>
+      cb.addEventListener('change', () => toggleVisible(cb.dataset.id, cb.checked))
+    );
+    panel.querySelectorAll('.btn-edit').forEach(btn =>
+      btn.addEventListener('click', () => openBlockPanel(btn.dataset.id, allBlocks, activeAudience))
+    );
+    panel.querySelectorAll('.btn-delete').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer ce bloc ?')) return;
+        await deleteDoc(doc(db, 'blocks', btn.dataset.id));
+        renderBlocksTab();
+      })
+    );
+  }
 }
 
 function renderTypeSelector(audience) {

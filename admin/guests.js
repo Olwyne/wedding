@@ -4,6 +4,7 @@ import {
   collection, getDocs, doc, setDoc, updateDoc, deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { loadEvents } from './events.js';
+import { canWrite } from './permissions.js';
 
 const guestsCol = collection(db, 'guests');
 
@@ -33,7 +34,7 @@ export async function loadGuests() {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-function renderGuestRow(g, eventById) {
+function renderGuestRow(g, eventById, editable) {
   const side = g.side || 'deux';
   const pills = (g.assignedEvents || [])
     .map(id => eventById[id]
@@ -46,6 +47,15 @@ function renderGuestRow(g, eventById) {
   const status = rsvp.status || 'pending';
   const statusLabel = STATUS_LABELS[status] || STATUS_LABELS.pending;
   const statusClass = STATUS_BADGE[status] || STATUS_BADGE.pending;
+  const actionsCell = editable
+    ? `<div class="table-actions">
+         <button class="btn-secondary btn-view-rsvp" data-id="${escapeHtml(g.id)}">Réponse</button>
+         <button class="btn-secondary btn-edit-guest" data-id="${escapeHtml(g.id)}">Modifier</button>
+         <button class="btn-danger btn-delete-guest" data-id="${escapeHtml(g.id)}">Supprimer</button>
+       </div>`
+    : `<div class="table-actions">
+         <button class="btn-secondary btn-view-rsvp" data-id="${escapeHtml(g.id)}">Réponse</button>
+       </div>`;
   return `
     <tr class="guest-row" data-id="${escapeHtml(g.id)}">
       <td>${escapeHtml(g.name)}</td>
@@ -57,13 +67,7 @@ function renderGuestRow(g, eventById) {
       <td>
         <button class="btn-icon btn-copy-link" data-token="${escapeHtml(g.id)}" title="Copier le lien">${LINK_ICON}</button>
       </td>
-      <td>
-        <div class="table-actions">
-          <button class="btn-secondary btn-view-rsvp" data-id="${escapeHtml(g.id)}">Réponse</button>
-          <button class="btn-secondary btn-edit-guest" data-id="${escapeHtml(g.id)}">Modifier</button>
-          <button class="btn-danger btn-delete-guest" data-id="${escapeHtml(g.id)}">Supprimer</button>
-        </div>
-      </td>
+      <td>${actionsCell}</td>
     </tr>`;
 }
 
@@ -130,8 +134,10 @@ export async function renderGuestsTab() {
   const panel = document.getElementById('tab-guests');
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
 
-  document.getElementById('section-action').innerHTML =
-    '<button id="add-guest-btn" class="btn-primary">+ Ajouter un invité</button>';
+  const editable = canWrite('guests');
+  document.getElementById('section-action').innerHTML = editable
+    ? '<button id="add-guest-btn" class="btn-primary">+ Ajouter un invité</button>'
+    : '';
 
   const [guests, events] = await Promise.all([loadGuests(), loadEvents()]);
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
@@ -148,26 +154,28 @@ export async function renderGuestsTab() {
       </thead>
       <tbody>
         ${guests.length
-          ? guests.map(g => renderGuestRow(g, eventById)).join('')
+          ? guests.map(g => renderGuestRow(g, eventById, editable)).join('')
           : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">Aucun invité.</td></tr>'}
       </tbody>
     </table>`;
 
-  document.getElementById('add-guest-btn').addEventListener('click', () =>
-    openGuestPanel(null, guests, events)
-  );
-  panel.querySelectorAll('.btn-edit-guest').forEach(btn =>
-    btn.addEventListener('click', () => openGuestPanel(btn.dataset.id, guests, events))
-  );
+  if (editable) {
+    document.getElementById('add-guest-btn').addEventListener('click', () =>
+      openGuestPanel(null, guests, events)
+    );
+    panel.querySelectorAll('.btn-edit-guest').forEach(btn =>
+      btn.addEventListener('click', () => openGuestPanel(btn.dataset.id, guests, events))
+    );
+    panel.querySelectorAll('.btn-delete-guest').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer cet invité ?')) return;
+        await deleteDoc(doc(db, 'guests', btn.dataset.id));
+        renderGuestsTab();
+      })
+    );
+  }
   panel.querySelectorAll('.btn-view-rsvp').forEach(btn =>
     btn.addEventListener('click', () => openRsvpDetail(guests.find(g => g.id === btn.dataset.id), eventById))
-  );
-  panel.querySelectorAll('.btn-delete-guest').forEach(btn =>
-    btn.addEventListener('click', async () => {
-      if (!confirm('Supprimer cet invité ?')) return;
-      await deleteDoc(doc(db, 'guests', btn.dataset.id));
-      renderGuestsTab();
-    })
   );
   panel.querySelectorAll('.btn-copy-link').forEach(btn => {
     btn.addEventListener('click', async () => {
