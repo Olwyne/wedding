@@ -3,7 +3,7 @@ import { initAuth } from './auth.js';
 import { renderDashboardTab } from './dashboard.js?v=1';
 import { renderBlocksTab } from './blocks.js?v=4';
 import { renderGuestsTab } from './guests.js?v=3';
-import { renderEventsTab } from './events.js';
+import { renderEventsTab } from './events.js?v=2';
 import { renderUsersTab } from './users.js';
 import { openAccountPanel } from './account.js';
 import { canRead } from './permissions.js';
@@ -36,7 +36,7 @@ function switchToSection(section) {
   document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = true; });
   document.getElementById('tab-' + section).hidden = false;
   document.getElementById('section-title').textContent = NAV_SECTIONS[section].title;
-  NAV_SECTIONS[section].render();
+  NAV_SECTIONS[section].render().catch(err => console.error(err));
 }
 
 function initNav() {

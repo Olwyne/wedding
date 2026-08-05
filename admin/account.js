@@ -69,6 +69,12 @@ export function openAccountPanel() {
       return;
     }
 
+    if (newPw.length < 6) {
+      errorEl.textContent = 'Le mot de passe doit faire au moins 6 caractères.';
+      errorEl.hidden = false;
+      return;
+    }
+
     const saveBtn = panelEl.querySelector('#panel-save');
     saveBtn.disabled = true;
     try {
@@ -80,7 +86,13 @@ export function openAccountPanel() {
       panelEl.querySelector('#acc-new-pw').value = '';
       panelEl.querySelector('#acc-confirm-pw').value = '';
     } catch (err) {
-      errorEl.textContent = 'Mot de passe actuel incorrect.';
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        errorEl.textContent = 'Mot de passe actuel incorrect.';
+      } else if (err.code === 'auth/weak-password') {
+        errorEl.textContent = 'Le nouveau mot de passe est trop court (6 caractères minimum).';
+      } else {
+        errorEl.textContent = 'Erreur : réessayez.';
+      }
       errorEl.hidden = false;
     } finally {
       saveBtn.disabled = false;

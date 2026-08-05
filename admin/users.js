@@ -90,17 +90,19 @@ export async function renderUsersTab() {
   }
 }
 
-function renderPermissionFields(permissions) {
+function renderPermissionFields(permissions, lockUsersField) {
   return SECTIONS.map(s => {
     const current = permissions?.[s.id] || 'none';
+    const locked = lockUsersField && s.id === 'users';
     return `
       <label class="field">
         <span>${escapeHtml(s.label)}</span>
-        <select id="perm-${s.id}">
+        <select id="perm-${s.id}" ${locked ? 'disabled' : ''}>
           ${['none', 'read', 'write'].map(level =>
             `<option value="${level}" ${current === level ? 'selected' : ''}>${LEVEL_LABELS[level]}</option>`
           ).join('')}
         </select>
+        ${locked ? '<span style="color:var(--muted);font-size:11px">Vous ne pouvez pas modifier vos propres droits sur Utilisateurs.</span>' : ''}
       </label>`;
   }).join('');
 }
@@ -121,6 +123,7 @@ function openUserPanel(id, users) {
   const user = id ? users.find(u => u.id === id) : null;
   const isNew = !user;
   const generatedPassword = isNew ? generatePassword() : null;
+  const lockUsersField = !isNew && user.id === auth.currentUser?.uid;
 
   const overlay = document.createElement('div');
   overlay.className = 'panel-overlay';
@@ -146,7 +149,8 @@ function openUserPanel(id, users) {
           </div>
         </div>` : `
         <div class="field"><span>Email</span><div>${escapeHtml(user.email)}</div></div>`}
-      ${renderPermissionFields(user?.permissions)}
+      ${renderPermissionFields(user?.permissions, lockUsersField)}
+      <p id="user-error" class="login-error" hidden></p>
     </div>
     <div class="panel-footer">
       <button class="btn-primary" id="panel-save">${isNew ? 'Créer' : 'Enregistrer'}</button>
@@ -156,10 +160,11 @@ function openUserPanel(id, users) {
   document.body.appendChild(overlay);
   document.body.appendChild(panelEl);
 
+  function isSaving() { return !!panelEl.querySelector('#panel-save')?.disabled; }
   function close() { overlay.remove(); panelEl.remove(); renderUsersTab(); }
-  panelEl.querySelector('#panel-close').addEventListener('click', close);
-  panelEl.querySelector('#panel-cancel').addEventListener('click', close);
-  overlay.addEventListener('click', close);
+  panelEl.querySelector('#panel-close').addEventListener('click', () => { if (!isSaving()) close(); });
+  panelEl.querySelector('#panel-cancel').addEventListener('click', () => { if (!isSaving()) close(); });
+  overlay.addEventListener('click', () => { if (!isSaving()) close(); });
 
   if (isNew) {
     panelEl.querySelector('#copy-password').addEventListener('click', async () => {
@@ -178,11 +183,16 @@ function openUserPanel(id, users) {
       permissions[s.id] = panelEl.querySelector(`#perm-${s.id}`).value;
     });
 
+    const errorEl = panelEl.querySelector('#user-error');
+    errorEl.hidden = true;
+    let createdUid = null;
+
     try {
       if (isNew) {
         const email = panelEl.querySelector('#user-email').value.trim();
         if (!email) throw new Error('no-email');
         const uid = await createAuthAccount(email, generatedPassword);
+        createdUid = uid;
         await setDoc(doc(db, 'admins', uid), {
           email,
           permissions,
@@ -195,6 +205,12 @@ function openUserPanel(id, users) {
       close();
     } catch (err) {
       console.error(err);
+      if (createdUid) {
+        errorEl.textContent = `Compte créé mais échec de l'enregistrement des permissions (uid: ${createdUid}). Contactez-vous-même via la console Firebase pour finaliser ou supprimer ce compte.`;
+      } else {
+        errorEl.textContent = `Erreur : ${err.message}`;
+      }
+      errorEl.hidden = false;
       saveBtn.disabled = false;
       saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer';
     }
