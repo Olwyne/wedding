@@ -1,6 +1,6 @@
 // admin/script.js
-import { initAuth } from './auth.js';
-import { renderDashboardTab } from './dashboard.js?v=1';
+import { initAuth } from './auth.js?v=1';
+import { renderDashboardTab } from './dashboard.js?v=2';
 import { renderBlocksTab } from './blocks.js?v=4';
 import { renderGuestsTab } from './guests.js?v=3';
 import { renderEventsTab } from './events.js?v=2';
