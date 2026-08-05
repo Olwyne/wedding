@@ -2,23 +2,36 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function perm(section) {
+      return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.permissions[section];
+    }
+
     match /events/{eventId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if perm('events') == 'write';
     }
 
     match /guests/{guestId} {
       allow get: if true;
-      allow list: if request.auth != null;
-      allow create: if request.auth != null;
-      allow delete: if request.auth != null;
-      allow update: if request.auth != null
+      allow list: if perm('guests') in ['read', 'write'];
+      allow create, delete: if perm('guests') == 'write';
+      allow update: if perm('guests') == 'write'
         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp']);
     }
 
     match /blocks/{blockId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if perm('blocks') == 'write';
+    }
+
+    match /admins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow get, list: if perm('users') in ['read', 'write'];
+      allow create: if perm('users') == 'write'
+        || (request.auth != null && request.auth.uid == uid
+            && !exists(/databases/$(database)/documents/admins/$(uid))
+            && request.auth.token.email == 'sophbyr@gmail.com');
+      allow update, delete: if perm('users') == 'write';
     }
   }
 }
