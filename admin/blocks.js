@@ -5,6 +5,7 @@ import {
   query, orderBy, writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
+import { sanitizeHtml, mountRichEditor } from './richtext.js';
 
 const blocksCol = collection(db, 'blocks');
 let activeAudience = 'invite';
@@ -253,19 +254,27 @@ function buildScalarFieldHtml(field, data) {
         <input id="blk-${field.key}" value="${v}" placeholder="https://…">
       </label>`;
   }
+  if (field.kind === 'textarea') {
+    return `
+      <label class="field">
+        <span>${escapeHtml(field.label)} FR</span>
+        <div class="rich-editor-mount" id="blk-${field.key}-fr-mount"></div>
+      </label>
+      <label class="field">
+        <span>${escapeHtml(field.label)} ZH</span>
+        <div class="rich-editor-mount" id="blk-${field.key}-zh-mount"></div>
+      </label>`;
+  }
   const vFr = escapeHtml(data?.[`${field.key}_fr`] || '');
   const vZh = escapeHtml(data?.[`${field.key}_zh`] || '');
-  const tag = field.kind === 'textarea' ? 'textarea' : 'input';
-  const attrs = field.kind === 'textarea' ? 'rows="4"' : '';
-  const valAttr = (v) => field.kind === 'textarea' ? `>${v}</textarea>` : ` value="${v}">`;
   return `
     <label class="field">
       <span>${escapeHtml(field.label)} FR</span>
-      <${tag} id="blk-${field.key}-fr" ${attrs}${valAttr(vFr)}
+      <input id="blk-${field.key}-fr" value="${vFr}">
     </label>
     <label class="field">
       <span>${escapeHtml(field.label)} ZH</span>
-      <${tag} id="blk-${field.key}-zh" ${attrs}${valAttr(vZh)}
+      <input id="blk-${field.key}-zh" value="${vZh}">
     </label>`;
 }
 
@@ -345,6 +354,17 @@ function renderBlockForm(block) {
     ${listHtml}`;
 }
 
+function mountRichEditorsForType(panelEl, def, data) {
+  panelEl.richEditors = {};
+  def.fields.filter(f => f.kind === 'textarea').forEach(f => {
+    ['fr', 'zh'].forEach(lang => {
+      const mount = panelEl.querySelector(`#blk-${f.key}-${lang}-mount`);
+      const value = data?.[`${f.key}_${lang}`] || '';
+      panelEl.richEditors[`${f.key}_${lang}`] = mountRichEditor(mount, value);
+    });
+  });
+}
+
 function attachImagePreview(panelEl, imageUrl) {
   if (!imageUrl) return;
   const container = panelEl.querySelector('#img-existing-preview');
@@ -397,11 +417,13 @@ function openBlockPanel(id, allBlocks, audience) {
           renderBlockForm({ type: card.dataset.type, visible: true });
         panelEl.querySelector('#panel-save').disabled = false;
         attachListHandlers(panelEl, TYPE_DEFS[card.dataset.type]);
+        mountRichEditorsForType(panelEl, TYPE_DEFS[card.dataset.type], { visible: true });
       });
     });
   } else {
     attachImagePreview(panelEl, block?.image_url);
     attachListHandlers(panelEl, TYPE_DEFS[block.type]);
+    mountRichEditorsForType(panelEl, TYPE_DEFS[block.type], block);
   }
 
   panelEl.querySelector('#panel-save').addEventListener('click', async () => {
@@ -439,6 +461,9 @@ async function saveBlock(id, filteredBlocks, panelEl, audience) {
   def.fields.forEach(f => {
     if (f.kind === 'url') {
       data[f.key] = panelEl.querySelector(`#blk-${f.key}`)?.value || '';
+    } else if (f.kind === 'textarea') {
+      data[`${f.key}_fr`] = sanitizeHtml(panelEl.richEditors?.[`${f.key}_fr`]?.getHtml() || '');
+      data[`${f.key}_zh`] = sanitizeHtml(panelEl.richEditors?.[`${f.key}_zh`]?.getHtml() || '');
     } else {
       data[`${f.key}_fr`] = panelEl.querySelector(`#blk-${f.key}-fr`)?.value || '';
       data[`${f.key}_zh`] = panelEl.querySelector(`#blk-${f.key}-zh`)?.value || '';
