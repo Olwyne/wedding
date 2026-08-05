@@ -1,9 +1,9 @@
 // admin/script.js
 import { initAuth } from './auth.js?v=1';
 import { renderDashboardTab } from './dashboard.js?v=2';
-import { renderBlocksTab } from './blocks.js?v=6';
+import { renderBlocksTab } from './blocks.js?v=7';
 import { renderGuestsTab } from './guests.js?v=3';
-import { renderEventsTab } from './events.js?v=3';
+import { renderEventsTab } from './events.js?v=4';
 import { renderUsersTab } from './users.js';
 import { openAccountPanel } from './account.js';
 import { canRead } from './permissions.js';
