@@ -5,7 +5,7 @@ import {
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
-import { sanitizeHtml, mountRichEditor } from './richtext.js';
+import { sanitizeHtml, mountRichEditor } from './richtext.js?v=1';
 
 const eventsCol = collection(db, 'events');
 

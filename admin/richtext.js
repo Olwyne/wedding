@@ -1,9 +1,14 @@
 // admin/richtext.js
 const ALLOWED_TAGS = new Set(['P', 'BR', 'B', 'STRONG', 'I', 'EM', 'UL', 'LI']);
+const DROP_ENTIRELY = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TITLE', 'TEXTAREA']);
 
 function sanitizeNode(parent) {
   Array.from(parent.childNodes).forEach(node => {
     if (node.nodeType === Node.ELEMENT_NODE) {
+      if (DROP_ENTIRELY.has(node.tagName)) {
+        parent.removeChild(node);
+        return;
+      }
       sanitizeNode(node);
       if (ALLOWED_TAGS.has(node.tagName)) {
         Array.from(node.attributes).forEach(attr => node.removeAttribute(attr.name));
@@ -44,6 +49,7 @@ const TOOLBAR_BUTTONS = [
 
 export function mountRichEditor(container, initialValue) {
   const value = typeof initialValue === 'string' ? initialValue : '';
+  // Legacy plain text containing a literal '<' followed by a letter (rare) is misdetected as HTML; acceptable tradeoff per spec.
   const startHtml = value.includes('<') ? value : htmlFromLegacyText(value);
 
   container.innerHTML = `
@@ -62,5 +68,10 @@ export function mountRichEditor(container, initialValue) {
     });
   });
 
-  return { getHtml: () => contentEl.innerHTML };
+  return {
+    getHtml: () => {
+      const html = contentEl.innerHTML;
+      return html.trim() === '' || /<[a-z]/i.test(html) ? html : `<p>${html}</p>`;
+    },
+  };
 }

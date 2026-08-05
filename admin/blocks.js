@@ -5,7 +5,7 @@ import {
   query, orderBy, writeBatch
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
-import { sanitizeHtml, mountRichEditor } from './richtext.js';
+import { sanitizeHtml, mountRichEditor } from './richtext.js?v=1';
 
 const blocksCol = collection(db, 'blocks');
 let activeAudience = 'invite';
@@ -462,8 +462,11 @@ async function saveBlock(id, filteredBlocks, panelEl, audience) {
     if (f.kind === 'url') {
       data[f.key] = panelEl.querySelector(`#blk-${f.key}`)?.value || '';
     } else if (f.kind === 'textarea') {
-      data[`${f.key}_fr`] = sanitizeHtml(panelEl.richEditors?.[`${f.key}_fr`]?.getHtml() || '');
-      data[`${f.key}_zh`] = sanitizeHtml(panelEl.richEditors?.[`${f.key}_zh`]?.getHtml() || '');
+      ['fr', 'zh'].forEach(lang => {
+        const editor = panelEl.richEditors?.[`${f.key}_${lang}`];
+        if (!editor) throw new Error(`missing rich editor for ${f.key}_${lang}`);
+        data[`${f.key}_${lang}`] = sanitizeHtml(editor.getHtml());
+      });
     } else {
       data[`${f.key}_fr`] = panelEl.querySelector(`#blk-${f.key}-fr`)?.value || '';
       data[`${f.key}_zh`] = panelEl.querySelector(`#blk-${f.key}-zh`)?.value || '';

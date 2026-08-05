@@ -1,6 +1,7 @@
 import { db } from './firebase-init.js';
 import { doc, getDoc, getDocs, updateDoc, collection, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { emailjsConfig } from './emailjs-config.js';
+import { sanitizeHtml } from './admin/richtext.js';
 
 if (window.emailjs && emailjsConfig.publicKey && !emailjsConfig.publicKey.startsWith('REPLACE_ME')) {
   window.emailjs.init({ publicKey: emailjsConfig.publicKey });
@@ -347,7 +348,7 @@ function escapeHtml(str) {
       const content = lang === 'zh'
         ? (block.content_zh || block.content_fr || '')
         : (block.content_fr || block.content_zh || '');
-      item.innerHTML = `${titleHtml}${content ? `<div class="block-content rich-text">${content}</div>` : ''}`;
+      item.innerHTML = `${titleHtml}${content ? `<div class="block-content rich-text">${sanitizeHtml(content)}</div>` : ''}`;
     } else if (block.type === 'image') {
       const alt = lang === 'zh' ? (block.alt_zh || block.alt_fr || '') : (block.alt_fr || block.alt_zh || '');
       const caption = lang === 'zh' ? (block.caption_zh || block.caption_fr || '') : (block.caption_fr || block.caption_zh || '');
@@ -387,7 +388,7 @@ function escapeHtml(str) {
       <div class="cal teaser-zh">苏菲 &amp; 瑞元</div>
       <div class="teaser-rule"></div>
       <div class="teaser-date">24 · 07 · 2027</div>
-      <div class="teaser-msg rich-text">${bf(block, 'message', lang)}</div>
+      <div class="teaser-msg rich-text">${sanitizeHtml(bf(block, 'message', lang))}</div>
       <button class="btn-outline" id="lang-btn-teaser">${escapeHtml(L.langBtn)}</button>`;
     wrap.querySelector('#lang-btn-teaser').addEventListener('click', toggleLang);
     return wrap;
@@ -490,8 +491,8 @@ function escapeHtml(str) {
         <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
         <h2 class="section-title">${escapeHtml(bf(block, 'title', lang))}</h2>
         <div class="divider"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
-        <div class="section-text rich-text">${bf(block, 'p1', lang)}</div>
-        <div class="section-text rich-text">${bf(block, 'p2', lang)}</div>
+        <div class="section-text rich-text">${sanitizeHtml(bf(block, 'p1', lang))}</div>
+        <div class="section-text rich-text">${sanitizeHtml(bf(block, 'p2', lang))}</div>
       </div>`;
     return section;
   }
@@ -506,7 +507,7 @@ function escapeHtml(str) {
         <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
         <h2 class="section-title section-title-light">${escapeHtml(bf(block, 'title', lang))}</h2>
         <div class="divider" style="margin-top:22px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue2"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
-        <div class="section-sub rich-text">${bf(block, 'subtitle', lang)}</div>
+        <div class="section-sub rich-text">${sanitizeHtml(bf(block, 'subtitle', lang))}</div>
       </div>
       <div class="prog-list" id="prog-list"></div>`;
     const list = section.querySelector('#prog-list');
@@ -521,7 +522,7 @@ function escapeHtml(str) {
         <div class="prog-body">
           <h3 class="prog-title">${ev.title}</h3>
           <div class="prog-place">${ev.place}</div>
-          <div class="prog-desc rich-text">${ev.desc}</div>
+          <div class="prog-desc rich-text">${sanitizeHtml(ev.desc)}</div>
         </div>`;
       list.appendChild(item);
     });
@@ -565,12 +566,12 @@ function escapeHtml(str) {
         <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
         <h2 class="section-title">${escapeHtml(bf(block, 'title', lang))}</h2>
         <div class="divider" style="margin:24px auto 4px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
-        <div class="section-text-narrow rich-text">${bf(block, 'intro', lang)}</div>
+        <div class="section-text-narrow rich-text">${sanitizeHtml(bf(block, 'intro', lang))}</div>
       </div>
       <div class="hotels-grid" id="hotels-grid"></div>
       <div class="shuttle-box">
         <div class="cal shuttle-glyph">车</div>
-        <div class="rich-text">${bf(block, 'shuttle', lang)}</div>
+        <div class="rich-text">${sanitizeHtml(bf(block, 'shuttle', lang))}</div>
       </div>`;
     const grid = section.querySelector('#hotels-grid');
     (block.hotels || []).forEach(h => {
@@ -599,7 +600,7 @@ function escapeHtml(str) {
         <div class="section-inner section-narrow" style="margin-bottom:40px">
           <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
           <h2 class="section-title section-title-light">${escapeHtml(bf(block, 'title', lang))}</h2>
-          <div class="section-sub rich-text">${bf(block, 'intro', lang)}</div>
+          <div class="section-sub rich-text">${sanitizeHtml(bf(block, 'intro', lang))}</div>
         </div>
 
         <form id="rsvp-form" class="rsvp-form" novalidate>
@@ -762,7 +763,7 @@ function escapeHtml(str) {
           <div class="cal card-glyph">礼</div>
           <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
           <h3 class="card-title">${escapeHtml(bf(block, 'title', lang))}</h3>
-          <div class="card-text rich-text">${bf(block, 'text', lang)}</div>
+          <div class="card-text rich-text">${sanitizeHtml(bf(block, 'text', lang))}</div>
         </div>
       </div>`;
     return section;
@@ -777,7 +778,7 @@ function escapeHtml(str) {
           <div class="cal card-glyph card-glyph-gold">衣</div>
           <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
           <h3 class="card-title card-title-light">${escapeHtml(bf(block, 'title', lang))}</h3>
-          <div class="card-text card-text-light rich-text">${bf(block, 'text', lang)}</div>
+          <div class="card-text card-text-light rich-text">${sanitizeHtml(bf(block, 'text', lang))}</div>
           <div id="avoid-colors" class="avoid-colors"></div>
         </div>
       </div>`;
@@ -801,7 +802,7 @@ function escapeHtml(str) {
         <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
         <h2 class="section-title">${escapeHtml(bf(block, 'title', lang))}</h2>
         <div class="divider" style="margin-top:24px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
-        <div class="section-text-narrow rich-text">${bf(block, 'hint', lang)}</div>
+        <div class="section-text-narrow rich-text">${sanitizeHtml(bf(block, 'hint', lang))}</div>
       </div>
       <div class="gallery-grid">
         <div class="gallery-slot" aria-label="Photo 1"></div>
@@ -828,7 +829,7 @@ function escapeHtml(str) {
           <div class="cal footer-monogram-xi">囍</div>
         </div>
         <h2 class="footer-title">${escapeHtml(bf(block, 'title', lang))}</h2>
-        <div class="footer-text rich-text">${bf(block, 'text', lang)}</div>
+        <div class="footer-text rich-text">${sanitizeHtml(bf(block, 'text', lang))}</div>
         <div class="footer-contacts">
           <a href="mailto:sophie.ruiyuan@example.com" class="footer-email">✉︎ sophie.ruiyuan@example.com</a>
           <span class="footer-phone">☎ +33 6 00 00 00 00</span>
