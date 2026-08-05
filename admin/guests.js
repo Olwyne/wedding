@@ -10,6 +10,9 @@ const guestsCol = collection(db, 'guests');
 const SIDE_LABELS = { marie: 'Marié', mariee: 'Mariée', deux: 'Les deux' };
 const SIDE_BADGE  = { marie: 'badge-marie', mariee: 'badge-mariee', deux: 'badge-deux' };
 
+const LINK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
   const div = document.createElement('div');
@@ -52,7 +55,7 @@ function renderGuestRow(g, eventById) {
       <td>${rsvp.adults ?? ''}</td>
       <td>${rsvp.children ?? ''}</td>
       <td>
-        <button class="btn-icon btn-copy-link" data-token="${escapeHtml(g.id)}" title="Copier le lien">📋</button>
+        <button class="btn-icon btn-copy-link" data-token="${escapeHtml(g.id)}" title="Copier le lien">${LINK_ICON}</button>
       </td>
       <td>
         <div class="table-actions">
@@ -170,9 +173,9 @@ export async function renderGuestsTab() {
     btn.addEventListener('click', async () => {
       const url = `${location.origin}/?invite=${btn.dataset.token}`;
       await navigator.clipboard.writeText(url);
-      const orig = btn.textContent;
-      btn.textContent = '✓';
-      setTimeout(() => { btn.textContent = orig; }, 1500);
+      const orig = btn.innerHTML;
+      btn.innerHTML = CHECK_ICON;
+      setTimeout(() => { btn.innerHTML = orig; }, 1500);
     });
   });
 }

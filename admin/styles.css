@@ -48,6 +48,7 @@ button{cursor:pointer;font-family:inherit}
 .btn-icon{background:transparent;border:none;padding:5px 8px;color:var(--muted);font-size:14px;border-radius:5px;line-height:1;transition:background .1s,color .1s}
 .btn-icon:hover{background:#f3f4f6;color:var(--text)}
 .btn-icon:disabled{opacity:.3;cursor:not-allowed}
+.btn-icon svg{width:14px;height:14px;display:block}
 .table-actions{display:flex;gap:4px;align-items:center}
 
 /* ── Sidebar ── */

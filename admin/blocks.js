@@ -18,39 +18,39 @@ function escapeHtml(str) {
 // Every block type's schema. audience: 'invite' | 'public' | 'both' controls which
 // sub-tab it's offered in when creating a new block.
 const TYPE_DEFS = {
-  text: { label: 'Texte', icon: '📝', audience: 'both', fields: [
+  text: { label: 'Texte', audience: 'both', fields: [
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'content', label: 'Contenu', kind: 'textarea' },
     ] },
-  image: { label: 'Image', icon: '🖼️', audience: 'both', fields: [
+  image: { label: 'Image', audience: 'both', fields: [
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'image_url', label: 'URL image', kind: 'url' },
       { key: 'alt', label: 'Alt (accessibilité)', kind: 'text' },
       { key: 'caption', label: 'Légende', kind: 'text' },
     ] },
-  teaser: { label: 'Teaser', icon: '👋', audience: 'public', fields: [
+  teaser: { label: 'Teaser', audience: 'public', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'message', label: 'Message', kind: 'textarea' },
     ] },
-  hero: { label: 'Hero', icon: '💍', audience: 'invite', fields: [
+  hero: { label: 'Hero', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'place', label: 'Lieu', kind: 'text' },
       { key: 'fusion', label: 'Accroche fusion', kind: 'text' },
       { key: 'envInvite', label: 'Enveloppe — invitation', kind: 'text' },
       { key: 'envHint', label: 'Enveloppe — indice', kind: 'text' },
     ] },
-  story: { label: 'Histoire', icon: '📖', audience: 'invite', fields: [
+  story: { label: 'Histoire', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'p1', label: 'Paragraphe 1', kind: 'textarea' },
       { key: 'p2', label: 'Paragraphe 2', kind: 'textarea' },
     ] },
-  programme: { label: 'Programme', icon: '📅', audience: 'invite', fields: [
+  programme: { label: 'Programme', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'subtitle', label: 'Sous-titre', kind: 'textarea' },
     ] },
-  infos: { label: 'Infos pratiques', icon: '📍', audience: 'invite', fields: [
+  infos: { label: 'Infos pratiques', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'mapBtnLabel', label: 'Libellé bouton carte', kind: 'text' },
@@ -60,7 +60,7 @@ const TYPE_DEFS = {
         { key: 'addr_fr', label: 'Adresse FR' }, { key: 'addr_zh', label: 'Adresse ZH' },
         { key: 'mapUrl', label: 'URL carte' },
       ] } },
-  hebergement: { label: 'Hébergement', icon: '🏨', audience: 'invite', fields: [
+  hebergement: { label: 'Hébergement', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'intro', label: 'Intro', kind: 'textarea' },
@@ -70,17 +70,17 @@ const TYPE_DEFS = {
         { key: 'name_fr', label: 'Nom FR' }, { key: 'name_zh', label: 'Nom ZH' },
         { key: 'desc_fr', label: 'Description FR' }, { key: 'desc_zh', label: 'Description ZH' },
       ] } },
-  rsvp: { label: 'RSVP', icon: '💌', audience: 'invite', fields: [
+  rsvp: { label: 'RSVP', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'intro', label: 'Intro', kind: 'textarea' },
     ] },
-  gift: { label: 'Cadeaux', icon: '🎁', audience: 'invite', fields: [
+  gift: { label: 'Cadeaux', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
     ] },
-  dress: { label: 'Dress code', icon: '👗', audience: 'invite', fields: [
+  dress: { label: 'Dress code', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
@@ -88,12 +88,12 @@ const TYPE_DEFS = {
         { key: 'hex', label: 'Couleur (hex)' },
         { key: 'label_fr', label: 'Libellé FR' }, { key: 'label_zh', label: 'Libellé ZH' },
       ] } },
-  gallery: { label: 'Galerie', icon: '🌸', audience: 'invite', fields: [
+  gallery: { label: 'Galerie', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'hint', label: 'Indice', kind: 'textarea' },
     ] },
-  contact: { label: 'Contact', icon: '✉️', audience: 'invite', fields: [
+  contact: { label: 'Contact', audience: 'invite', fields: [
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
     ] },
@@ -132,7 +132,7 @@ function renderBlockRow(block, idx, total) {
         <button class="btn-icon btn-up" data-idx="${idx}" ${idx === 0 ? 'disabled' : ''}>↑</button>
         <button class="btn-icon btn-down" data-idx="${idx}" ${idx === total - 1 ? 'disabled' : ''}>↓</button>
       </td>
-      <td><span class="badge">${def.icon || ''} ${escapeHtml(def.label)}</span></td>
+      <td><span class="badge">${escapeHtml(def.label)}</span></td>
       <td>${title}</td>
       <td>
         <label class="toggle">
@@ -173,10 +173,10 @@ export async function renderBlocksTab() {
   panel.innerHTML = `
     <div class="subtab-nav">
       <button class="subtab-btn ${activeAudience === 'invite' ? 'active' : ''}" data-aud="invite">
-        🔒 Vue connectée
+        Vue connectée
       </button>
       <button class="subtab-btn ${activeAudience === 'public' ? 'active' : ''}" data-aud="public">
-        🌐 Vue non connectée
+        Vue non connectée
       </button>
     </div>
     <p class="subtab-desc">${escapeHtml(desc)}</p>
@@ -231,7 +231,6 @@ function renderTypeSelector(audience) {
     <div class="type-cards">
       ${options.map(([id, def]) => `
         <div class="type-card" data-type="${id}">
-          <div class="type-card-icon">${def.icon}</div>
           <div class="type-card-label">${escapeHtml(def.label)}</div>
         </div>`).join('')}
     </div>`;
