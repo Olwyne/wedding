@@ -25,7 +25,7 @@ function generateToken(length = 12) {
   return token;
 }
 
-async function loadGuests() {
+export async function loadGuests() {
   const snap = await getDocs(guestsCol);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
@@ -38,10 +38,13 @@ function renderGuestRow(g, eventById) {
       : '')
     .join('');
   const rsvp = g.rsvp || {};
-  const statusLabel = rsvp.status === 'confirmed' ? 'Confirmé' : 'En attente';
-  const statusClass = rsvp.status === 'confirmed' ? 'badge-confirmed' : 'badge-pending';
+  const STATUS_LABELS = { confirmed: 'Confirmé', declined: 'Décliné', pending: 'En attente' };
+  const STATUS_BADGE = { confirmed: 'badge-confirmed', declined: 'badge-declined', pending: 'badge-pending' };
+  const status = rsvp.status || 'pending';
+  const statusLabel = STATUS_LABELS[status] || STATUS_LABELS.pending;
+  const statusClass = STATUS_BADGE[status] || STATUS_BADGE.pending;
   return `
-    <tr>
+    <tr class="guest-row" data-id="${escapeHtml(g.id)}">
       <td>${escapeHtml(g.name)}</td>
       <td><span class="badge ${SIDE_BADGE[side]}">${SIDE_LABELS[side]}</span></td>
       <td><div class="pills">${pills}</div></td>
@@ -53,11 +56,71 @@ function renderGuestRow(g, eventById) {
       </td>
       <td>
         <div class="table-actions">
+          <button class="btn-secondary btn-view-rsvp" data-id="${escapeHtml(g.id)}">Réponse</button>
           <button class="btn-secondary btn-edit-guest" data-id="${escapeHtml(g.id)}">Modifier</button>
           <button class="btn-danger btn-delete-guest" data-id="${escapeHtml(g.id)}">Supprimer</button>
         </div>
       </td>
     </tr>`;
+}
+
+export function computeStats(guests) {
+  const bySide = {
+    marie: { confirmed: 0, pending: 0, declined: 0 },
+    mariee: { confirmed: 0, pending: 0, declined: 0 },
+    deux: { confirmed: 0, pending: 0, declined: 0 },
+  };
+  let confirmed = 0, pending = 0, declined = 0, adults = 0, children = 0;
+
+  guests.forEach(g => {
+    const status = g.rsvp?.status === 'confirmed' || g.rsvp?.status === 'declined' ? g.rsvp.status : 'pending';
+    const side = bySide[g.side] ? g.side : 'deux';
+    bySide[side][status]++;
+    if (status === 'confirmed') {
+      confirmed++;
+      adults += g.rsvp.adults ?? 0;
+      children += g.rsvp.children ?? 0;
+    } else if (status === 'declined') {
+      declined++;
+    } else {
+      pending++;
+    }
+  });
+
+  return { total: guests.length, confirmed, pending, declined, adults, children, bySide };
+}
+
+export function renderStatsBar(stats) {
+  const totalPeople = stats.adults + stats.children;
+  return `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">${stats.total}</div>
+        <div class="stat-label">Invités</div>
+      </div>
+      <div class="stat-card stat-confirmed">
+        <div class="stat-value">${stats.confirmed}</div>
+        <div class="stat-label">Confirmés — ${totalPeople} personne${totalPeople > 1 ? 's' : ''}</div>
+        <div class="stat-sub"><span>${stats.adults} adulte${stats.adults > 1 ? 's' : ''}</span><span>${stats.children} enfant${stats.children > 1 ? 's' : ''}</span></div>
+      </div>
+      <div class="stat-card stat-pending">
+        <div class="stat-value">${stats.pending}</div>
+        <div class="stat-label">En attente</div>
+      </div>
+      <div class="stat-card stat-declined">
+        <div class="stat-value">${stats.declined}</div>
+        <div class="stat-label">Refusés</div>
+      </div>
+    </div>
+    <div class="stats-side-grid">
+      ${['marie', 'mariee', 'deux'].map(side => `
+        <div class="stats-side-card">
+          <h4>${SIDE_LABELS[side]}</h4>
+          <div class="stats-side-row"><span>Confirmés</span><span>${stats.bySide[side].confirmed}</span></div>
+          <div class="stats-side-row"><span>En attente</span><span>${stats.bySide[side].pending}</span></div>
+          <div class="stats-side-row"><span>Refusés</span><span>${stats.bySide[side].declined}</span></div>
+        </div>`).join('')}
+    </div>`;
 }
 
 export async function renderGuestsTab() {
@@ -69,8 +132,10 @@ export async function renderGuestsTab() {
 
   const [guests, events] = await Promise.all([loadGuests(), loadEvents()]);
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
+  const stats = computeStats(guests);
 
   panel.innerHTML = `
+    ${renderStatsBar(stats)}
     <table class="admin-table">
       <thead>
         <tr>
@@ -91,6 +156,9 @@ export async function renderGuestsTab() {
   panel.querySelectorAll('.btn-edit-guest').forEach(btn =>
     btn.addEventListener('click', () => openGuestPanel(btn.dataset.id, guests, events))
   );
+  panel.querySelectorAll('.btn-view-rsvp').forEach(btn =>
+    btn.addEventListener('click', () => openRsvpDetail(guests.find(g => g.id === btn.dataset.id), eventById))
+  );
   panel.querySelectorAll('.btn-delete-guest').forEach(btn =>
     btn.addEventListener('click', async () => {
       if (!confirm('Supprimer cet invité ?')) return;
@@ -107,6 +175,50 @@ export async function renderGuestsTab() {
       setTimeout(() => { btn.textContent = orig; }, 1500);
     });
   });
+}
+
+function openRsvpDetail(guest, eventById) {
+  const rsvp = guest?.rsvp || {};
+  const status = rsvp.status || 'pending';
+  const STATUS_LABELS = { confirmed: 'Confirmé', declined: 'Décliné', pending: 'En attente' };
+
+  const confirmedIds = Object.keys(rsvp.confirmedEvents || {}).filter(id => rsvp.confirmedEvents[id]);
+  const eventList = confirmedIds.length
+    ? confirmedIds.map(id => `<span class="pill">${escapeHtml(eventById[id]?.title_fr || id)}</span>`).join('')
+    : '<span style="color:var(--muted)">Aucun</span>';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'panel-overlay';
+  const panelEl = document.createElement('div');
+  panelEl.className = 'panel';
+  panelEl.innerHTML = `
+    <div class="panel-header">
+      <h3>Réponse de ${escapeHtml(guest?.name || '')}</h3>
+      <button class="btn-icon" id="panel-close">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="field"><span>Statut</span><div>${escapeHtml(STATUS_LABELS[status] || STATUS_LABELS.pending)}</div></div>
+      <div class="field"><span>Nom déclaré</span><div>${escapeHtml(rsvp.name || '—')}</div></div>
+      <div class="field"><span>Email</span><div>${escapeHtml(rsvp.email || '—')}</div></div>
+      <div class="field"><span>Téléphone</span><div>${escapeHtml(rsvp.phone || '—')}</div></div>
+      <div class="field"><span>Adultes / Enfants</span><div>${rsvp.adults ?? 0} / ${rsvp.children ?? 0}</div></div>
+      <div class="field"><span>Autres adultes</span><div>${(rsvp.extraAdultNames || []).map(escapeHtml).join(', ') || '—'}</div></div>
+      <div class="field"><span>Enfants (noms)</span><div>${(rsvp.childNames || []).map(escapeHtml).join(', ') || '—'}</div></div>
+      <div class="field"><span>Événements confirmés</span><div class="pills">${eventList}</div></div>
+      <div class="field"><span>Allergies / régime</span><div>${escapeHtml(rsvp.diet || '—')}</div></div>
+      <div class="field"><span>Message</span><div>${escapeHtml(rsvp.message || '—')}</div></div>
+      <div class="field"><span>Répondu le</span><div>${rsvp.respondedAt ? new Date(rsvp.respondedAt).toLocaleString('fr-FR') : '—'}</div></div>
+    </div>
+    <div class="panel-footer">
+      <button class="btn-secondary" id="panel-cancel">Fermer</button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(panelEl);
+  function close() { overlay.remove(); panelEl.remove(); }
+  panelEl.querySelector('#panel-close').addEventListener('click', close);
+  panelEl.querySelector('#panel-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', close);
 }
 
 function openGuestPanel(id, guests, events) {
@@ -205,7 +317,7 @@ function openGuestPanel(id, guests, events) {
       await setDoc(doc(db, 'guests', token), {
         name, side, assignedEvents,
         createdAt: new Date().toISOString(),
-        rsvp: { status: 'pending', name: '', adults: 0, children: 0, diet: '', message: '', confirmedEvents: {}, respondedAt: null },
+        rsvp: { status: 'pending', name: '', email: '', phone: '', adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: '', confirmedEvents: {}, respondedAt: null },
       });
       const inviteUrl = `${location.origin}/?invite=${token}`;
       const resultEl = panelEl.querySelector('#invite-result');

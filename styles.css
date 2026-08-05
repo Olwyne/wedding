@@ -157,6 +157,8 @@ input:focus,textarea:focus,select:focus{outline:none}
 /* ===================== SECTIONS SHARED ===================== */
 .section{position:relative;padding:clamp(72px,10vw,130px) 24px}
 .section-cream{background:var(--cream)}
+.section-cream+.section-cream{padding-top:14px}
+.section-cream:has(+.section-cream){padding-bottom:14px}
 .section-cream-grad{background:linear-gradient(180deg,var(--cream2) 0%,var(--cream) 100%)}
 .section-cream-grad2{background:linear-gradient(180deg,var(--cream2),var(--cream))}
 .section-bordeaux{background:linear-gradient(180deg,var(--bordeaux) 0%,var(--bordeaux-deep4) 100%);color:#F4E9CE;overflow:hidden}
@@ -228,12 +230,16 @@ input:focus,textarea:focus,select:focus{outline:none}
 .rsvp-event-title{font-family:'Cormorant Garamond',serif;font-size:18px}
 .rsvp-event-meta{opacity:.7;font-size:13px}
 .btn-submit{margin-top:6px;background:var(--gold);color:#3a1010;border:none;padding:16px;border-radius:4px;font-size:15px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-weight:600}
+#rsvp-presence-yes,#rsvp-extra-people{display:flex;flex-direction:column;gap:22px}
+.rsvp-toggle{display:flex;gap:12px}
+.rsvp-toggle-btn{flex:1;padding:13px 16px;border-radius:4px;border:1px solid rgba(193,153,63,.5);background:rgba(251,246,236,.06);color:var(--cream);font-size:15px;cursor:pointer;transition:all .2s}
+.rsvp-toggle-btn.active{background:rgba(193,153,63,.22);border-color:var(--gold)}
+.rsvp-error{color:var(--pink);font-size:14px;line-height:1.6}
 
 .rsvp-thanks{text-align:center;background:rgba(251,246,236,.06);border:1px solid rgba(193,153,63,.5);border-radius:6px;padding:44px 30px;animation:fadeUp .6s both}
 .rsvp-thanks-glyph{font-size:52px;color:var(--gold)}
 .rsvp-thanks-title{font-family:'Cormorant Garamond',serif;font-size:32px;margin:12px 0 10px}
 .rsvp-confirm-line{color:var(--parchment2);line-height:1.7;margin-bottom:8px}
-.rsvp-demo-note{color:var(--pink);font-size:14px;line-height:1.6}
 #rsvp-edit-btn{margin-top:22px}
 
 /* ===================== CADEAU / DRESS CODE ===================== */

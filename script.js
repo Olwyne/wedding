@@ -1,5 +1,35 @@
 import { db } from './firebase-init.js';
-import { doc, getDoc, getDocs, collection, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { doc, getDoc, getDocs, updateDoc, collection, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { emailjsConfig } from './emailjs-config.js';
+
+if (window.emailjs && emailjsConfig.publicKey && !emailjsConfig.publicKey.startsWith('REPLACE_ME')) {
+  window.emailjs.init({ publicKey: emailjsConfig.publicKey });
+}
+
+function sendRsvpEmails(rsvp) {
+  if (!window.emailjs || !emailjsConfig.publicKey || emailjsConfig.publicKey.startsWith('REPLACE_ME')) return;
+  const statusLabel = rsvp.status === 'declined' ? 'Décline' : 'Confirme';
+  const eventsLabel = Object.keys(rsvp.confirmedEvents || {}).filter(id => rsvp.confirmedEvents[id]).length
+    ? visibleEvents().filter(e => rsvp.confirmedEvents[e.id]).map(e => e.title).join(', ')
+    : 'Aucun';
+  const common = {
+    guest_name: rsvp.name,
+    status: statusLabel,
+    email: rsvp.email,
+    phone: rsvp.phone,
+    adults: rsvp.adults,
+    children: rsvp.children,
+    diet: rsvp.diet || '—',
+    message: rsvp.message || '—',
+    events: eventsLabel,
+  };
+  window.emailjs.send(emailjsConfig.serviceId, emailjsConfig.templateId, { ...common, to_email: emailjsConfig.adminEmail })
+    .catch(err => console.error('Admin notif email failed', err));
+  if (rsvp.email) {
+    window.emailjs.send(emailjsConfig.serviceId, emailjsConfig.templateId, { ...common, to_email: rsvp.email })
+      .catch(err => console.error('Guest confirmation email failed', err));
+  }
+}
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -13,25 +43,41 @@ function escapeHtml(str) {
   const T = {
     fr: {
       cdD: 'jours', cdH: 'heures', cdM: 'min', cdS: 'sec', cdPassed: 'Le grand jour est arrivé !',
-      fName: 'Votre nom', fNamePh: 'Nom et prénom', fAdults: "Nombre d'adultes", fChildren: "Nombre d'enfants", fPresence: 'Je serai présent·e à :',
+      fName: 'Votre nom', fNamePh: 'Nom et prénom', fEmail: 'Email', fEmailPh: 'vous@email.com',
+      fPhone: 'Téléphone', fPhonePh: '06 12 34 56 78',
+      fPresenceQ: 'Serez-vous présent·e ?', yesLabel: 'Oui', noLabel: 'Non',
+      fAdults: "Nombre d'adultes", fChildren: "Nombre d'enfants", fPresence: 'Je serai présent·e à :',
+      fExtraAdult: 'Adulte', fChildName: 'Enfant',
       fDiet: 'Allergies / régime', fDietPh: 'Ex : végétarien, sans gluten…', fMsg: 'Un petit mot', fMsgPh: 'Un message pour les mariés…',
       fSubmit: 'Envoyer ma réponse', thankTitle: 'Merci du fond du cœur',
-      demoNote: "(Démonstration — aucun envoi réel n'est effectué. À connecter à votre outil de suivi.)",
+      thankTitleDecline: "C'est noté",
       editBtn: 'Modifier ma réponse',
       langBtn: '中文',
       confirmPrefix: 'Nous avons hâte de vous retrouver pour : ',
       confirmNone: "C'est noté. Nous avons bien reçu votre réponse.",
+      confirmDecline: 'Nous sommes tristes de ne pas vous voir, merci de nous avoir prévenus.',
+      submitError: "Erreur d'envoi, réessayez.",
+      presenceRequiredError: 'Merci de préciser si vous serez présent·e.',
+      eventsRequiredError: 'Sélectionnez au moins un événement.',
     },
     zh: {
       cdD: '天', cdH: '时', cdM: '分', cdS: '秒', cdPassed: '大喜之日到啦！',
-      fName: '您的姓名', fNamePh: '姓名', fAdults: '成人人数', fChildren: '儿童人数', fPresence: '我将出席：',
+      fName: '您的姓名', fNamePh: '姓名', fEmail: '邮箱', fEmailPh: 'vous@email.com',
+      fPhone: '电话', fPhonePh: '06 12 34 56 78',
+      fPresenceQ: '您是否出席？', yesLabel: '是', noLabel: '否',
+      fAdults: '成人人数', fChildren: '儿童人数', fPresence: '我将出席：',
+      fExtraAdult: '成人', fChildName: '儿童',
       fDiet: '过敏 / 饮食', fDietPh: '如：素食、无麸质…', fMsg: '留言', fMsgPh: '给新人的祝福…',
       fSubmit: '提交回复', thankTitle: '衷心感谢',
-      demoNote: '（演示 — 不会实际发送，请连接您的统计工具。）',
+      thankTitleDecline: '已收到',
       editBtn: '修改回复',
       langBtn: 'FR',
       confirmPrefix: '期待与您相聚于：',
       confirmNone: '已收到您的回复，谢谢！',
+      confirmDecline: '很遗憾不能与您相聚，感谢您的告知。',
+      submitError: '发送失败，请重试。',
+      presenceRequiredError: '请告知我们您是否会出席。',
+      eventsRequiredError: '请至少选择一个活动。',
     },
   };
 
@@ -59,7 +105,8 @@ function escapeHtml(str) {
     guestToken: null,
     rawEvents: [],
     assignedEventIds: [],
-    rsvp: { name: '', adults: 1, children: 0, events: {}, diet: '', message: '' },
+    rsvp: { name: '', email: '', phone: '', adults: 1, children: 0, extraAdults: [], childNames: [], presence: null, events: {}, diet: '', message: '' },
+    submitting: false,
     cd: { d: 0, h: 0, m: 0, s: 0, passed: false },
   };
 
@@ -95,15 +142,20 @@ function escapeHtml(str) {
       state.guestToken = token;
       state.assignedEventIds = guest.assignedEvents || [];
       state.rawEvents = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (guest.rsvp && guest.rsvp.status === 'confirmed') {
+      if (guest.rsvp && (guest.rsvp.status === 'confirmed' || guest.rsvp.status === 'declined')) {
         state.submitted = true;
         state.rsvp = {
           name: guest.rsvp.name || '',
+          email: guest.rsvp.email || '',
+          phone: guest.rsvp.phone || '',
           adults: guest.rsvp.adults ?? 1,
           children: guest.rsvp.children ?? 0,
+          extraAdults: guest.rsvp.extraAdultNames || [],
+          childNames: guest.rsvp.childNames || [],
           diet: guest.rsvp.diet || '',
           message: guest.rsvp.message || '',
           events: guest.rsvp.confirmedEvents || {},
+          presence: guest.rsvp.status === 'declined' ? 'no' : 'yes',
         };
       }
     } catch (e) {
@@ -262,7 +314,14 @@ function escapeHtml(str) {
   function renderConfirmLine() {
     const L = T[state.lang];
     const el = document.getElementById('rsvp-confirm-line');
+    const titleEl = document.getElementById('rsvp-thanks-title');
     if (!el) return;
+    if (state.rsvp.declined) {
+      el.textContent = L.confirmDecline;
+      if (titleEl) titleEl.textContent = L.thankTitleDecline;
+      return;
+    }
+    if (titleEl) titleEl.textContent = L.thankTitle;
     const chosen = visibleEvents().filter(e => state.rsvp.events[e.id]).map(e => e.title);
     el.textContent = chosen.length ? (L.confirmPrefix + chosen.join(' · ')) : L.confirmNone;
   }
@@ -543,59 +602,151 @@ function escapeHtml(str) {
           <p class="section-sub">${escapeHtml(bf(block, 'intro', lang))}</p>
         </div>
 
-        <form id="rsvp-form" class="rsvp-form">
+        <form id="rsvp-form" class="rsvp-form" novalidate>
           <label class="field">
-            <span class="field-label">${escapeHtml(L.fName)}</span>
+            <span class="field-label">${escapeHtml(L.fName)} *</span>
             <input id="r-name" type="text" required placeholder="${escapeHtml(L.fNamePh)}" value="${escapeHtml(state.rsvp.name)}">
           </label>
-          <div class="field field-row">
-            <label class="field">
-              <span class="field-label">${escapeHtml(L.fAdults)}</span>
-              <input id="r-adults" type="number" min="1" max="12" value="${escapeHtml(String(state.rsvp.adults))}">
-            </label>
-            <label class="field">
-              <span class="field-label">${escapeHtml(L.fChildren)}</span>
-              <input id="r-children" type="number" min="0" max="12" value="${escapeHtml(String(state.rsvp.children))}">
-            </label>
-          </div>
-          <div class="field">
-            <span class="field-label">${escapeHtml(L.fPresence)}</span>
-            <div id="rsvp-events" class="rsvp-events"></div>
-          </div>
           <label class="field">
-            <span class="field-label">${escapeHtml(L.fDiet)}</span>
-            <input id="r-diet" type="text" placeholder="${escapeHtml(L.fDietPh)}" value="${escapeHtml(state.rsvp.diet)}">
+            <span class="field-label">${escapeHtml(L.fEmail)} *</span>
+            <input id="r-email" type="email" required placeholder="${escapeHtml(L.fEmailPh)}" value="${escapeHtml(state.rsvp.email)}">
           </label>
+          <label class="field">
+            <span class="field-label">${escapeHtml(L.fPhone)} *</span>
+            <input id="r-phone" type="tel" required placeholder="${escapeHtml(L.fPhonePh)}" value="${escapeHtml(state.rsvp.phone)}">
+          </label>
+
+          <div class="field">
+            <span class="field-label">${escapeHtml(L.fPresenceQ)} *</span>
+            <div class="rsvp-toggle">
+              <button type="button" class="rsvp-toggle-btn" data-val="yes">${escapeHtml(L.yesLabel)}</button>
+              <button type="button" class="rsvp-toggle-btn" data-val="no">${escapeHtml(L.noLabel)}</button>
+            </div>
+          </div>
+
+          <div id="rsvp-presence-yes" hidden>
+            <div class="field field-row">
+              <label class="field">
+                <span class="field-label">${escapeHtml(L.fAdults)} *</span>
+                <input id="r-adults" type="number" min="1" max="12" value="${escapeHtml(String(state.rsvp.adults))}">
+              </label>
+              <label class="field">
+                <span class="field-label">${escapeHtml(L.fChildren)} *</span>
+                <input id="r-children" type="number" min="0" max="12" value="${escapeHtml(String(state.rsvp.children))}">
+              </label>
+            </div>
+            <div id="rsvp-extra-people"></div>
+            <div class="field">
+              <span class="field-label">${escapeHtml(L.fPresence)} *</span>
+              <div id="rsvp-events" class="rsvp-events"></div>
+            </div>
+            <label class="field">
+              <span class="field-label">${escapeHtml(L.fDiet)}</span>
+              <input id="r-diet" type="text" placeholder="${escapeHtml(L.fDietPh)}" value="${escapeHtml(state.rsvp.diet)}">
+            </label>
+          </div>
+
           <label class="field">
             <span class="field-label">${escapeHtml(L.fMsg)}</span>
             <textarea id="r-msg" rows="3" placeholder="${escapeHtml(L.fMsgPh)}">${escapeHtml(state.rsvp.message)}</textarea>
           </label>
+          <p id="rsvp-error" class="rsvp-error" hidden></p>
           <button type="submit" class="btn-submit">${escapeHtml(L.fSubmit)}</button>
         </form>
 
         <div id="rsvp-thanks" class="rsvp-thanks" hidden>
           <div class="cal rsvp-thanks-glyph">囍</div>
-          <h3 class="rsvp-thanks-title">${escapeHtml(L.thankTitle)}</h3>
+          <h3 id="rsvp-thanks-title" class="rsvp-thanks-title">${escapeHtml(L.thankTitle)}</h3>
           <p id="rsvp-confirm-line" class="rsvp-confirm-line"></p>
-          <p class="rsvp-demo-note">${escapeHtml(L.demoNote)}</p>
           <button id="rsvp-edit-btn" class="btn-outline">${escapeHtml(L.editBtn)}</button>
         </div>
       </div>`;
 
+    const form = section.querySelector('#rsvp-form');
+    const presenceYesEl = section.querySelector('#rsvp-presence-yes');
+    const extraPeopleEl = section.querySelector('#rsvp-extra-people');
+    const toggleBtns = section.querySelectorAll('.rsvp-toggle-btn');
+
+    function renderExtraPeople() {
+      const adults = Math.max(1, Number(state.rsvp.adults) || 1);
+      const children = Math.max(0, Number(state.rsvp.children) || 0);
+      const extraAdultsCount = Math.max(0, adults - 1);
+
+      while (state.rsvp.extraAdults.length < extraAdultsCount) state.rsvp.extraAdults.push('');
+      state.rsvp.extraAdults.length = extraAdultsCount;
+      while (state.rsvp.childNames.length < children) state.rsvp.childNames.push('');
+      state.rsvp.childNames.length = children;
+
+      extraPeopleEl.innerHTML = '';
+      state.rsvp.extraAdults.forEach((val, i) => {
+        const label = document.createElement('label');
+        label.className = 'field';
+        label.innerHTML = `<span class="field-label">${escapeHtml(L.fExtraAdult)} ${i + 2} *</span><input type="text" required placeholder="${escapeHtml(L.fNamePh)}" value="${escapeHtml(val)}">`;
+        label.querySelector('input').addEventListener('input', e => state.rsvp.extraAdults[i] = e.target.value);
+        extraPeopleEl.appendChild(label);
+      });
+      state.rsvp.childNames.forEach((val, i) => {
+        const label = document.createElement('label');
+        label.className = 'field';
+        label.innerHTML = `<span class="field-label">${escapeHtml(L.fChildName)} ${i + 1} *</span><input type="text" required placeholder="${escapeHtml(L.fNamePh)}" value="${escapeHtml(val)}">`;
+        label.querySelector('input').addEventListener('input', e => state.rsvp.childNames[i] = e.target.value);
+        extraPeopleEl.appendChild(label);
+      });
+    }
+
+    function setPresence(val) {
+      state.rsvp.presence = val;
+      toggleBtns.forEach(b => b.classList.toggle('active', b.dataset.val === val));
+      presenceYesEl.hidden = val !== 'yes';
+      if (val === 'yes') renderExtraPeople();
+    }
+
+    toggleBtns.forEach(b => b.addEventListener('click', () => setPresence(b.dataset.val)));
+    if (state.rsvp.presence) setPresence(state.rsvp.presence);
+
     section.querySelector('#r-name').addEventListener('input', e => state.rsvp.name = e.target.value);
-    section.querySelector('#r-adults').addEventListener('input', e => state.rsvp.adults = e.target.value);
-    section.querySelector('#r-children').addEventListener('input', e => state.rsvp.children = e.target.value);
+    section.querySelector('#r-email').addEventListener('input', e => state.rsvp.email = e.target.value);
+    section.querySelector('#r-phone').addEventListener('input', e => state.rsvp.phone = e.target.value);
+    section.querySelector('#r-adults').addEventListener('input', e => { state.rsvp.adults = e.target.value; renderExtraPeople(); });
+    section.querySelector('#r-children').addEventListener('input', e => { state.rsvp.children = e.target.value; renderExtraPeople(); });
     section.querySelector('#r-diet').addEventListener('input', e => state.rsvp.diet = e.target.value);
     section.querySelector('#r-msg').addEventListener('input', e => state.rsvp.message = e.target.value);
-    section.querySelector('#rsvp-form').addEventListener('submit', e => {
+
+    form.addEventListener('submit', async e => {
       e.preventDefault();
-      state.submitted = true;
-      renderConfirmLine();
-      renderRsvpFormState();
+      if (state.submitting || !state.guestToken) return;
+      const submitBtn = section.querySelector('.btn-submit');
+      const errEl = section.querySelector('#rsvp-error');
+      errEl.hidden = true;
+
+      if (!form.checkValidity()) { form.reportValidity(); return; }
+      if (!state.rsvp.presence) { errEl.textContent = L.presenceRequiredError; errEl.hidden = false; return; }
+      if (state.rsvp.presence === 'yes' && !Object.values(state.rsvp.events).some(Boolean)) {
+        errEl.textContent = L.eventsRequiredError; errEl.hidden = false; return;
+      }
+
+      state.submitting = true;
+      submitBtn.disabled = true;
+      try {
+        const rsvp = state.rsvp.presence === 'no'
+          ? { status: 'declined', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: state.rsvp.message, confirmedEvents: {}, respondedAt: new Date().toISOString() }
+          : { status: 'confirmed', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: Number(state.rsvp.adults) || 0, children: Number(state.rsvp.children) || 0, extraAdultNames: [...state.rsvp.extraAdults], childNames: [...state.rsvp.childNames], diet: state.rsvp.diet, message: state.rsvp.message, confirmedEvents: state.rsvp.events, respondedAt: new Date().toISOString() };
+        await updateDoc(doc(db, 'guests', state.guestToken), { rsvp });
+        sendRsvpEmails(rsvp);
+        state.submitted = true;
+        renderConfirmLine();
+        renderRsvpFormState();
+      } catch (err) {
+        console.error('RSVP submit failed', err);
+        errEl.textContent = T[state.lang].submitError;
+        errEl.hidden = false;
+      } finally {
+        state.submitting = false;
+        submitBtn.disabled = false;
+      }
     });
     section.querySelector('#rsvp-edit-btn').addEventListener('click', () => {
       state.submitted = false;
-      state.rsvp = { name: '', adults: 1, children: 0, events: {}, diet: '', message: '' };
       fullRender();
     });
     renderRsvpEventsInto(section.querySelector('#rsvp-events'));
