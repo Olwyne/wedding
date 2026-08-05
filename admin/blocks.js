@@ -372,6 +372,7 @@ function openBlockPanel(id, allBlocks, audience) {
     </div>
     <div class="panel-body" id="panel-body">
       ${isNew ? renderTypeSelector(audience) : renderBlockForm(block)}
+      <p id="block-error" class="login-error" hidden></p>
     </div>
     <div class="panel-footer">
       <button class="btn-primary" id="panel-save" ${isNew ? 'disabled' : ''}>${isNew ? 'Créer' : 'Enregistrer'}</button>
@@ -381,10 +382,11 @@ function openBlockPanel(id, allBlocks, audience) {
   document.body.appendChild(overlay);
   document.body.appendChild(panelEl);
 
+  function isSaving() { return !!panelEl.querySelector('#panel-save')?.disabled; }
   function close() { overlay.remove(); panelEl.remove(); renderBlocksTab(); }
-  panelEl.querySelector('#panel-close').addEventListener('click', close);
-  panelEl.querySelector('#panel-cancel').addEventListener('click', close);
-  overlay.addEventListener('click', close);
+  panelEl.querySelector('#panel-close').addEventListener('click', () => { if (!isSaving()) close(); });
+  panelEl.querySelector('#panel-cancel').addEventListener('click', () => { if (!isSaving()) close(); });
+  overlay.addEventListener('click', () => { if (!isSaving()) close(); });
 
   if (isNew) {
     panelEl.querySelectorAll('.type-card').forEach(card => {
@@ -404,15 +406,19 @@ function openBlockPanel(id, allBlocks, audience) {
 
   panelEl.querySelector('#panel-save').addEventListener('click', async () => {
     const saveBtn = panelEl.querySelector('#panel-save');
+    const errorEl = panelEl.querySelector('#block-error');
+    errorEl.hidden = true;
     saveBtn.disabled = true;
     saveBtn.textContent = isNew ? 'Création…' : 'Enregistrement…';
     try {
       await saveBlock(id, filtered, panelEl, audience);
       close();
     } catch (err) {
+      console.error(err);
+      errorEl.textContent = `Erreur : ${err.message}`;
+      errorEl.hidden = false;
       saveBtn.disabled = false;
       saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer';
-      console.error(err);
     }
   });
 }
