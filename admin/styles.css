@@ -213,3 +213,29 @@ button{cursor:pointer;font-family:inherit}
 .password-reveal{display:flex;align-items:center;gap:8px}
 .password-reveal code{flex:1;padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-family:ui-monospace,monospace;background:#f9fafb}
 .sidebar-footer .sidebar-logout + .sidebar-logout{margin-top:6px}
+
+/* ── Witnesses ── */
+.witness-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.witness-column{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px}
+.witness-column h3{font-size:15px;font-weight:600;color:var(--text);margin-bottom:12px}
+.witness-section-label{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin:14px 0 8px}
+.witness-section-label:first-of-type{margin-top:0}
+.witness-slots{display:flex;gap:10px}
+.witness-slots,.witness-honneur-list{min-height:52px;border-radius:8px;padding:6px;background:var(--admin-bg)}
+.witness-honneur-list{display:flex;flex-direction:column;gap:8px}
+.witness-slots{flex-wrap:nowrap}
+.witness-slots .witness-card,.witness-slots .witness-slot-empty{flex:1}
+.witness-slot-empty{display:flex;align-items:center;justify-content:center;min-height:44px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);font-size:12.5px}
+.witness-card{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;cursor:grab}
+.witness-card-name{flex:1;font-weight:500;color:var(--text)}
+.witness-pool{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:#fff;border:1px solid var(--border);border-radius:10px;min-height:52px}
+.witness-pool .witness-card{cursor:grab}
+.witness-drag-over{outline:2px dashed #6366f1;outline-offset:-2px;background:#eef2ff}
+.witness-shake{animation:witness-shake .35s}
+@keyframes witness-shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
