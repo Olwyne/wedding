@@ -68,7 +68,7 @@ export async function renderVendorsTab() {
 
   const editable = canWrite('vendors');
   document.getElementById('section-action').innerHTML = editable
-    ? '<button id="add-vendor-btn" class="btn-primary">+ Ajouter un prestataire</button>'
+    ? '<button id="add-vendor-btn" class="btn-primary">+ Ajouter une prestation</button>'
     : '';
 
   let vendors;
@@ -90,7 +90,7 @@ export async function renderVendorsTab() {
       <tbody>
         ${vendors.length
           ? vendors.map(v => renderVendorRow(v, editable)).join('')
-          : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">Aucun prestataire.</td></tr>'}
+          : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">Aucune prestation.</td></tr>'}
       </tbody>
     </table>`;
 
@@ -101,7 +101,7 @@ export async function renderVendorsTab() {
     );
     panel.querySelectorAll('.btn-delete-vendor').forEach(btn =>
       btn.addEventListener('click', async () => {
-        if (!confirm('Supprimer ce prestataire ?')) return;
+        if (!confirm('Supprimer cette prestation ?')) return;
         try {
           await deleteDoc(doc(db, 'vendors', btn.dataset.id));
           renderVendorsTab();
@@ -138,7 +138,7 @@ function openVendorPanel(id, vendors) {
 
   panelEl.innerHTML = `
     <div class="panel-header">
-      <h3>${isNew ? 'Nouveau prestataire' : 'Modifier le prestataire'}</h3>
+      <h3>${isNew ? 'Nouvelle prestation' : 'Modifier la prestation'}</h3>
       <button class="btn-icon" id="panel-close">✕</button>
     </div>
     <div class="panel-body">

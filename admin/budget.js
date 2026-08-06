@@ -1,7 +1,7 @@
 // admin/budget.js
 import { db } from '../firebase-init.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadVendors, paidAmount, CATEGORIES } from './vendors.js?v=5';
+import { loadVendors, paidAmount, CATEGORIES } from './vendors.js?v=6';
 import { canWrite } from './permissions.js';
 
 const budgetDocRef = doc(db, 'settings', 'budget');
