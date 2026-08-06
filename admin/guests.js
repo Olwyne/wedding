@@ -141,10 +141,8 @@ export async function renderGuestsTab() {
 
   const [guests, events] = await Promise.all([loadGuests(), loadEvents()]);
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
-  const stats = computeStats(guests);
 
   panel.innerHTML = `
-    ${renderStatsBar(stats)}
     <table class="admin-table">
       <thead>
         <tr>

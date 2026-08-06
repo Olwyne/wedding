@@ -2,7 +2,7 @@
 import { initAuth } from './auth.js?v=1';
 import { renderDashboardTab } from './dashboard.js?v=2';
 import { renderBlocksTab } from './blocks.js?v=7';
-import { renderGuestsTab } from './guests.js?v=3';
+import { renderGuestsTab } from './guests.js?v=4';
 import { renderEventsTab } from './events.js?v=4';
 import { renderUsersTab } from './users.js';
 import { openAccountPanel } from './account.js';
@@ -23,6 +23,14 @@ PERM_SECTIONS.forEach(s => {
   NAV_SECTIONS[s.id] = { title: s.label, render: RENDER_BY_ID[s.id] };
 });
 
+const SLUG_BY_SECTION = { dashboard: 'dashboard', blocks: 'content', guests: 'guest', events: 'events', users: 'users' };
+const SECTION_BY_SLUG = Object.fromEntries(Object.entries(SLUG_BY_SECTION).map(([section, slug]) => [slug, section]));
+
+function sectionFromPath() {
+  const slug = location.pathname.replace(/^\/admin\/?/, '').replace(/\/$/, '');
+  return SECTION_BY_SLUG[slug] || 'dashboard';
+}
+
 function updateNavVisibility() {
   PERM_SECTIONS.forEach(s => {
     const btn = document.querySelector(`.nav-item[data-section="${s.id}"]`);
@@ -30,13 +38,17 @@ function updateNavVisibility() {
   });
 }
 
-function switchToSection(section) {
+function switchToSection(section, { push = true } = {}) {
+  if (!NAV_SECTIONS[section]) section = 'dashboard';
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
   document.querySelector(`.nav-item[data-section="${section}"]`)?.classList.add('active');
   document.querySelectorAll('.tab-panel').forEach(p => { p.hidden = true; });
   document.getElementById('tab-' + section).hidden = false;
   document.getElementById('section-title').textContent = NAV_SECTIONS[section].title;
   NAV_SECTIONS[section].render().catch(err => console.error(err));
+
+  const url = `/admin/${SLUG_BY_SECTION[section]}/`;
+  if (push && location.pathname !== url) history.pushState({ section }, '', url);
 }
 
 function initNav() {
@@ -44,13 +56,14 @@ function initNav() {
     btn.addEventListener('click', () => switchToSection(btn.dataset.section));
   });
   document.getElementById('account-btn').addEventListener('click', openAccountPanel);
+  window.addEventListener('popstate', () => switchToSection(sectionFromPath(), { push: false }));
 }
 
 initNav();
 initAuth({
   onSignedIn: () => {
     updateNavVisibility();
-    switchToSection('dashboard');
+    switchToSection(sectionFromPath(), { push: false });
   },
   onSignedOut: () => {},
 });

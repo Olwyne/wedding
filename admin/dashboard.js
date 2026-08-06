@@ -1,5 +1,5 @@
 // admin/dashboard.js
-import { loadGuests, computeStats, renderStatsBar } from './guests.js?v=3';
+import { loadGuests, computeStats, renderStatsBar } from './guests.js?v=4';
 import { loadEvents } from './events.js?v=2';
 import { canRead } from './permissions.js';
 
