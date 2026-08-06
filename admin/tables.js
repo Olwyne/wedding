@@ -147,7 +147,61 @@ function renderGuestList(guests, placedIds, statusFilter) {
     </div>`;
 }
 
-function wireDragAndDrop(panel, tables, statusFilter) {
+function openTableDetailPanel(table, guestById, onChange) {
+  const overlay = document.createElement('div');
+  overlay.className = 'panel-overlay';
+  const panelEl = document.createElement('div');
+  panelEl.className = 'panel';
+
+  function occupantRows() {
+    if (!table.guestIds.length) return '<p style="color:var(--muted);font-size:13px">Aucun invité sur cette table.</p>';
+    return table.guestIds.map(id => {
+      const g = guestById[id];
+      if (!g) return '';
+      return `
+        <div class="table-occupant-row" data-guest-id="${escapeHtml(id)}">
+          <span>${escapeHtml(g.name)} (${guestPartySize(g)}p)</span>
+          <button class="btn-secondary btn-remove-occupant" data-guest-id="${escapeHtml(id)}">Retirer</button>
+        </div>`;
+    }).join('');
+  }
+
+  panelEl.innerHTML = `
+    <div class="panel-header">
+      <h3>${escapeHtml(table.name)}</h3>
+      <button class="btn-icon" id="panel-close">✕</button>
+    </div>
+    <div class="panel-body" id="occupant-list">${occupantRows()}</div>
+    <div class="panel-footer">
+      <button class="btn-danger" id="panel-delete-table">Supprimer la table</button>
+      <button class="btn-secondary" id="panel-cancel">Fermer</button>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(panelEl);
+
+  function close() { overlay.remove(); panelEl.remove(); }
+  panelEl.querySelector('#panel-close').addEventListener('click', close);
+  panelEl.querySelector('#panel-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', close);
+
+  panelEl.querySelectorAll('.btn-remove-occupant').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await removeGuestFromTable(table.id, btn.dataset.guestId, table.guestIds);
+      close();
+      onChange();
+    });
+  });
+
+  panelEl.querySelector('#panel-delete-table').addEventListener('click', async () => {
+    if (!confirm('Supprimer cette table ? Les invités qu\'elle contient redeviendront non placés.')) return;
+    await deleteTable(table.id);
+    close();
+    onChange();
+  });
+}
+
+function wireDragAndDrop(panel, tables, statusFilter, guestByIdRef) {
   panel.querySelectorAll('.guest-card').forEach(card => {
     card.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/guest-id', card.dataset.guestId);
@@ -174,6 +228,10 @@ function wireDragAndDrop(panel, tables, statusFilter) {
       e.stopPropagation();
       await assignGuestToTable(tables, guestId, circle.dataset.id);
       renderTablesTab(statusFilter);
+    });
+    circle.addEventListener('click', () => {
+      const table = tables.find(t => t.id === circle.dataset.id);
+      if (table) openTableDetailPanel(table, guestByIdRef, () => renderTablesTab(statusFilter));
     });
   });
 
@@ -231,5 +289,5 @@ export async function renderTablesTab(statusFilter = 'all') {
     );
   }
 
-  wireDragAndDrop(panel, tables, statusFilter);
+  wireDragAndDrop(panel, tables, statusFilter, guestById);
 }

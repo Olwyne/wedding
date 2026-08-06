@@ -254,3 +254,5 @@ button{cursor:pointer;font-family:inherit}
 .tables-filter button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 .guest-card{background:var(--accent-light);border-radius:6px;padding:6px 8px;margin-bottom:6px;font-size:12px;cursor:grab;display:flex;justify-content:space-between;align-items:center;gap:6px}
 .guest-card .guest-card-count{color:var(--muted);font-size:10px;flex-shrink:0}
+.table-occupant-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0ece4;font-size:13px}
+.table-occupant-row:last-child{border-bottom:none}
