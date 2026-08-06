@@ -67,6 +67,61 @@ function renderPool(guests) {
     <div class="witness-pool" id="witness-pool">${cards}</div>`;
 }
 
+async function assignWitness(guestId, side, role) {
+  if (role === 'temoin') {
+    const currentCount = cachedGuests.filter(g =>
+      g.id !== guestId &&
+      g.weddingParty?.role === 'temoin' &&
+      g.weddingParty?.side === side
+    ).length;
+    if (currentCount >= 2) return false;
+  }
+  await updateDoc(doc(db, 'guests', guestId), { weddingParty: { role, side } });
+  return true;
+}
+
+function flashReject(el) {
+  el.classList.remove('witness-shake');
+  void el.offsetWidth;
+  el.classList.add('witness-shake');
+}
+
+function attachDragEvents(panel) {
+  if (!editableGlobal) return;
+
+  panel.querySelectorAll('.witness-card[draggable="true"]').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+
+  panel.querySelectorAll('.witness-slots, .witness-honneur-list').forEach(target => {
+    target.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      target.classList.add('witness-drag-over');
+    });
+    target.addEventListener('dragleave', () => {
+      target.classList.remove('witness-drag-over');
+    });
+    target.addEventListener('drop', async e => {
+      e.preventDefault();
+      target.classList.remove('witness-drag-over');
+      const guestId = e.dataTransfer.getData('text/plain');
+      if (!guestId) return;
+      const side = target.dataset.side;
+      const role = target.dataset.role;
+      const ok = await assignWitness(guestId, side, role);
+      if (!ok) {
+        flashReject(target);
+        return;
+      }
+      renderWitnessesTab();
+    });
+  });
+}
+
 export async function renderWitnessesTab() {
   const panel = document.getElementById('tab-witnesses');
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
@@ -80,4 +135,6 @@ export async function renderWitnessesTab() {
       ${SIDES.map(s => renderColumn(s, cachedGuests)).join('')}
     </div>
     ${renderPool(cachedGuests)}`;
+
+  attachDragEvents(panel);
 }

@@ -230,3 +230,12 @@ button{cursor:pointer;font-family:inherit}
 .witness-card-name{flex:1;font-weight:500;color:var(--text)}
 .witness-pool{display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:#fff;border:1px solid var(--border);border-radius:10px;min-height:52px}
 .witness-pool .witness-card{cursor:grab}
+.witness-drag-over{outline:2px dashed #6366f1;outline-offset:-2px;background:#eef2ff}
+.witness-shake{animation:witness-shake .35s}
+@keyframes witness-shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
