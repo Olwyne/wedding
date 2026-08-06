@@ -1,11 +1,83 @@
 // admin/witnesses.js
+import { db } from '../firebase-init.js';
+import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=4';
 import { canWrite } from './permissions.js';
+
+const SIDES = [
+  { id: 'marie', label: 'Marié', honneurLabel: 'Garçons d\'honneur' },
+  { id: 'mariee', label: 'Mariée', honneurLabel: 'Demoiselles d\'honneur' },
+];
+
+let cachedGuests = [];
+let editableGlobal = false;
+
+function escapeHtml(str) {
+  if (typeof str !== 'string') return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderPersonCard(guest, { removable }) {
+  const side = guest.side || 'deux';
+  const removeBtn = removable
+    ? `<button class="btn-icon witness-remove" data-id="${escapeHtml(guest.id)}" title="Retirer">✕</button>`
+    : '';
+  return `
+    <div class="witness-card" draggable="${editableGlobal}" data-id="${escapeHtml(guest.id)}">
+      <span class="witness-card-name">${escapeHtml(guest.name)}</span>
+      <span class="badge ${SIDE_BADGE[side]}">${SIDE_LABELS[side]}</span>
+      ${removeBtn}
+    </div>`;
+}
+
+function renderColumn(sideDef, guests) {
+  const temoins = guests.filter(g => g.weddingParty?.role === 'temoin' && g.weddingParty?.side === sideDef.id);
+  const honneur = guests.filter(g => g.weddingParty?.role === 'honneur' && g.weddingParty?.side === sideDef.id);
+
+  const slots = [0, 1].map(i => {
+    const g = temoins[i];
+    return g
+      ? renderPersonCard(g, { removable: editableGlobal })
+      : '<div class="witness-slot-empty">Vide</div>';
+  }).join('');
+
+  const honneurCards = honneur.length
+    ? honneur.map(g => renderPersonCard(g, { removable: editableGlobal })).join('')
+    : '<div class="witness-slot-empty">Aucun</div>';
+
+  return `
+    <div class="witness-column" data-side="${sideDef.id}">
+      <h3>${sideDef.label}</h3>
+      <div class="witness-section-label">Témoins (max 2)</div>
+      <div class="witness-slots" data-side="${sideDef.id}" data-role="temoin">${slots}</div>
+      <div class="witness-section-label">${sideDef.honneurLabel}</div>
+      <div class="witness-honneur-list" data-side="${sideDef.id}" data-role="honneur">${honneurCards}</div>
+    </div>`;
+}
+
+function renderPool(guests) {
+  const pool = guests.filter(g => !g.weddingParty);
+  const cards = pool.length
+    ? pool.map(g => renderPersonCard(g, { removable: false })).join('')
+    : '<p style="color:var(--muted)">Tous les invités sont assignés.</p>';
+  return `
+    <div class="witness-section-label">Invités disponibles</div>
+    <div class="witness-pool" id="witness-pool">${cards}</div>`;
+}
 
 export async function renderWitnessesTab() {
   const panel = document.getElementById('tab-witnesses');
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
   document.getElementById('section-action').innerHTML = '';
 
-  const editable = canWrite('witnesses');
-  panel.innerHTML = `<p style="padding:20px;color:var(--muted)">Témoins — à venir (editable: ${editable})</p>`;
+  editableGlobal = canWrite('witnesses');
+  cachedGuests = await loadGuests();
+
+  panel.innerHTML = `
+    <div class="witness-columns">
+      ${SIDES.map(s => renderColumn(s, cachedGuests)).join('')}
+    </div>
+    ${renderPool(cachedGuests)}`;
 }
