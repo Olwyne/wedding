@@ -155,7 +155,15 @@ function wireDragAndDrop(panel, tables, statusFilter) {
     });
   });
 
+  let dragOffset = { x: 0, y: 0 };
+
   panel.querySelectorAll('.table-circle').forEach(circle => {
+    circle.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/table-id', circle.dataset.id);
+      e.dataTransfer.effectAllowed = 'move';
+      const rect = circle.getBoundingClientRect();
+      dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    });
     circle.addEventListener('dragover', e => {
       if (e.dataTransfer.types.includes('text/guest-id')) e.preventDefault();
     });
@@ -167,6 +175,21 @@ function wireDragAndDrop(panel, tables, statusFilter) {
       await assignGuestToTable(tables, guestId, circle.dataset.id);
       renderTablesTab(statusFilter);
     });
+  });
+
+  const canvas = document.getElementById('tables-canvas');
+  canvas.addEventListener('dragover', e => {
+    if (e.dataTransfer.types.includes('text/table-id')) e.preventDefault();
+  });
+  canvas.addEventListener('drop', async e => {
+    const tableId = e.dataTransfer.getData('text/table-id');
+    if (!tableId) return;
+    e.preventDefault();
+    const canvasRect = canvas.getBoundingClientRect();
+    const x = Math.max(0, Math.round(e.clientX - canvasRect.left - dragOffset.x));
+    const y = Math.max(0, Math.round(e.clientY - canvasRect.top - dragOffset.y));
+    await updateTablePosition(tableId, x, y);
+    renderTablesTab(statusFilter);
   });
 }
 
