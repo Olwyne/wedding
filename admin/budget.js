@@ -6,6 +6,8 @@ import { canWrite } from './permissions.js';
 
 const budgetDocRef = doc(db, 'settings', 'budget');
 
+const PENCIL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
+
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
   const div = document.createElement('div');
@@ -53,7 +55,28 @@ function computeCategoryStats(vendors, categoryTargets) {
     .sort((a, b) => a.category.localeCompare(b.category));
 }
 
-function renderCategoryTable(categoryStats, editable) {
+// `key` identifies this target in the editingKeys set ('global', or `category:<name>`).
+// `dataKeyAttr` is the data-key="..." attribute repeated on the input/save button so
+// their click/read handlers can be wired generically instead of per-target IDs.
+function renderTargetCell(key, value, editable, editingKeys) {
+  if (!editable) return fmtMoney(value);
+
+  const isEditing = editingKeys.has(key) || !value;
+  if (!isEditing) {
+    return `
+      <div class="budget-target-view">
+        <strong>${fmtMoney(value)}</strong>
+        <button type="button" class="btn-icon target-edit-btn" data-key="${escapeHtml(key)}">${PENCIL_ICON}</button>
+      </div>`;
+  }
+  return `
+    <div class="budget-target-input">
+      <input class="target-input" type="number" min="0" step="0.01" data-key="${escapeHtml(key)}" value="${value || ''}">
+      <button class="btn-secondary target-save-btn" data-key="${escapeHtml(key)}">Enregistrer</button>
+    </div>`;
+}
+
+function renderCategoryTable(categoryStats, editable, editingKeys) {
   if (!categoryStats.length) return '';
   return `
     <table class="admin-table">
@@ -64,12 +87,7 @@ function renderCategoryTable(categoryStats, editable) {
         ${categoryStats.map(c => `
           <tr>
             <td>${escapeHtml(c.category)}</td>
-            <td>${editable
-              ? `<div class="budget-target-input">
-                   <input class="category-target-input" type="number" min="0" step="0.01" data-category="${escapeHtml(c.category)}" value="${c.target || ''}">
-                   <button class="btn-secondary category-target-save" data-category="${escapeHtml(c.category)}">Enregistrer</button>
-                 </div>`
-              : fmtMoney(c.target)}</td>
+            <td>${renderTargetCell(`category:${c.category}`, c.target, editable, editingKeys)}</td>
             <td>${fmtMoney(c.engaged)}</td>
             <td>${fmtMoney(c.paid)}</td>
             <td>${fmtMoney(c.engaged - c.paid)}</td>
@@ -84,6 +102,7 @@ export async function renderBudgetTab() {
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
 
   const editable = canWrite('budget');
+  const editingKeys = new Set();
 
   let vendors, budgetDoc;
   try {
@@ -92,54 +111,64 @@ export async function renderBudgetTab() {
     panel.innerHTML = `<p style="padding:20px;color:var(--danger)">Erreur : ${escapeHtml(err.message)}</p>`;
     return;
   }
-  const { target, categoryTargets } = budgetDoc;
+  let { target, categoryTargets } = budgetDoc;
 
   const totalEngaged = vendors.reduce((sum, v) => sum + (Number(v.total) || 0), 0);
   const totalPaid = vendors.reduce((sum, v) => sum + paidAmount(v), 0);
-  const pct = target > 0 ? Math.min(100, Math.round((totalPaid / target) * 100)) : 0;
-  const over = target > 0 && totalPaid > target;
-  const categoryStats = computeCategoryStats(vendors, categoryTargets);
 
-  panel.innerHTML = `
-    <div class="budget-summary">
-      <div class="budget-summary-row">
-        <span>Budget cible</span>
-        ${editable
-          ? `<div class="budget-target-input">
-               <input id="budget-target-input" type="number" min="0" step="0.01" value="${target || ''}">
-               <button class="btn-secondary" id="budget-target-save">Enregistrer</button>
-             </div>`
-          : `<strong>${fmtMoney(target)}</strong>`}
+  async function persistTarget(key, value) {
+    if (key === 'global') {
+      await saveTarget(value);
+      target = value;
+    } else {
+      const category = key.slice('category:'.length);
+      await saveCategoryTarget(category, categoryTargets, value);
+      categoryTargets = { ...categoryTargets, [category]: value };
+    }
+  }
+
+  function renderView() {
+    const pct = target > 0 ? Math.min(100, Math.round((totalPaid / target) * 100)) : 0;
+    const over = target > 0 && totalPaid > target;
+    const categoryStats = computeCategoryStats(vendors, categoryTargets);
+
+    panel.innerHTML = `
+      <div class="budget-summary">
+        <div class="budget-summary-row">
+          <span>Budget cible</span>
+          ${renderTargetCell('global', target, editable, editingKeys)}
+        </div>
+        <div class="budget-summary-row"><span>Total engagé</span><strong>${fmtMoney(totalEngaged)}</strong></div>
+        <div class="budget-summary-row"><span>Total versé</span><strong>${fmtMoney(totalPaid)}</strong></div>
+        <div class="progress-bar"><div class="progress-bar-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>
       </div>
-      <div class="budget-summary-row"><span>Total engagé</span><strong>${fmtMoney(totalEngaged)}</strong></div>
-      <div class="budget-summary-row"><span>Total versé</span><strong>${fmtMoney(totalPaid)}</strong></div>
-      <div class="progress-bar"><div class="progress-bar-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>
-    </div>
-    <h3 class="dashboard-subtitle">Par catégorie</h3>
-    ${renderCategoryTable(categoryStats, editable) || '<p style="color:var(--muted)">Aucun prestataire.</p>'}`;
+      <h3 class="dashboard-subtitle">Par catégorie</h3>
+      ${renderCategoryTable(categoryStats, editable, editingKeys) || '<p style="color:var(--muted)">Aucun prestataire.</p>'}`;
 
-  if (editable) {
-    panel.querySelector('#budget-target-save').addEventListener('click', async () => {
-      const newTarget = Number(panel.querySelector('#budget-target-input').value) || 0;
-      try {
-        await saveTarget(newTarget);
-        renderBudgetTab();
-      } catch (err) {
-        alert(`Erreur : ${err.message}`);
-      }
+    if (!editable) return;
+
+    panel.querySelectorAll('.target-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editingKeys.add(btn.dataset.key);
+        renderView();
+      });
     });
-    panel.querySelectorAll('.category-target-save').forEach(btn => {
+
+    panel.querySelectorAll('.target-save-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const category = btn.dataset.category;
-        const input = panel.querySelector(`.category-target-input[data-category="${CSS.escape(category)}"]`);
+        const key = btn.dataset.key;
+        const input = panel.querySelector(`.target-input[data-key="${CSS.escape(key)}"]`);
         const value = Number(input.value) || 0;
         try {
-          await saveCategoryTarget(category, categoryTargets, value);
-          renderBudgetTab();
+          await persistTarget(key, value);
+          editingKeys.delete(key);
+          renderView();
         } catch (err) {
           alert(`Erreur : ${err.message}`);
         }
       });
     });
   }
+
+  renderView();
 }

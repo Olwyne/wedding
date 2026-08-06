@@ -4,7 +4,7 @@ import { renderDashboardTab } from './dashboard.js?v=2';
 import { renderBlocksTab } from './blocks.js?v=7';
 import { renderGuestsTab } from './guests.js?v=4';
 import { renderVendorsTab } from './vendors.js?v=4';
-import { renderBudgetTab } from './budget.js?v=3';
+import { renderBudgetTab } from './budget.js?v=4';
 import { renderEventsTab } from './events.js?v=4';
 import { renderUsersTab } from './users.js';
 import { openAccountPanel } from './account.js';
