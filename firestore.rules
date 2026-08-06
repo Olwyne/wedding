@@ -16,7 +16,7 @@ service cloud.firestore {
 
     match /guests/{guestId} {
       allow get: if true;
-      allow list: if perm('guests') in ['read', 'write'] || perm('witnesses') in ['read', 'write'];
+      allow list: if perm('guests') in ['read', 'write'] || perm('witnesses') in ['read', 'write'] || perm('tables') in ['read', 'write'];
       allow create, delete: if perm('guests') == 'write';
       allow update: if perm('guests') == 'write'
         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp'])

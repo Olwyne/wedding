@@ -1,7 +1,7 @@
 // admin/tables.js
 import { db } from '../firebase-init.js';
 import {
-  collection, getDocs, doc, addDoc, updateDoc, deleteDoc
+  collection, getDocs, doc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { loadGuests } from './guests.js?v=5';
 import { canWrite } from './permissions.js';
@@ -24,7 +24,7 @@ export async function loadTables() {
 }
 
 export function guestPartySize(guest) {
-  return 1 + (guest.rsvp?.adults ?? 0) + (guest.rsvp?.children ?? 0);
+  return Math.max(1, (guest.rsvp?.adults ?? 0) + (guest.rsvp?.children ?? 0));
 }
 
 export async function createTable(name, capacity, x, y) {
@@ -41,16 +41,16 @@ export async function assignGuestToTable(tables, guestId, targetTableId) {
   for (const t of tables) {
     const has = t.guestIds.includes(guestId);
     if (t.id === targetTableId && !has) {
-      updates.push(updateDoc(doc(db, 'tables', t.id), { guestIds: [...t.guestIds, guestId] }));
+      updates.push(updateDoc(doc(db, 'tables', t.id), { guestIds: arrayUnion(guestId) }));
     } else if (t.id !== targetTableId && has) {
-      updates.push(updateDoc(doc(db, 'tables', t.id), { guestIds: t.guestIds.filter(id => id !== guestId) }));
+      updates.push(updateDoc(doc(db, 'tables', t.id), { guestIds: arrayRemove(guestId) }));
     }
   }
   await Promise.all(updates);
 }
 
-export async function removeGuestFromTable(tableId, guestId, guestIds) {
-  await updateDoc(doc(db, 'tables', tableId), { guestIds: guestIds.filter(id => id !== guestId) });
+export async function removeGuestFromTable(tableId, guestId) {
+  await updateDoc(doc(db, 'tables', tableId), { guestIds: arrayRemove(guestId) });
 }
 
 export async function deleteTable(tableId) {
@@ -64,12 +64,12 @@ export function occupancy(table, guestById) {
   }, 0);
 }
 
-function renderTableCircle(table, guestById) {
+function renderTableCircle(table, guestById, editable) {
   const count = occupancy(table, guestById);
   const over = count > (Number(table.capacity) || 0);
   return `
     <div class="table-circle${over ? ' over-capacity' : ''}" data-id="${escapeHtml(table.id)}"
-         style="left:${table.x}px;top:${table.y}px" draggable="true">
+         style="left:${table.x}px;top:${table.y}px" draggable="${editable}">
       <div class="table-circle-name">${escapeHtml(table.name)}</div>
       <div class="table-circle-count">${count}/${table.capacity}${over ? ' ⚠' : ''}</div>
     </div>`;
@@ -113,22 +113,26 @@ function openAddTablePanel(onCreated) {
     if (!name) return;
     const x = 20 + Math.round(Math.random() * 300);
     const y = 20 + Math.round(Math.random() * 200);
-    await createTable(name, capacity, x, y);
-    close();
-    onCreated();
+    try {
+      await createTable(name, capacity, x, y);
+      close();
+      onCreated();
+    } catch (err) {
+      alert(`Erreur : ${err.message}`);
+    }
   });
 }
 
-function renderGuestCard(guest) {
+function renderGuestCard(guest, editable) {
   const status = guest.rsvp?.status || 'pending';
   return `
-    <div class="guest-card" draggable="true" data-guest-id="${escapeHtml(guest.id)}">
+    <div class="guest-card" draggable="${editable}" data-guest-id="${escapeHtml(guest.id)}">
       <span>${escapeHtml(guest.name)} <span class="badge ${STATUS_BADGE[status]}" style="font-size:9px">${STATUS_LABELS[status]}</span></span>
       <span class="guest-card-count">${guestPartySize(guest)}p</span>
     </div>`;
 }
 
-function renderGuestList(guests, placedIds, statusFilter) {
+function renderGuestList(guests, placedIds, statusFilter, editable) {
   const unplaced = guests.filter(g => !placedIds.has(g.id) && (statusFilter === 'all' || (g.rsvp?.status || 'pending') === statusFilter));
   const filters = [
     { key: 'all', label: 'Tous' },
@@ -142,12 +146,12 @@ function renderGuestList(guests, placedIds, statusFilter) {
         ${filters.map(f => `<button type="button" class="guest-filter-btn${statusFilter === f.key ? ' active' : ''}" data-filter="${f.key}">${f.label}</button>`).join('')}
       </div>
       ${unplaced.length
-        ? unplaced.map(renderGuestCard).join('')
+        ? unplaced.map(g => renderGuestCard(g, editable)).join('')
         : '<p style="color:var(--muted);font-size:12px">Aucun invité non placé.</p>'}
     </div>`;
 }
 
-function openTableDetailPanel(table, guestById, onChange) {
+function openTableDetailPanel(table, guestById, onChange, editable) {
   const overlay = document.createElement('div');
   overlay.className = 'panel-overlay';
   const panelEl = document.createElement('div');
@@ -161,7 +165,7 @@ function openTableDetailPanel(table, guestById, onChange) {
       return `
         <div class="table-occupant-row" data-guest-id="${escapeHtml(id)}">
           <span>${escapeHtml(g.name)} (${guestPartySize(g)}p)</span>
-          <button class="btn-secondary btn-remove-occupant" data-guest-id="${escapeHtml(id)}">Retirer</button>
+          ${editable ? `<button class="btn-secondary btn-remove-occupant" data-guest-id="${escapeHtml(id)}">Retirer</button>` : ''}
         </div>`;
     }).join('');
   }
@@ -173,7 +177,7 @@ function openTableDetailPanel(table, guestById, onChange) {
     </div>
     <div class="panel-body" id="occupant-list">${occupantRows()}</div>
     <div class="panel-footer">
-      <button class="btn-danger" id="panel-delete-table">Supprimer la table</button>
+      ${editable ? '<button class="btn-danger" id="panel-delete-table">Supprimer la table</button>' : ''}
       <button class="btn-secondary" id="panel-cancel">Fermer</button>
     </div>`;
 
@@ -185,23 +189,42 @@ function openTableDetailPanel(table, guestById, onChange) {
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);
 
+  if (!editable) return;
+
   panelEl.querySelectorAll('.btn-remove-occupant').forEach(btn => {
     btn.addEventListener('click', async () => {
-      await removeGuestFromTable(table.id, btn.dataset.guestId, table.guestIds);
-      close();
-      onChange();
+      try {
+        await removeGuestFromTable(table.id, btn.dataset.guestId);
+        close();
+        onChange();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
     });
   });
 
   panelEl.querySelector('#panel-delete-table').addEventListener('click', async () => {
     if (!confirm('Supprimer cette table ? Les invités qu\'elle contient redeviendront non placés.')) return;
-    await deleteTable(table.id);
-    close();
-    onChange();
+    try {
+      await deleteTable(table.id);
+      close();
+      onChange();
+    } catch (err) {
+      alert(`Erreur : ${err.message}`);
+    }
   });
 }
 
-function wireDragAndDrop(panel, tables, statusFilter, guestByIdRef) {
+function wireDragAndDrop(panel, tables, statusFilter, guestByIdRef, editable) {
+  panel.querySelectorAll('.table-circle').forEach(circle => {
+    circle.addEventListener('click', () => {
+      const table = tables.find(t => t.id === circle.dataset.id);
+      if (table) openTableDetailPanel(table, guestByIdRef, () => renderTablesTab(statusFilter), editable);
+    });
+  });
+
+  if (!editable) return;
+
   panel.querySelectorAll('.guest-card').forEach(card => {
     card.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/guest-id', card.dataset.guestId);
@@ -226,12 +249,12 @@ function wireDragAndDrop(panel, tables, statusFilter, guestByIdRef) {
       if (!guestId) return;
       e.preventDefault();
       e.stopPropagation();
-      await assignGuestToTable(tables, guestId, circle.dataset.id);
-      renderTablesTab(statusFilter);
-    });
-    circle.addEventListener('click', () => {
-      const table = tables.find(t => t.id === circle.dataset.id);
-      if (table) openTableDetailPanel(table, guestByIdRef, () => renderTablesTab(statusFilter));
+      try {
+        await assignGuestToTable(tables, guestId, circle.dataset.id);
+        renderTablesTab(statusFilter);
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
     });
   });
 
@@ -246,8 +269,12 @@ function wireDragAndDrop(panel, tables, statusFilter, guestByIdRef) {
     const canvasRect = canvas.getBoundingClientRect();
     const x = Math.max(0, Math.round(e.clientX - canvasRect.left - dragOffset.x));
     const y = Math.max(0, Math.round(e.clientY - canvasRect.top - dragOffset.y));
-    await updateTablePosition(tableId, x, y);
-    renderTablesTab(statusFilter);
+    try {
+      await updateTablePosition(tableId, x, y);
+      renderTablesTab(statusFilter);
+    } catch (err) {
+      alert(`Erreur : ${err.message}`);
+    }
   });
 }
 
@@ -275,8 +302,8 @@ export async function renderTablesTab(statusFilter = 'all') {
 
   panel.innerHTML = `
     <div class="tables-layout">
-      ${renderGuestList(guests, placedIds, statusFilter)}
-      <div class="tables-canvas" id="tables-canvas">${tables.map(t => renderTableCircle(t, guestById)).join('')}</div>
+      ${renderGuestList(guests, placedIds, statusFilter, editable)}
+      <div class="tables-canvas" id="tables-canvas">${tables.map(t => renderTableCircle(t, guestById, editable)).join('')}</div>
     </div>`;
 
   panel.querySelectorAll('.guest-filter-btn').forEach(btn =>
@@ -289,5 +316,5 @@ export async function renderTablesTab(statusFilter = 'all') {
     );
   }
 
-  wireDragAndDrop(panel, tables, statusFilter, guestById);
+  wireDragAndDrop(panel, tables, statusFilter, guestById, editable);
 }
