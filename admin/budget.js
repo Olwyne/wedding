@@ -1,7 +1,7 @@
 // admin/budget.js
 import { db } from '../firebase-init.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadVendors, paidAmount } from './vendors.js?v=4';
+import { loadVendors, paidAmount, CATEGORIES } from './vendors.js?v=5';
 import { canWrite } from './permissions.js';
 
 const budgetDocRef = doc(db, 'settings', 'budget');
@@ -41,6 +41,9 @@ async function saveCategoryTarget(category, categoryTargets, value) {
 
 function computeCategoryStats(vendors, categoryTargets) {
   const byCategory = {};
+  CATEGORIES.forEach(cat => {
+    byCategory[cat] = { category: cat, engaged: 0, paid: 0 };
+  });
   vendors.forEach(v => {
     const cat = v.category || 'Autre';
     if (!byCategory[cat]) byCategory[cat] = { category: cat, engaged: 0, paid: 0 };
@@ -131,6 +134,8 @@ export async function renderBudgetTab() {
     const pct = target > 0 ? Math.min(100, Math.round((totalPaid / target) * 100)) : 0;
     const over = target > 0 && totalPaid > target;
     const categoryStats = computeCategoryStats(vendors, categoryTargets);
+    const totalCategoryTargets = categoryStats.reduce((sum, c) => sum + c.target, 0);
+    const categoryTargetsOverBudget = target > 0 && totalCategoryTargets > target;
 
     panel.innerHTML = `
       <div class="budget-summary">
@@ -138,12 +143,17 @@ export async function renderBudgetTab() {
           <span>Budget cible</span>
           ${renderTargetCell('global', target, editable, editingKeys)}
         </div>
+        <div class="budget-summary-row">
+          <span>Somme des cibles par catégorie</span>
+          <strong class="${categoryTargetsOverBudget ? 'budget-over-text' : ''}">${fmtMoney(totalCategoryTargets)}</strong>
+        </div>
         <div class="budget-summary-row"><span>Total engagé</span><strong>${fmtMoney(totalEngaged)}</strong></div>
         <div class="budget-summary-row"><span>Total versé</span><strong>${fmtMoney(totalPaid)}</strong></div>
         <div class="progress-bar"><div class="progress-bar-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>
+        ${categoryTargetsOverBudget ? '<p class="budget-over-text budget-over-note">La somme des cibles par catégorie dépasse le budget cible global.</p>' : ''}
       </div>
       <h3 class="dashboard-subtitle">Par catégorie</h3>
-      ${renderCategoryTable(categoryStats, editable, editingKeys) || '<p style="color:var(--muted)">Aucun prestataire.</p>'}`;
+      ${renderCategoryTable(categoryStats, editable, editingKeys)}`;
 
     if (!editable) return;
 

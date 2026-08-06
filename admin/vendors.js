@@ -9,7 +9,7 @@ const vendorsCol = collection(db, 'vendors');
 
 const STATUS_LABELS = { contacted: 'Contacté', booked: 'Réservé', paid: 'Payé' };
 const STATUS_BADGE = { contacted: 'badge-contacted', booked: 'badge-booked', paid: 'badge-paid' };
-const CATEGORIES = [
+export const CATEGORIES = [
   'Lieu de réception', 'Fleuriste', 'Photographe', 'Traiteur', 'Musique', 'DJ',
   'Divertissement', 'Gâteau', 'Papeterie', 'Transport', 'Décorations et location',
   'Chapiteau', 'Robe de mariée et accessoires', 'Costumes', 'Alliances & bijoux',
