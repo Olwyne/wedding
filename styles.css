@@ -58,7 +58,7 @@ input:focus,textarea:focus,select:focus{outline:none}
   background:radial-gradient(130% 100% at 50% 30%, var(--bordeaux-deep) 0%, var(--bordeaux2) 55%, var(--bordeaux-deep3) 100%);
   transition:opacity .8s ease, transform .8s ease;
 }
-.envelope-overlay.env-closing{opacity:0;transform:translateY(-24px);pointer-events:none}
+.envelope-overlay.env-closing{opacity:0;transform:scale(1.12);pointer-events:none}
 .envelope-xi{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:min(80vw,560px);color:var(--gold);opacity:.06;user-select:none;pointer-events:none}
 .envelope{position:relative;width:min(86vw,360px);height:min(58vw,244px);perspective:1400px;transform-style:preserve-3d;animation:envFloat 6s ease-in-out infinite}
 .envelope-overlay:not(.env-sealed) .envelope{animation:none}

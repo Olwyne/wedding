@@ -173,15 +173,15 @@ function escapeHtml(str) {
     renderEnvelope();
     setTimeout(() => { state.env = 'closing'; renderEnvelope(); }, 1500);
     setTimeout(() => {
-      try { sessionStorage.setItem('sr_env_opened', '1'); } catch (e) {}
       state.env = 'done';
       renderEnvelope();
       syncScroll();
-    }, 2500);
+    }, 2300);
   });
 
   function renderEnvelope() {
     envOverlay.classList.toggle('env-sealed', state.env === 'sealed');
+    envOverlay.classList.toggle('env-opening', state.env === 'opening' || state.env === 'closing' || state.env === 'done');
     envOverlay.classList.toggle('env-closing', state.env === 'closing' || state.env === 'done');
     envOverlay.style.display = state.env === 'done' ? 'none' : 'flex';
     envOverlay.style.cursor = state.env === 'sealed' ? 'pointer' : 'default';
@@ -906,9 +906,7 @@ function escapeHtml(str) {
     state.dataReady = true;
     showLoading(false);
 
-    let opened = false;
-    try { opened = sessionStorage.getItem('sr_env_opened') === '1'; } catch (e) {}
-    state.env = opened ? 'done' : 'sealed';
+    state.env = 'sealed';
     revealEnvelope();
     renderEnvelope();
     syncScroll();
