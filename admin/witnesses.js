@@ -5,8 +5,13 @@ import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=5';
 import { canWrite } from './permissions.js';
 
 const SIDES = [
-  { id: 'marie', label: 'Marié', honneurLabel: 'Garçons d\'honneur' },
-  { id: 'mariee', label: 'Mariée', honneurLabel: 'Demoiselles d\'honneur' },
+  { id: 'marie', label: 'Marié' },
+  { id: 'mariee', label: 'Mariée' },
+];
+
+const HONNEUR_TYPES = [
+  { id: 'garcon', label: 'Garçons d\'honneur' },
+  { id: 'demoiselle', label: 'Demoiselles d\'honneur' },
 ];
 
 let cachedGuests = [];
@@ -34,7 +39,6 @@ function renderPersonCard(guest, { removable }) {
 
 function renderColumn(sideDef, guests) {
   const temoins = guests.filter(g => g.weddingParty?.role === 'temoin' && g.weddingParty?.side === sideDef.id);
-  const honneur = guests.filter(g => g.weddingParty?.role === 'honneur' && g.weddingParty?.side === sideDef.id);
 
   const slots = [0, 1].map(i => {
     const g = temoins[i];
@@ -43,17 +47,26 @@ function renderColumn(sideDef, guests) {
       : '<div class="witness-slot-empty">Vide</div>';
   }).join('');
 
-  const honneurCards = honneur.length
-    ? honneur.map(g => renderPersonCard(g, { removable: editableGlobal })).join('')
-    : '<div class="witness-slot-empty">Aucun</div>';
+  const honneurSections = HONNEUR_TYPES.map(typeDef => {
+    const honneur = guests.filter(g =>
+      g.weddingParty?.role === 'honneur' &&
+      g.weddingParty?.side === sideDef.id &&
+      g.weddingParty?.honneurType === typeDef.id
+    );
+    const honneurCards = honneur.length
+      ? honneur.map(g => renderPersonCard(g, { removable: editableGlobal })).join('')
+      : '<div class="witness-slot-empty">Aucun</div>';
+    return `
+      <div class="witness-section-label">${typeDef.label}</div>
+      <div class="witness-honneur-list" data-side="${sideDef.id}" data-role="honneur" data-honneur-type="${typeDef.id}">${honneurCards}</div>`;
+  }).join('');
 
   return `
     <div class="witness-column" data-side="${sideDef.id}">
       <h3>${sideDef.label}</h3>
       <div class="witness-section-label">Témoins (max 2)</div>
       <div class="witness-slots" data-side="${sideDef.id}" data-role="temoin">${slots}</div>
-      <div class="witness-section-label">${sideDef.honneurLabel}</div>
-      <div class="witness-honneur-list" data-side="${sideDef.id}" data-role="honneur">${honneurCards}</div>
+      ${honneurSections}
     </div>`;
 }
 
@@ -67,7 +80,7 @@ function renderPool(guests) {
     <div class="witness-pool" id="witness-pool">${cards}</div>`;
 }
 
-async function assignWitness(guestId, side, role) {
+async function assignWitness(guestId, side, role, honneurType) {
   if (role === 'temoin') {
     const currentCount = cachedGuests.filter(g =>
       g.id !== guestId &&
@@ -76,15 +89,16 @@ async function assignWitness(guestId, side, role) {
     ).length;
     if (currentCount >= 2) return 'cap';
   }
+  const weddingParty = role === 'temoin' ? { role, side } : { role, side, honneurType };
   try {
-    await updateDoc(doc(db, 'guests', guestId), { weddingParty: { role, side } });
+    await updateDoc(doc(db, 'guests', guestId), { weddingParty });
   } catch (err) {
     console.error('assignWitness: updateDoc failed', err);
     return 'error';
   }
   const guest = cachedGuests.find(g => g.id === guestId);
   if (guest) {
-    guest.weddingParty = { role, side };
+    guest.weddingParty = weddingParty;
   }
   return 'ok';
 }
@@ -135,7 +149,8 @@ function attachDragEvents(panel) {
       if (!guestId) return;
       const side = target.dataset.side;
       const role = target.dataset.role;
-      const result = await assignWitness(guestId, side, role);
+      const honneurType = target.dataset.honneurType;
+      const result = await assignWitness(guestId, side, role, honneurType);
       if (result === 'cap') {
         flashReject(target);
         return;

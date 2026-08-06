@@ -7,7 +7,7 @@ import { renderVendorsTab } from './vendors.js?v=6';
 import { renderBudgetTab } from './budget.js?v=6';
 import { renderEventsTab } from './events.js?v=4';
 import { renderUsersTab } from './users.js?v=1';
-import { renderWitnessesTab } from './witnesses.js?v=1';
+import { renderWitnessesTab } from './witnesses.js?v=2';
 import { openAccountPanel } from './account.js';
 import { canRead } from './permissions.js';
 import { SECTIONS as PERM_SECTIONS } from './sections-registry.js?v=1';
