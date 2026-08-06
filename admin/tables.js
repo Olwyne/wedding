@@ -3,9 +3,13 @@ import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { loadGuests } from './guests.js?v=4';
 import { canWrite } from './permissions.js';
 
 const tablesCol = collection(db, 'tables');
+
+const STATUS_LABELS = { confirmed: 'Confirmé', declined: 'Décliné', pending: 'En attente' };
+const STATUS_BADGE = { confirmed: 'badge-confirmed', declined: 'badge-declined', pending: 'badge-pending' };
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -115,7 +119,35 @@ function openAddTablePanel(onCreated) {
   });
 }
 
-export async function renderTablesTab() {
+function renderGuestCard(guest) {
+  const status = guest.rsvp?.status || 'pending';
+  return `
+    <div class="guest-card" draggable="true" data-guest-id="${escapeHtml(guest.id)}">
+      <span>${escapeHtml(guest.name)} <span class="badge ${STATUS_BADGE[status]}" style="font-size:9px">${STATUS_LABELS[status]}</span></span>
+      <span class="guest-card-count">${guestPartySize(guest)}p</span>
+    </div>`;
+}
+
+function renderGuestList(guests, placedIds, statusFilter) {
+  const unplaced = guests.filter(g => !placedIds.has(g.id) && (statusFilter === 'all' || (g.rsvp?.status || 'pending') === statusFilter));
+  const filters = [
+    { key: 'all', label: 'Tous' },
+    { key: 'confirmed', label: 'Confirmés' },
+    { key: 'pending', label: 'En attente' },
+    { key: 'declined', label: 'Refusés' },
+  ];
+  return `
+    <div class="tables-guest-list" id="tables-guest-list">
+      <div class="tables-filter">
+        ${filters.map(f => `<button type="button" class="guest-filter-btn${statusFilter === f.key ? ' active' : ''}" data-filter="${f.key}">${f.label}</button>`).join('')}
+      </div>
+      ${unplaced.length
+        ? unplaced.map(renderGuestCard).join('')
+        : '<p style="color:var(--muted);font-size:12px">Aucun invité non placé.</p>'}
+    </div>`;
+}
+
+export async function renderTablesTab(statusFilter = 'all') {
   const panel = document.getElementById('tab-tables');
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
 
@@ -124,21 +156,32 @@ export async function renderTablesTab() {
     ? '<button id="add-table-btn" class="btn-primary">+ Ajouter une table</button>'
     : '';
 
-  let tables;
+  let tables, guests;
   try {
-    tables = await loadTables();
+    [tables, guests] = await Promise.all([loadTables(), loadGuests()]);
   } catch (err) {
     panel.innerHTML = `<p style="padding:20px;color:var(--danger)">Erreur : ${escapeHtml(err.message)}</p>`;
     return;
   }
 
-  const guestById = {};
+  const guestById = Object.fromEntries(guests.map(g => [g.id, g]));
+  const validGuestIds = new Set(guests.map(g => g.id));
+  tables = tables.map(t => ({ ...t, guestIds: t.guestIds.filter(id => validGuestIds.has(id)) }));
+  const placedIds = new Set(tables.flatMap(t => t.guestIds));
 
-  panel.innerHTML = `<div class="tables-canvas" id="tables-canvas">${tables.map(t => renderTableCircle(t, guestById)).join('')}</div>`;
+  panel.innerHTML = `
+    <div class="tables-layout">
+      ${renderGuestList(guests, placedIds, statusFilter)}
+      <div class="tables-canvas" id="tables-canvas">${tables.map(t => renderTableCircle(t, guestById)).join('')}</div>
+    </div>`;
+
+  panel.querySelectorAll('.guest-filter-btn').forEach(btn =>
+    btn.addEventListener('click', () => renderTablesTab(btn.dataset.filter))
+  );
 
   if (editable) {
     document.getElementById('add-table-btn').addEventListener('click', () =>
-      openAddTablePanel(() => renderTablesTab())
+      openAddTablePanel(() => renderTablesTab(statusFilter))
     );
   }
 }
