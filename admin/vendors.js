@@ -9,7 +9,13 @@ const vendorsCol = collection(db, 'vendors');
 
 const STATUS_LABELS = { contacted: 'Contacté', booked: 'Réservé', paid: 'Payé' };
 const STATUS_BADGE = { contacted: 'badge-contacted', booked: 'badge-booked', paid: 'badge-paid' };
-const CATEGORIES = ['Traiteur', 'Photographe', 'DJ', 'Lieu', 'Fleuriste', 'Autre'];
+const CATEGORIES = [
+  'Lieu de réception', 'Fleuriste', 'Photographe', 'Traiteur', 'Musique', 'DJ',
+  'Divertissement', 'Gâteau', 'Papeterie', 'Transport', 'Décorations et location',
+  'Chapiteau', 'Robe de mariée et accessoires', 'Costumes', 'Alliances & bijoux',
+  'Beauté, coiffure & maquillage', 'Robe chinoise', 'Frais notaire / contrat de mariage',
+  'Nuit de noce', 'Cadeaux', 'Lune de miel', 'Cartes de remerciements', 'Extras', 'Autre',
+];
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
