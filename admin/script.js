@@ -1,12 +1,12 @@
 // admin/script.js
 import { initAuth } from './auth.js?v=1';
-import { renderDashboardTab } from './dashboard.js?v=2';
+import { renderDashboardTab } from './dashboard.js?v=3';
 import { renderBlocksTab } from './blocks.js?v=7';
 import { renderGuestsTab } from './guests.js?v=5';
 import { renderVendorsTab } from './vendors.js?v=6';
 import { renderBudgetTab } from './budget.js?v=6';
 import { renderEventsTab } from './events.js?v=4';
-import { renderUsersTab } from './users.js';
+import { renderUsersTab } from './users.js?v=1';
 import { renderWitnessesTab } from './witnesses.js?v=1';
 import { openAccountPanel } from './account.js';
 import { canRead } from './permissions.js';
