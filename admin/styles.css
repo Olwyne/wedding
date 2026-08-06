@@ -106,7 +106,8 @@ button{cursor:pointer;font-family:inherit}
 .budget-summary-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
 .budget-summary-row:last-of-type{margin-bottom:14px}
 .budget-target-input{display:flex;align-items:center;gap:8px}
-.budget-target-input input{width:120px}
+.budget-target-input input{width:120px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s}
+.budget-target-input input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,26,26,.1)}
 .progress-bar{height:10px;background:var(--admin-bg);border-radius:999px;overflow:hidden;border:1px solid var(--border)}
 .progress-bar-fill{height:100%;background:var(--accent);border-radius:999px;transition:width .2s}
 .progress-bar-fill.over{background:var(--danger)}
