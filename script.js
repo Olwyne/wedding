@@ -779,6 +779,7 @@ function escapeHtml(str) {
           <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
           <h3 class="card-title card-title-light">${escapeHtml(bf(block, 'title', lang))}</h3>
           <div class="card-text card-text-light rich-text">${sanitizeHtml(bf(block, 'text', lang))}</div>
+          <div class="avoid-label">${lang === 'zh' ? '请勿穿着以下颜色' : 'Couleurs à éviter'}</div>
           <div id="avoid-colors" class="avoid-colors"></div>
         </div>
       </div>`;
@@ -787,7 +788,7 @@ function escapeHtml(str) {
       const label = lang === 'zh' ? (c.label_zh || c.label_fr) : (c.label_fr || c.label_zh);
       const chip = document.createElement('span');
       chip.className = 'avoid-chip';
-      chip.innerHTML = `<span class="avoid-swatch" style="background:${escapeHtml(c.hex || '')}"></span>${escapeHtml(label || '')}`;
+      chip.innerHTML = `<span class="avoid-swatch" style="background:${escapeHtml(c.hex || '')}"></span><span class="avoid-chip-label">${escapeHtml(label || '')}</span>`;
       wrap.appendChild(chip);
     });
     return section;
