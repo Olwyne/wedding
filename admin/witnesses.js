@@ -1,7 +1,7 @@
 // admin/witnesses.js
 import { db } from '../firebase-init.js';
 import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=4';
+import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=5';
 import { canWrite } from './permissions.js';
 
 const SIDES = [
@@ -74,19 +74,19 @@ async function assignWitness(guestId, side, role) {
       g.weddingParty?.role === 'temoin' &&
       g.weddingParty?.side === side
     ).length;
-    if (currentCount >= 2) return false;
+    if (currentCount >= 2) return 'cap';
   }
   try {
     await updateDoc(doc(db, 'guests', guestId), { weddingParty: { role, side } });
   } catch (err) {
     console.error('assignWitness: updateDoc failed', err);
-    return false;
+    return 'error';
   }
   const guest = cachedGuests.find(g => g.id === guestId);
   if (guest) {
     guest.weddingParty = { role, side };
   }
-  return true;
+  return 'ok';
 }
 
 async function unassignWitness(guestId) {
@@ -94,9 +94,13 @@ async function unassignWitness(guestId) {
     await updateDoc(doc(db, 'guests', guestId), { weddingParty: null });
   } catch (err) {
     console.error('unassignWitness: updateDoc failed', err);
-    return false;
+    return 'error';
   }
-  return true;
+  const guest = cachedGuests.find(g => g.id === guestId);
+  if (guest) {
+    guest.weddingParty = null;
+  }
+  return 'ok';
 }
 
 function flashReject(el) {
@@ -131,9 +135,14 @@ function attachDragEvents(panel) {
       if (!guestId) return;
       const side = target.dataset.side;
       const role = target.dataset.role;
-      const ok = await assignWitness(guestId, side, role);
-      if (!ok) {
+      const result = await assignWitness(guestId, side, role);
+      if (result === 'cap') {
         flashReject(target);
+        return;
+      }
+      if (result === 'error') {
+        flashReject(target);
+        alert('Une erreur est survenue, réessayez.');
         return;
       }
       renderWitnessesTab();
@@ -142,9 +151,14 @@ function attachDragEvents(panel) {
 
   panel.querySelectorAll('.witness-remove').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const ok = await unassignWitness(btn.dataset.id);
-      if (!ok) {
+      const result = await unassignWitness(btn.dataset.id);
+      if (result === 'cap') {
         flashReject(btn);
+        return;
+      }
+      if (result === 'error') {
+        flashReject(btn);
+        alert('Une erreur est survenue, réessayez.');
         return;
       }
       renderWitnessesTab();
@@ -158,7 +172,14 @@ export async function renderWitnessesTab() {
   document.getElementById('section-action').innerHTML = '';
 
   editableGlobal = canWrite('witnesses');
-  cachedGuests = await loadGuests();
+
+  try {
+    cachedGuests = await loadGuests();
+  } catch (err) {
+    console.error('renderWitnessesTab: loadGuests failed', err);
+    panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Erreur de chargement des invités.</p>';
+    return;
+  }
 
   panel.innerHTML = `
     <div class="witness-columns">

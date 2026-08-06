@@ -2,7 +2,7 @@
 import { initAuth } from './auth.js?v=1';
 import { renderDashboardTab } from './dashboard.js?v=2';
 import { renderBlocksTab } from './blocks.js?v=7';
-import { renderGuestsTab } from './guests.js?v=4';
+import { renderGuestsTab } from './guests.js?v=5';
 import { renderVendorsTab } from './vendors.js?v=6';
 import { renderBudgetTab } from './budget.js?v=6';
 import { renderEventsTab } from './events.js?v=4';
@@ -10,7 +10,7 @@ import { renderUsersTab } from './users.js';
 import { renderWitnessesTab } from './witnesses.js?v=1';
 import { openAccountPanel } from './account.js';
 import { canRead } from './permissions.js';
-import { SECTIONS as PERM_SECTIONS } from './sections-registry.js';
+import { SECTIONS as PERM_SECTIONS } from './sections-registry.js?v=1';
 
 const RENDER_BY_ID = {
   blocks: renderBlocksTab,
