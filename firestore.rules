@@ -27,6 +27,16 @@ service cloud.firestore {
       allow write: if perm('blocks') == 'write';
     }
 
+    match /vendors/{vendorId} {
+      allow read: if perm('vendors') in ['read', 'write'];
+      allow write: if perm('vendors') == 'write';
+    }
+
+    match /settings/{docId} {
+      allow read: if perm('budget') in ['read', 'write'];
+      allow write: if perm('budget') == 'write';
+    }
+
     match /admins/{uid} {
       allow get: if request.auth != null && request.auth.uid == uid;
       allow get, list: if perm('users') in ['read', 'write'];
