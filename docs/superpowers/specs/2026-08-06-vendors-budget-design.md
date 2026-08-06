@@ -33,7 +33,7 @@ Deux nouvelles sections indépendantes, ajoutées à `sections-registry.js` :
 | `contact` | string | tél/email, texte libre |
 | `status` | string | `contacted` \| `booked` \| `paid` |
 | `total` | number | montant total prévu |
-| `deposit` | number | montant déjà versé |
+| `payments` | array of `{ date: string (ISO), amount: number, note: string }` | versements successifs ; "versé" = somme des `amount`. Vide par défaut (`[]`) |
 | `dueDate` | string (ISO date) | optionnel, prochaine échéance |
 | `link` | string (URL) | optionnel, devis/contrat |
 | `notes` | string | optionnel |
@@ -48,15 +48,15 @@ Deux nouvelles sections indépendantes, ajoutées à `sections-registry.js` :
 
 ### Onglet Prestataires
 
-Table triée par catégorie puis nom : Catégorie, Nom, Statut (badge coloré selon `contacted`/`booked`/`paid`), Total, Versé, Reste (`total - deposit`), Échéance, Actions.
+Table triée par catégorie puis nom : Catégorie, Nom, Statut (badge coloré selon `contacted`/`booked`/`paid`), Total, Versé (somme `payments`), Reste (`total - versé`), Échéance, Actions.
 
-Panel création/édition (overlay, comme `openEventPanel`) : tous les champs listés ci-dessus. `category` et `status` en `<select>` avec options fixes ; `link` en input type url, optionnel ; validation minimale (name requis, total/deposit ≥ 0).
+Panel création/édition (overlay, comme `openEventPanel`) : champs de base (category, name, contact, status, total, dueDate, link, notes) + sous-section "Versements" : liste des `payments` existants (date, montant, note, bouton supprimer chacun) + mini-formulaire "Ajouter un versement" (date, montant, note). Les versements sont modifiés en mémoire dans le panel puis écrits avec le reste du doc au clic sur Enregistrer/Créer — pas d'écriture Firestore séparée. `category` et `status` en `<select>` avec options fixes ; `link` en input type url, optionnel ; validation minimale (name requis, total ≥ 0, montant de versement > 0).
 
 Droits : bouton "+ Ajouter" et actions Modifier/Supprimer visibles seulement si `canWrite('vendors')`.
 
 ### Onglet Budget
 
-1. Bandeau haut : cible globale (éditable inline si `canWrite('budget')`, sinon affichage seul), total engagé (somme `total` de tous les vendors), total versé (somme `deposit`), barre de progression versé/cible.
+1. Bandeau haut : cible globale (éditable inline si `canWrite('budget')`, sinon affichage seul), total engagé (somme `total` de tous les vendors), total versé (somme de tous les `payments.amount`), barre de progression versé/cible.
 2. Tableau récap par catégorie (calqué sur `renderEventStats` de `dashboard.js`) : Catégorie, Engagé, Versé, Reste.
 
 Lecture seule pour tous si `!canWrite('budget')` (la cible ne s'édite pas, le reste est toujours en lecture pure car dérivé des vendors).
@@ -70,5 +70,5 @@ Lecture seule pour tous si `!canWrite('budget')` (la cible ne s'édite pas, le r
 ## Hors scope
 
 - Pas d'upload de fichiers (devis/contrats) : `link` est une URL externe, pas de stockage Firebase Storage.
-- Pas d'historique de paiements (un seul `deposit` cumulatif, pas de journal de transactions).
+- Pas de sous-collection Firestore pour les versements : `payments` reste un array embarqué dans le doc `vendors/{id}`, pas de requêtes/pagination dédiées (volume attendu trop faible pour le justifier).
 - Pas de conversion devise ni de graphiques.
