@@ -89,6 +89,10 @@ async function assignWitness(guestId, side, role) {
   return true;
 }
 
+async function unassignWitness(guestId) {
+  await updateDoc(doc(db, 'guests', guestId), { weddingParty: null });
+}
+
 function flashReject(el) {
   el.classList.remove('witness-shake');
   void el.offsetWidth;
@@ -126,6 +130,13 @@ function attachDragEvents(panel) {
         flashReject(target);
         return;
       }
+      renderWitnessesTab();
+    });
+  });
+
+  panel.querySelectorAll('.witness-remove').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await unassignWitness(btn.dataset.id);
       renderWitnessesTab();
     });
   });
