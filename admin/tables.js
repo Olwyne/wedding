@@ -147,6 +147,29 @@ function renderGuestList(guests, placedIds, statusFilter) {
     </div>`;
 }
 
+function wireDragAndDrop(panel, tables, statusFilter) {
+  panel.querySelectorAll('.guest-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/guest-id', card.dataset.guestId);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+
+  panel.querySelectorAll('.table-circle').forEach(circle => {
+    circle.addEventListener('dragover', e => {
+      if (e.dataTransfer.types.includes('text/guest-id')) e.preventDefault();
+    });
+    circle.addEventListener('drop', async e => {
+      const guestId = e.dataTransfer.getData('text/guest-id');
+      if (!guestId) return;
+      e.preventDefault();
+      e.stopPropagation();
+      await assignGuestToTable(tables, guestId, circle.dataset.id);
+      renderTablesTab(statusFilter);
+    });
+  });
+}
+
 export async function renderTablesTab(statusFilter = 'all') {
   const panel = document.getElementById('tab-tables');
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
@@ -184,4 +207,6 @@ export async function renderTablesTab(statusFilter = 'all') {
       openAddTablePanel(() => renderTablesTab(statusFilter))
     );
   }
+
+  wireDragAndDrop(panel, tables, statusFilter);
 }
