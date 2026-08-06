@@ -76,7 +76,16 @@ async function assignWitness(guestId, side, role) {
     ).length;
     if (currentCount >= 2) return false;
   }
-  await updateDoc(doc(db, 'guests', guestId), { weddingParty: { role, side } });
+  try {
+    await updateDoc(doc(db, 'guests', guestId), { weddingParty: { role, side } });
+  } catch (err) {
+    console.error('assignWitness: updateDoc failed', err);
+    return false;
+  }
+  const guest = cachedGuests.find(g => g.id === guestId);
+  if (guest) {
+    guest.weddingParty = { role, side };
+  }
   return true;
 }
 
