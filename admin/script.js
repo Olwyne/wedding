@@ -7,6 +7,7 @@ import { renderVendorsTab } from './vendors.js?v=6';
 import { renderBudgetTab } from './budget.js?v=6';
 import { renderEventsTab } from './events.js?v=4';
 import { renderUsersTab } from './users.js';
+import { renderWitnessesTab } from './witnesses.js?v=1';
 import { openAccountPanel } from './account.js';
 import { canRead } from './permissions.js';
 import { SECTIONS as PERM_SECTIONS } from './sections-registry.js';
@@ -16,6 +17,7 @@ const RENDER_BY_ID = {
   vendors: renderVendorsTab,
   budget: renderBudgetTab,
   guests: renderGuestsTab,
+  witnesses: renderWitnessesTab,
   events: renderEventsTab,
   users: renderUsersTab,
 };
@@ -27,7 +29,7 @@ PERM_SECTIONS.forEach(s => {
   NAV_SECTIONS[s.id] = { title: s.label, render: RENDER_BY_ID[s.id] };
 });
 
-const SLUG_BY_SECTION = { dashboard: 'dashboard', blocks: 'content', vendors: 'vendors', budget: 'budget', guests: 'guest', events: 'events', users: 'users' };
+const SLUG_BY_SECTION = { dashboard: 'dashboard', blocks: 'content', vendors: 'vendors', budget: 'budget', guests: 'guest', witnesses: 'witnesses', events: 'events', users: 'users' };
 const SECTION_BY_SLUG = Object.fromEntries(Object.entries(SLUG_BY_SECTION).map(([section, slug]) => [slug, section]));
 
 function sectionFromPath() {
