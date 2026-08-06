@@ -90,7 +90,13 @@ async function assignWitness(guestId, side, role) {
 }
 
 async function unassignWitness(guestId) {
-  await updateDoc(doc(db, 'guests', guestId), { weddingParty: null });
+  try {
+    await updateDoc(doc(db, 'guests', guestId), { weddingParty: null });
+  } catch (err) {
+    console.error('unassignWitness: updateDoc failed', err);
+    return false;
+  }
+  return true;
 }
 
 function flashReject(el) {
@@ -136,7 +142,11 @@ function attachDragEvents(panel) {
 
   panel.querySelectorAll('.witness-remove').forEach(btn => {
     btn.addEventListener('click', async () => {
-      await unassignWitness(btn.dataset.id);
+      const ok = await unassignWitness(btn.dataset.id);
+      if (!ok) {
+        flashReject(btn);
+        return;
+      }
       renderWitnessesTab();
     });
   });
