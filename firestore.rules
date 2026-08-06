@@ -28,11 +28,11 @@ service cloud.firestore {
     }
 
     match /vendors/{vendorId} {
-      allow read: if perm('vendors') in ['read', 'write'];
+      allow read: if perm('vendors') in ['read', 'write'] || perm('budget') in ['read', 'write'];
       allow write: if perm('vendors') == 'write';
     }
 
-    match /settings/{docId} {
+    match /settings/budget {
       allow read: if perm('budget') in ['read', 'write'];
       allow write: if perm('budget') == 'write';
     }

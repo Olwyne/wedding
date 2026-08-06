@@ -34,7 +34,7 @@ export async function loadVendors() {
 }
 
 function renderVendorRow(v, editable) {
-  const status = v.status || 'contacted';
+  const status = STATUS_LABELS[v.status] ? v.status : 'contacted';
   const paid = paidAmount(v);
   const remaining = (Number(v.total) || 0) - paid;
   const actionsCell = editable
@@ -96,8 +96,12 @@ export async function renderVendorsTab() {
     panel.querySelectorAll('.btn-delete-vendor').forEach(btn =>
       btn.addEventListener('click', async () => {
         if (!confirm('Supprimer ce prestataire ?')) return;
-        await deleteDoc(doc(db, 'vendors', btn.dataset.id));
-        renderVendorsTab();
+        try {
+          await deleteDoc(doc(db, 'vendors', btn.dataset.id));
+          renderVendorsTab();
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
       })
     );
   }
@@ -162,6 +166,7 @@ function openVendorPanel(id, vendors) {
         </div>
       </div>
     </div>
+    <p id="vendor-error" class="login-error" hidden></p>
     <div class="panel-footer">
       <button class="btn-primary" id="panel-save">${isNew ? 'Créer' : 'Enregistrer'}</button>
       <button class="btn-secondary" id="panel-cancel">Annuler</button>
@@ -204,6 +209,13 @@ function openVendorPanel(id, vendors) {
     const name = panelEl.querySelector('#v-name').value.trim();
     if (!name) return;
 
+    const saveBtn = panelEl.querySelector('#panel-save');
+    saveBtn.disabled = true;
+    saveBtn.textContent = isNew ? 'Création…' : 'Enregistrement…';
+
+    const errorEl = panelEl.querySelector('#vendor-error');
+    errorEl.hidden = true;
+
     const data = {
       category: panelEl.querySelector('#v-category').value,
       name,
@@ -216,11 +228,18 @@ function openVendorPanel(id, vendors) {
       payments,
     };
 
-    if (id) {
-      await updateDoc(doc(db, 'vendors', id), data);
-    } else {
-      await addDoc(vendorsCol, data);
+    try {
+      if (id) {
+        await updateDoc(doc(db, 'vendors', id), data);
+      } else {
+        await addDoc(vendorsCol, data);
+      }
+      close();
+    } catch (err) {
+      errorEl.textContent = `Erreur : ${err.message}`;
+      errorEl.hidden = false;
+      saveBtn.disabled = false;
+      saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer';
     }
-    close();
   });
 }

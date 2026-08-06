@@ -1,7 +1,7 @@
 // admin/budget.js
 import { db } from '../firebase-init.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadVendors, paidAmount } from './vendors.js?v=1';
+import { loadVendors, paidAmount } from './vendors.js?v=2';
 import { canWrite } from './permissions.js';
 
 const budgetDocRef = doc(db, 'settings', 'budget');
@@ -103,8 +103,12 @@ export async function renderBudgetTab() {
   if (editable) {
     panel.querySelector('#budget-target-save').addEventListener('click', async () => {
       const newTarget = Number(panel.querySelector('#budget-target-input').value) || 0;
-      await saveTarget(newTarget);
-      renderBudgetTab();
+      try {
+        await saveTarget(newTarget);
+        renderBudgetTab();
+      } catch (err) {
+        alert(`Erreur : ${err.message}`);
+      }
     });
   }
 }
