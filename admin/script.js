@@ -3,6 +3,7 @@ import { initAuth } from './auth.js?v=1';
 import { renderDashboardTab } from './dashboard.js?v=2';
 import { renderBlocksTab } from './blocks.js?v=7';
 import { renderGuestsTab } from './guests.js?v=4';
+import { renderVendorsTab } from './vendors.js?v=1';
 import { renderEventsTab } from './events.js?v=4';
 import { renderUsersTab } from './users.js';
 import { openAccountPanel } from './account.js';
@@ -11,6 +12,7 @@ import { SECTIONS as PERM_SECTIONS } from './sections-registry.js';
 
 const RENDER_BY_ID = {
   blocks: renderBlocksTab,
+  vendors: renderVendorsTab,
   guests: renderGuestsTab,
   events: renderEventsTab,
   users: renderUsersTab,
@@ -23,7 +25,7 @@ PERM_SECTIONS.forEach(s => {
   NAV_SECTIONS[s.id] = { title: s.label, render: RENDER_BY_ID[s.id] };
 });
 
-const SLUG_BY_SECTION = { dashboard: 'dashboard', blocks: 'content', guests: 'guest', events: 'events', users: 'users' };
+const SLUG_BY_SECTION = { dashboard: 'dashboard', blocks: 'content', vendors: 'vendors', guests: 'guest', events: 'events', users: 'users' };
 const SECTION_BY_SLUG = Object.fromEntries(Object.entries(SLUG_BY_SECTION).map(([section, slug]) => [slug, section]));
 
 function sectionFromPath() {
