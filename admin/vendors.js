@@ -129,6 +129,7 @@ function openVendorPanel(id, vendors) {
   const payments = (vendor?.payments || []).map(p => ({ ...p }));
 
   const v = (key) => escapeHtml(vendor?.[key] ?? '');
+  const isCustomCategory = vendor?.category && !CATEGORIES.includes(vendor.category);
 
   const overlay = document.createElement('div');
   overlay.className = 'panel-overlay';
@@ -144,8 +145,12 @@ function openVendorPanel(id, vendors) {
       <label class="field">
         <span>Catégorie</span>
         <select id="v-category">
-          ${CATEGORIES.map(c => `<option value="${c}" ${vendor?.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+          ${CATEGORIES.map(c => `<option value="${c}" ${(isCustomCategory ? c === 'Autre' : vendor?.category === c) ? 'selected' : ''}>${c}</option>`).join('')}
         </select>
+      </label>
+      <label class="field" id="v-category-custom-field" ${isCustomCategory ? '' : 'hidden'}>
+        <span>Nom de la catégorie</span>
+        <input id="v-category-custom" value="${isCustomCategory ? v('category') : ''}">
       </label>
       <label class="field"><span>Nom</span><input id="v-name" value="${v('name')}" required></label>
       <label class="field"><span>Contact</span><input id="v-contact" value="${v('contact')}"></label>
@@ -186,6 +191,10 @@ function openVendorPanel(id, vendors) {
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);
 
+  panelEl.querySelector('#v-category').addEventListener('change', (e) => {
+    panelEl.querySelector('#v-category-custom-field').hidden = e.target.value !== 'Autre';
+  });
+
   function refreshPaymentList() {
     const listEl = panelEl.querySelector('#payment-list');
     listEl.innerHTML = payments.map((p, i) => renderPaymentRow(p, i)).join('')
@@ -222,8 +231,10 @@ function openVendorPanel(id, vendors) {
     const errorEl = panelEl.querySelector('#vendor-error');
     errorEl.hidden = true;
 
+    const selectedCategory = panelEl.querySelector('#v-category').value;
+    const customCategory = panelEl.querySelector('#v-category-custom').value.trim();
     const data = {
-      category: panelEl.querySelector('#v-category').value,
+      category: selectedCategory === 'Autre' && customCategory ? customCategory : selectedCategory,
       name,
       contact: panelEl.querySelector('#v-contact').value.trim(),
       status: panelEl.querySelector('#v-status').value,
