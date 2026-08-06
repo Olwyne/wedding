@@ -60,10 +60,69 @@ export function occupancy(table, guestById) {
   }, 0);
 }
 
+function renderTableCircle(table, guestById) {
+  const count = occupancy(table, guestById);
+  const over = count > (Number(table.capacity) || 0);
+  return `
+    <div class="table-circle${over ? ' over-capacity' : ''}" data-id="${escapeHtml(table.id)}"
+         style="left:${table.x}px;top:${table.y}px" draggable="true">
+      <div class="table-circle-name">${escapeHtml(table.name)}</div>
+      <div class="table-circle-count">${count}/${table.capacity}${over ? ' ⚠' : ''}</div>
+    </div>`;
+}
+
+function openAddTablePanel(onCreated) {
+  const overlay = document.createElement('div');
+  overlay.className = 'panel-overlay';
+  const panelEl = document.createElement('div');
+  panelEl.className = 'panel';
+  panelEl.innerHTML = `
+    <div class="panel-header">
+      <h3>Nouvelle table</h3>
+      <button class="btn-icon" id="panel-close">✕</button>
+    </div>
+    <div class="panel-body">
+      <label class="field">
+        <span>Nom</span>
+        <input id="table-name" value="Table" required>
+      </label>
+      <label class="field">
+        <span>Capacité</span>
+        <input id="table-capacity" type="number" min="1" step="1" value="8" required>
+      </label>
+    </div>
+    <div class="panel-footer">
+      <button class="btn-primary" id="panel-save">Créer</button>
+      <button class="btn-secondary" id="panel-cancel">Annuler</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.appendChild(panelEl);
+
+  function close() { overlay.remove(); panelEl.remove(); }
+  panelEl.querySelector('#panel-close').addEventListener('click', close);
+  panelEl.querySelector('#panel-cancel').addEventListener('click', close);
+  overlay.addEventListener('click', close);
+
+  panelEl.querySelector('#panel-save').addEventListener('click', async () => {
+    const name = panelEl.querySelector('#table-name').value.trim();
+    const capacity = Number(panelEl.querySelector('#table-capacity').value) || 1;
+    if (!name) return;
+    const x = 20 + Math.round(Math.random() * 300);
+    const y = 20 + Math.round(Math.random() * 200);
+    await createTable(name, capacity, x, y);
+    close();
+    onCreated();
+  });
+}
+
 export async function renderTablesTab() {
   const panel = document.getElementById('tab-tables');
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
-  document.getElementById('section-action').innerHTML = '';
+
+  const editable = canWrite('tables');
+  document.getElementById('section-action').innerHTML = editable
+    ? '<button id="add-table-btn" class="btn-primary">+ Ajouter une table</button>'
+    : '';
 
   let tables;
   try {
@@ -73,7 +132,13 @@ export async function renderTablesTab() {
     return;
   }
 
-  panel.innerHTML = tables.length
-    ? '<p style="padding:20px;color:var(--muted)">Tables chargées (rendu complet à venir).</p>'
-    : '<p style="padding:20px;color:var(--muted)">Aucune table pour le moment.</p>';
+  const guestById = {};
+
+  panel.innerHTML = `<div class="tables-canvas" id="tables-canvas">${tables.map(t => renderTableCircle(t, guestById)).join('')}</div>`;
+
+  if (editable) {
+    document.getElementById('add-table-btn').addEventListener('click', () =>
+      openAddTablePanel(() => renderTablesTab())
+    );
+  }
 }
