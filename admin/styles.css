@@ -241,7 +241,7 @@ button{cursor:pointer;font-family:inherit}
 }
 
 /* ── Tables canvas ── */
-.tables-canvas{position:relative;min-height:520px;background:var(--accent-light);border-radius:8px;overflow:auto}
+.tables-canvas{position:relative;min-height:520px;flex:1;background:var(--accent-light);border-radius:8px;overflow:auto}
 .table-circle{position:absolute;width:84px;height:84px;border-radius:50%;background:#fff;border:2px solid var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#333;cursor:grab;user-select:none;text-align:center;padding:4px;box-sizing:border-box}
 .table-circle.over-capacity{border-color:var(--danger);background:#fff5f5}
 .table-circle .table-circle-name{font-weight:600;margin-bottom:2px}
