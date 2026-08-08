@@ -9,7 +9,7 @@ import { renderBudgetTab } from './budget.js?v=6';
 import { renderEventsTab } from './events.js?v=4';
 import { renderDayOfTab } from './dayof.js?v=2';
 import { renderTodoTab } from './todo.js?v=2';
-import { renderCalendarTab } from './calendar.js?v=1';
+import { renderCalendarTab } from './calendar.js?v=2';
 import { renderUsersTab } from './users.js?v=1';
 import { renderWitnessesTab } from './witnesses.js?v=3';
 import { openAccountPanel } from './account.js';

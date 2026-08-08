@@ -53,7 +53,7 @@ const CHECKLIST_SEED = [
 ];
 
 async function seedChecklist(tasks) {
-  let order = tasks.length + 1;
+  let order = Math.max(0, ...tasks.map(t => t.order || 0)) + 1;
   for (const [milestone, title] of CHECKLIST_SEED) {
     await addDoc(tasksCol, {
       title,
@@ -120,14 +120,7 @@ function renderChecklistView(tasks, editable) {
       : '<p style="padding:20px;color:var(--muted)">Aucun item de checklist.</p>';
   }
 
-  return MILESTONES.map(([value, label]) => {
-    const items = checklistTasks.filter(t => t.milestone === value);
-    if (!items.length) return '';
-    return `
-      <div class="checklist-group">
-        <h4>${label}</h4>
-        <div class="checklist-items">
-          ${items.map(t => `
+  const renderItem = (t) => `
             <div class="checklist-item">
               <input type="checkbox" class="task-quick-done" data-id="${t.id}" ${t.status === 'done' ? 'checked' : ''} ${editable ? '' : 'disabled'}>
               <span class="checklist-item-title ${t.status === 'done' ? 'checklist-item-done' : ''}">${escapeHtml(t.title)}</span>
@@ -137,10 +130,34 @@ function renderChecklistView(tasks, editable) {
                      <button class="btn-danger btn-delete-task" data-id="${t.id}">Supprimer</button>
                    </div>`
                 : ''}
-            </div>`).join('')}
+            </div>`;
+
+  const knownMilestones = new Set(MILESTONES.map(([value]) => value));
+
+  const groups = MILESTONES.map(([value, label]) => {
+    const items = checklistTasks.filter(t => t.milestone === value);
+    if (!items.length) return '';
+    return `
+      <div class="checklist-group">
+        <h4>${label}</h4>
+        <div class="checklist-items">
+          ${items.map(renderItem).join('')}
         </div>
       </div>`;
-  }).join('');
+  });
+
+  const orphanItems = checklistTasks.filter(t => !knownMilestones.has(t.milestone));
+  if (orphanItems.length) {
+    groups.push(`
+      <div class="checklist-group">
+        <h4>Autre</h4>
+        <div class="checklist-items">
+          ${orphanItems.map(renderItem).join('')}
+        </div>
+      </div>`);
+  }
+
+  return groups.join('');
 }
 
 function attachSharedHandlers(panel, tasks, editable, rerender) {
@@ -209,7 +226,7 @@ export async function renderTodoTab() {
   }
 
   if (currentView === 'checklist' && editable) {
-    const seedBtn = document.getElementById('seed-checklist-btn');
+    const seedBtn = panel.querySelector('#seed-checklist-btn');
     if (seedBtn) {
       seedBtn.addEventListener('click', async () => {
         seedBtn.disabled = true;
