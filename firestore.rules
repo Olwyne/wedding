@@ -16,7 +16,7 @@ service cloud.firestore {
 
     match /guests/{guestId} {
       allow get: if true;
-      allow list: if perm('guests') in ['read', 'write'] || perm('witnesses') in ['read', 'write'] || perm('tables') in ['read', 'write'] || perm('todo') in ['read', 'write'] || perm('calendar') in ['read', 'write'];
+      allow list: if perm('guests') in ['read', 'write'] || perm('witnesses') in ['read', 'write'] || perm('tables') in ['read', 'write'] || perm('dayof') in ['read', 'write'] || perm('todo') in ['read', 'write'] || perm('calendar') in ['read', 'write'];
       allow create, delete: if perm('guests') == 'write';
       allow update: if perm('guests') == 'write'
         || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp'])
@@ -29,13 +29,18 @@ service cloud.firestore {
     }
 
     match /vendors/{vendorId} {
-      allow read: if perm('vendors') in ['read', 'write'] || perm('budget') in ['read', 'write'] || perm('todo') in ['read', 'write'] || perm('calendar') in ['read', 'write'];
+      allow read: if perm('vendors') in ['read', 'write'] || perm('budget') in ['read', 'write'] || perm('dayof') in ['read', 'write'] || perm('todo') in ['read', 'write'] || perm('calendar') in ['read', 'write'];
       allow write: if perm('vendors') == 'write';
     }
 
     match /tables/{tableId} {
       allow read: if perm('tables') in ['read', 'write'];
       allow write: if perm('tables') == 'write';
+    }
+
+    match /runOfShow/{itemId} {
+      allow read: if perm('dayof') in ['read', 'write'];
+      allow write: if perm('dayof') == 'write';
     }
 
     match /tasks/{taskId} {

@@ -7,6 +7,7 @@ import { renderTablesTab } from './tables.js?v=1';
 import { renderVendorsTab } from './vendors.js?v=6';
 import { renderBudgetTab } from './budget.js?v=6';
 import { renderEventsTab } from './events.js?v=4';
+import { renderDayOfTab } from './dayof.js?v=1';
 import { renderTodoTab } from './todo.js?v=1';
 import { renderCalendarTab } from './calendar.js?v=1';
 import { renderUsersTab } from './users.js?v=1';
@@ -23,6 +24,7 @@ const RENDER_BY_ID = {
   tables: renderTablesTab,
   witnesses: renderWitnessesTab,
   events: renderEventsTab,
+  dayof: renderDayOfTab,
   todo: renderTodoTab,
   calendar: renderCalendarTab,
   users: renderUsersTab,
@@ -35,7 +37,7 @@ PERM_SECTIONS.forEach(s => {
   NAV_SECTIONS[s.id] = { title: s.label, render: RENDER_BY_ID[s.id] };
 });
 
-const SLUG_BY_SECTION = { dashboard: 'dashboard', blocks: 'content', vendors: 'vendors', budget: 'budget', guests: 'guest', tables: 'tables', witnesses: 'witnesses', events: 'events', todo: 'todo', calendar: 'calendar', users: 'users' };
+const SLUG_BY_SECTION = { dashboard: 'dashboard', blocks: 'content', vendors: 'vendors', budget: 'budget', guests: 'guest', tables: 'tables', witnesses: 'witnesses', events: 'events', dayof: 'dayof', todo: 'todo', calendar: 'calendar', users: 'users' };
 const SECTION_BY_SLUG = Object.fromEntries(Object.entries(SLUG_BY_SECTION).map(([section, slug]) => [slug, section]));
 
 function sectionFromPath() {
