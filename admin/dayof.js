@@ -84,14 +84,26 @@ export async function renderDayOfTab() {
     panel.querySelectorAll('.btn-delete-dayof').forEach(btn =>
       btn.addEventListener('click', async () => {
         if (!confirm('Supprimer cette ligne ?')) return;
-        await deleteDoc(doc(db, 'runOfShow', btn.dataset.id));
+        try {
+          await deleteDoc(doc(db, 'runOfShow', btn.dataset.id));
+        } catch (err) {
+          console.error('deleteDoc failed', err);
+          alert('Une erreur est survenue, réessayez.');
+        }
         renderDayOfTab();
       })
     );
     panel.querySelectorAll('.dayof-quick-done').forEach(cb =>
       cb.addEventListener('change', async () => {
-        await updateDoc(doc(db, 'runOfShow', cb.dataset.id), { done: cb.checked });
-        renderDayOfTab();
+        const previous = !cb.checked;
+        try {
+          await updateDoc(doc(db, 'runOfShow', cb.dataset.id), { done: cb.checked });
+          renderDayOfTab();
+        } catch (err) {
+          console.error('updateDoc failed', err);
+          cb.checked = previous;
+          alert('Une erreur est survenue, réessayez.');
+        }
       })
     );
   }
@@ -108,25 +120,19 @@ function openDayOfPanel(id, items, guests, vendors) {
   panelEl.className = 'panel';
 
   const linkOptionsFor = (type, selectedId) => {
-    if (type === 'guest') {
-      const realOptions = guests.map(g => `<option value="${escapeHtml(g.id)}" ${selectedId === g.id ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('');
-      if (selectedId && !guests.some(g => g.id === selectedId)) {
-        return `<option value="${escapeHtml(selectedId)}" selected>(supprimé)</option>${realOptions}`;
-      }
-      return realOptions;
+    const list = type === 'guest' ? guests : type === 'vendor' ? vendors : null;
+    if (!list) return '';
+    const realOptions = list.map(x => `<option value="${escapeHtml(x.id)}" ${selectedId === x.id ? 'selected' : ''}>${escapeHtml(x.name)}</option>`).join('');
+    if (selectedId && !list.some(x => x.id === selectedId)) {
+      return `<option value="${escapeHtml(selectedId)}" selected>(supprimé)</option>${realOptions}`;
     }
-    if (type === 'vendor') {
-      const realOptions = vendors.map(ve => `<option value="${escapeHtml(ve.id)}" ${selectedId === ve.id ? 'selected' : ''}>${escapeHtml(ve.name)}</option>`).join('');
-      if (selectedId && !vendors.some(ve => ve.id === selectedId)) {
-        return `<option value="${escapeHtml(selectedId)}" selected>(supprimé)</option>${realOptions}`;
-      }
-      return realOptions;
-    }
-    return '';
+    return realOptions;
   };
 
   const responsibleType = v('responsibleType', 'none');
   const responsibleId = v('responsibleId', '');
+  const originalResponsibleType = responsibleType;
+  const originalResponsibleId = responsibleId;
 
   panelEl.innerHTML = `
     <div class="panel-header">
@@ -169,7 +175,8 @@ function openDayOfPanel(id, items, guests, vendors) {
   panelEl.querySelector('#dayof-responsible-type').addEventListener('change', (e) => {
     const type = e.target.value;
     panelEl.querySelector('#dayof-responsible-id-field').hidden = type === 'none';
-    panelEl.querySelector('#dayof-responsible-id').innerHTML = linkOptionsFor(type, null);
+    const preserved = type === originalResponsibleType ? originalResponsibleId : null;
+    panelEl.querySelector('#dayof-responsible-id').innerHTML = linkOptionsFor(type, preserved);
   });
 
   panelEl.querySelector('#panel-save').addEventListener('click', async () => {
@@ -178,19 +185,26 @@ function openDayOfPanel(id, items, guests, vendors) {
     const time = get('#dayof-time');
     if (!title || !time) return;
     const responsibleTypeVal = get('#dayof-responsible-type');
+    const responsibleIdVal = responsibleTypeVal === 'none' ? null : (get('#dayof-responsible-id') || null);
     const data = {
       time,
       title,
       location: get('#dayof-location'),
-      responsibleType: responsibleTypeVal,
-      responsibleId: responsibleTypeVal === 'none' ? null : (get('#dayof-responsible-id') || null),
+      responsibleType: responsibleIdVal ? responsibleTypeVal : 'none',
+      responsibleId: responsibleIdVal,
       notes: get('#dayof-notes'),
       done: panelEl.querySelector('#dayof-done').checked,
     };
-    if (id) {
-      await updateDoc(doc(db, 'runOfShow', id), data);
-    } else {
-      await addDoc(dayOfCol, data);
+    try {
+      if (id) {
+        await updateDoc(doc(db, 'runOfShow', id), data);
+      } else {
+        await addDoc(dayOfCol, data);
+      }
+    } catch (err) {
+      console.error('save failed', err);
+      alert('Une erreur est survenue, réessayez.');
+      return;
     }
     close();
     renderDayOfTab();
