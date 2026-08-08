@@ -270,6 +270,14 @@ button{cursor:pointer;font-family:inherit}
 #calendar-root .fc-event{cursor:pointer;font-size:12px}
 #calendar-root .fc-daygrid-day.fc-day-today{background:#eef2ff}
 
+.todo-view-toggle{display:flex;gap:8px;margin-bottom:16px}
+.checklist-group{margin-bottom:20px}
+.checklist-group h4{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:8px}
+.checklist-items{display:flex;flex-direction:column;gap:6px}
+.checklist-item{display:flex;align-items:center;gap:10px;background:var(--admin-card);border:1px solid var(--border);border-radius:8px;padding:8px 12px}
+.checklist-item-title{flex:1;font-size:13.5px;color:var(--text)}
+.checklist-item-done{color:var(--muted);text-decoration:line-through}
+
 @media print {
   .sidebar, #section-action, .no-print { display: none !important; }
   .content-area { margin: 0; padding: 0; }
