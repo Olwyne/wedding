@@ -256,3 +256,12 @@ button{cursor:pointer;font-family:inherit}
 .guest-card .guest-card-count{color:var(--muted);font-size:10px;flex-shrink:0}
 .table-occupant-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0ece4;font-size:13px}
 .table-occupant-row:last-child{border-bottom:none}
+
+/* ── To-Do tab filters and badges ── */
+.todo-filters{display:flex;gap:8px;margin-bottom:16px}
+.pill{background:#fff;border:1px solid var(--border);color:var(--muted);border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:500;cursor:pointer}
+.pill:hover{background:#f9fafb}
+.pill-active{background:var(--accent);border-color:var(--accent);color:#fff}
+.badge-status-todo{background:#f3f4f6;color:#374151}
+.badge-status-progress{background:#fef3c7;color:#92400e}
+.badge-status-done{background:#dcfce7;color:#15803d}
