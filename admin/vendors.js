@@ -7,8 +7,18 @@ import { canWrite } from './permissions.js';
 
 const vendorsCol = collection(db, 'vendors');
 
-const STATUS_LABELS = { contacted: 'Contacté', booked: 'Réservé', paid: 'Payé' };
-const STATUS_BADGE = { contacted: 'badge-contacted', booked: 'badge-booked', paid: 'badge-paid' };
+let currentFilter = 'all';
+
+const FILTERS = [['all', 'Tous'], ['candidat', 'Candidat'], ['contacted', 'Contacté'], ['booked', 'Réservé'], ['paid', 'Payé'], ['rejected', 'Rejeté']];
+
+async function markPreferred(vendorId, category, vendors) {
+  const others = vendors.filter(v => v.id !== vendorId && v.category === category && v.status === 'candidat' && v.preferred);
+  await Promise.all(others.map(v => updateDoc(doc(db, 'vendors', v.id), { preferred: false })));
+  await updateDoc(doc(db, 'vendors', vendorId), { preferred: true });
+}
+
+const STATUS_LABELS = { candidat: 'Candidat', contacted: 'Contacté', booked: 'Réservé', paid: 'Payé', rejected: 'Rejeté' };
+const STATUS_BADGE = { candidat: 'badge-candidat', contacted: 'badge-contacted', booked: 'badge-booked', paid: 'badge-paid', rejected: 'badge-rejected' };
 export const CATEGORIES = [
   'Lieu de réception', 'Fleuriste', 'Photographe', 'Traiteur', 'Musique', 'DJ',
   'Divertissement', 'Gâteau', 'Papeterie', 'Transport', 'Décorations et location',
@@ -43,6 +53,11 @@ function renderVendorRow(v, editable) {
   const status = STATUS_LABELS[v.status] ? v.status : 'contacted';
   const paid = paidAmount(v);
   const remaining = (Number(v.total) || 0) - paid;
+  const preferredCell = status === 'candidat'
+    ? (v.preferred
+        ? '<span class="badge badge-preferred">★ Préféré</span>'
+        : (editable ? `<button type="button" class="btn-secondary btn-mark-preferred" data-id="${escapeHtml(v.id)}" data-category="${escapeHtml(v.category || '')}">Marquer préféré</button>` : ''))
+    : '';
   const actionsCell = editable
     ? `<div class="table-actions">
          <button class="btn-secondary btn-edit-vendor" data-id="${escapeHtml(v.id)}">Modifier</button>
@@ -54,6 +69,7 @@ function renderVendorRow(v, editable) {
       <td>${escapeHtml(v.category || '')}</td>
       <td>${escapeHtml(v.name || '')}</td>
       <td><span class="badge ${STATUS_BADGE[status]}">${STATUS_LABELS[status]}</span></td>
+      <td>${preferredCell}</td>
       <td>${fmtMoney(v.total)}</td>
       <td>${fmtMoney(paid)}</td>
       <td>${fmtMoney(remaining)}</td>
@@ -79,20 +95,31 @@ export async function renderVendorsTab() {
     return;
   }
 
+  const filtered = currentFilter === 'all' ? vendors : vendors.filter(v => (v.status || 'contacted') === currentFilter);
+
   panel.innerHTML = `
+    <div class="vendor-filters">
+      ${FILTERS.map(([id, label]) =>
+        `<button class="filter-pill ${currentFilter === id ? 'filter-pill-active' : ''}" data-filter="${id}">${label}</button>`
+      ).join('')}
+    </div>
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Catégorie</th><th>Nom</th><th>Statut</th><th>Total</th>
+          <th>Catégorie</th><th>Nom</th><th>Statut</th><th>Préféré</th><th>Total</th>
           <th>Versé</th><th>Reste</th><th>Échéance</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        ${vendors.length
-          ? vendors.map(v => renderVendorRow(v, editable)).join('')
-          : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">Aucune prestation.</td></tr>'}
+        ${filtered.length
+          ? filtered.map(v => renderVendorRow(v, editable)).join('')
+          : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px">Aucune prestation.</td></tr>'}
       </tbody>
     </table>`;
+
+  panel.querySelectorAll('[data-filter]').forEach(btn =>
+    btn.addEventListener('click', () => { currentFilter = btn.dataset.filter; renderVendorsTab(); })
+  );
 
   if (editable) {
     document.getElementById('add-vendor-btn').addEventListener('click', () => openVendorPanel(null, vendors));
@@ -104,6 +131,16 @@ export async function renderVendorsTab() {
         if (!confirm('Supprimer cette prestation ?')) return;
         try {
           await deleteDoc(doc(db, 'vendors', btn.dataset.id));
+          renderVendorsTab();
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+        }
+      })
+    );
+    panel.querySelectorAll('.btn-mark-preferred').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        try {
+          await markPreferred(btn.dataset.id, btn.dataset.category, vendors);
           renderVendorsTab();
         } catch (err) {
           alert(`Erreur : ${err.message}`);
