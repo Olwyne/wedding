@@ -105,8 +105,20 @@ function openDayOfPanel(id, items, guests, vendors) {
   panelEl.className = 'panel';
 
   const linkOptionsFor = (type, selectedId) => {
-    if (type === 'guest') return guests.map(g => `<option value="${escapeHtml(g.id)}" ${selectedId === g.id ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('');
-    if (type === 'vendor') return vendors.map(ve => `<option value="${escapeHtml(ve.id)}" ${selectedId === ve.id ? 'selected' : ''}>${escapeHtml(ve.name)}</option>`).join('');
+    if (type === 'guest') {
+      const realOptions = guests.map(g => `<option value="${escapeHtml(g.id)}" ${selectedId === g.id ? 'selected' : ''}>${escapeHtml(g.name)}</option>`).join('');
+      if (selectedId && !guests.some(g => g.id === selectedId)) {
+        return `<option value="${escapeHtml(selectedId)}" selected>(supprimé)</option>${realOptions}`;
+      }
+      return realOptions;
+    }
+    if (type === 'vendor') {
+      const realOptions = vendors.map(ve => `<option value="${escapeHtml(ve.id)}" ${selectedId === ve.id ? 'selected' : ''}>${escapeHtml(ve.name)}</option>`).join('');
+      if (selectedId && !vendors.some(ve => ve.id === selectedId)) {
+        return `<option value="${escapeHtml(selectedId)}" selected>(supprimé)</option>${realOptions}`;
+      }
+      return realOptions;
+    }
     return '';
   };
 
