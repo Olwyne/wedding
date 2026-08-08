@@ -269,3 +269,10 @@ button{cursor:pointer;font-family:inherit}
 #calendar-root{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;font-family:inherit}
 #calendar-root .fc-event{cursor:pointer;font-size:12px}
 #calendar-root .fc-daygrid-day.fc-day-today{background:#eef2ff}
+
+@media print {
+  .sidebar, #section-action, .no-print { display: none !important; }
+  .content-area { margin: 0; padding: 0; }
+  .admin-table { border: 1px solid #000; }
+  .admin-table th, .admin-table td { border: 1px solid #ccc; }
+}

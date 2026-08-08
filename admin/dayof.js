@@ -44,11 +44,12 @@ export async function renderDayOfTab() {
   };
 
   panel.innerHTML = `
+    <button id="print-dayof-btn" class="btn-secondary no-print" style="margin-bottom:16px">Imprimer</button>
     <table class="admin-table">
       <thead>
         <tr>
           <th>Heure</th><th>Titre</th><th>Lieu</th><th>Responsable</th><th>Notes</th>
-          <th>Fait</th><th>Actions</th>
+          <th class="no-print">Fait</th><th class="no-print">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -59,8 +60,8 @@ export async function renderDayOfTab() {
             <td>${escapeHtml(item.location || '—')}</td>
             <td>${escapeHtml(responsibleLabel(item))}</td>
             <td>${escapeHtml(item.notes || '—')}</td>
-            <td><input type="checkbox" class="dayof-quick-done" data-id="${item.id}" ${item.done ? 'checked' : ''} ${editable ? '' : 'disabled'}></td>
-            <td>${editable
+            <td class="no-print"><input type="checkbox" class="dayof-quick-done" data-id="${item.id}" ${item.done ? 'checked' : ''} ${editable ? '' : 'disabled'}></td>
+            <td class="no-print">${editable
               ? `<div class="table-actions">
                    <button class="btn-secondary btn-edit-dayof" data-id="${item.id}">Modifier</button>
                    <button class="btn-danger btn-delete-dayof" data-id="${item.id}">Supprimer</button>
@@ -70,6 +71,8 @@ export async function renderDayOfTab() {
           : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px">Aucune ligne.</td></tr>'}
       </tbody>
     </table>`;
+
+  document.getElementById('print-dayof-btn').addEventListener('click', () => window.print());
 
   if (editable) {
     document.getElementById('add-dayof-btn').addEventListener('click', () =>
