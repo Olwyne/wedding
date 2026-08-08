@@ -259,9 +259,9 @@ button{cursor:pointer;font-family:inherit}
 
 /* ── To-Do tab filters and badges ── */
 .todo-filters{display:flex;gap:8px;margin-bottom:16px}
-.pill{background:#fff;border:1px solid var(--border);color:var(--muted);border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:500;cursor:pointer}
-.pill:hover{background:#f9fafb}
-.pill-active{background:var(--accent);border-color:var(--accent);color:#fff}
+.filter-pill{background:#fff;border:1px solid var(--border);color:var(--muted);border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:500;cursor:pointer}
+.filter-pill:hover{background:#f9fafb}
+.filter-pill-active{background:var(--accent);border-color:var(--accent);color:#fff}
 .badge-status-todo{background:#f3f4f6;color:#374151}
 .badge-status-progress{background:#fef3c7;color:#92400e}
 .badge-status-done{background:#dcfce7;color:#15803d}

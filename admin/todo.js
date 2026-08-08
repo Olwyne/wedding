@@ -13,21 +13,8 @@ const STATUS_BADGE = { todo: 'badge-status-todo', in_progress: 'badge-status-pro
 
 const FILTERS = [['all', 'Toutes'], ['todo', 'À faire'], ['in_progress', 'En cours'], ['done', 'Terminé']];
 
-export async function renderTodoTab() {
+function renderTodoPanel(tasks, guestsById, vendorsById, adminsById, editable) {
   const panel = document.getElementById('tab-todo');
-  panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
-
-  const editable = canWrite('todo');
-  document.getElementById('section-action').innerHTML = editable
-    ? '<button id="add-task-btn" class="btn-primary">+ Ajouter une tâche</button>'
-    : '';
-
-  const [tasks, guests, vendors, admins] = await Promise.all([
-    loadTasks(), loadGuests(), loadVendors(), loadUsers()
-  ]);
-  const guestsById = new Map(guests.map(g => [g.id, g]));
-  const vendorsById = new Map(vendors.map(v => [v.id, v]));
-  const adminsById = new Map(admins.map(a => [a.id, a]));
 
   const linkedLabel = (t) => {
     if (t.linkedType === 'guest') return guestsById.get(t.linkedId)?.name || '—';
@@ -41,7 +28,7 @@ export async function renderTodoTab() {
   panel.innerHTML = `
     <div class="todo-filters">
       ${FILTERS.map(([id, label]) =>
-        `<button class="pill ${currentFilter === id ? 'pill-active' : ''}" data-filter="${id}">${label}</button>`
+        `<button class="filter-pill ${currentFilter === id ? 'filter-pill-active' : ''}" data-filter="${id}">${label}</button>`
       ).join('')}
     </div>
     <table class="admin-table">
@@ -69,7 +56,7 @@ export async function renderTodoTab() {
     </table>`;
 
   panel.querySelectorAll('[data-filter]').forEach(btn =>
-    btn.addEventListener('click', () => { currentFilter = btn.dataset.filter; renderTodoTab(); })
+    btn.addEventListener('click', () => { currentFilter = btn.dataset.filter; renderTodoPanel(tasks, guestsById, vendorsById, adminsById, editable); })
   );
 
   if (editable) {
@@ -93,4 +80,23 @@ export async function renderTodoTab() {
       })
     );
   }
+}
+
+export async function renderTodoTab() {
+  const panel = document.getElementById('tab-todo');
+  panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
+
+  const editable = canWrite('todo');
+  document.getElementById('section-action').innerHTML = editable
+    ? '<button id="add-task-btn" class="btn-primary">+ Ajouter une tâche</button>'
+    : '';
+
+  const [tasks, guests, vendors, admins] = await Promise.all([
+    loadTasks(), loadGuests(), loadVendors(), loadUsers()
+  ]);
+  const guestsById = new Map(guests.map(g => [g.id, g]));
+  const vendorsById = new Map(vendors.map(v => [v.id, v]));
+  const adminsById = new Map(admins.map(a => [a.id, a]));
+
+  renderTodoPanel(tasks, guestsById, vendorsById, adminsById, editable);
 }
