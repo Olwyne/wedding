@@ -39,7 +39,7 @@ const CHECKLIST_SEED = [
   ['3-6', 'Choisir les alliances'],
   ['3-6', 'Planifier la lune de miel'],
   ['3-6', 'Essayage robe/costume'],
-  ['1-3', 'Confirmer le nombre définitif d'invités (RSVP)'],
+  ['1-3', "Confirmer le nombre définitif d'invités (RSVP)"],
   ['1-3', 'Finaliser le plan de table'],
   ['1-3', 'Essayage final robe/costume'],
   ['1-3', 'Confirmer les prestataires (horaires, livraisons)'],
