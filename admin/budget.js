@@ -8,6 +8,8 @@ const budgetDocRef = doc(db, 'settings', 'budget');
 
 const PENCIL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
 
+const ENGAGED_STATUSES = ['contacted', 'booked', 'paid'];
+
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
   const div = document.createElement('div');
@@ -45,6 +47,7 @@ function computeCategoryStats(vendors, categoryTargets) {
     byCategory[cat] = { category: cat, engaged: 0, paid: 0 };
   });
   vendors.forEach(v => {
+    if (!ENGAGED_STATUSES.includes(v.status)) return;
     const cat = v.category || 'Autre';
     if (!byCategory[cat]) byCategory[cat] = { category: cat, engaged: 0, paid: 0 };
     byCategory[cat].engaged += Number(v.total) || 0;
@@ -116,8 +119,16 @@ export async function renderBudgetTab() {
   }
   let { target, categoryTargets } = budgetDoc;
 
-  const totalEngaged = vendors.reduce((sum, v) => sum + (Number(v.total) || 0), 0);
-  const totalPaid = vendors.reduce((sum, v) => sum + paidAmount(v), 0);
+  const totalEngaged = vendors
+    .filter(v => ENGAGED_STATUSES.includes(v.status))
+    .reduce((sum, v) => sum + (Number(v.total) || 0), 0);
+  const totalPreferred = vendors
+    .filter(v => v.status === 'candidat' && v.preferred)
+    .reduce((sum, v) => sum + (Number(v.total) || 0), 0);
+  const totalEstimated = totalEngaged + totalPreferred;
+  const totalPaid = vendors
+    .filter(v => ENGAGED_STATUSES.includes(v.status))
+    .reduce((sum, v) => sum + paidAmount(v), 0);
 
   async function persistTarget(key, value) {
     if (key === 'global') {
@@ -148,6 +159,7 @@ export async function renderBudgetTab() {
           <strong class="${categoryTargetsOverBudget ? 'budget-over-text' : ''}">${fmtMoney(totalCategoryTargets)}</strong>
         </div>
         <div class="budget-summary-row"><span>Total engagé</span><strong>${fmtMoney(totalEngaged)}</strong></div>
+        <div class="budget-summary-row"><span>Total estimé</span><strong>${fmtMoney(totalEstimated)}</strong></div>
         <div class="budget-summary-row"><span>Total versé</span><strong>${fmtMoney(totalPaid)}</strong></div>
         <div class="progress-bar"><div class="progress-bar-fill${over ? ' over' : ''}" style="width:${pct}%"></div></div>
         ${categoryTargetsOverBudget ? '<p class="budget-over-text budget-over-note">La somme des cibles par catégorie dépasse le budget cible global.</p>' : ''}
