@@ -12,6 +12,15 @@ const tasksCol = collection(db, 'tasks');
 
 export const STATUS_LABELS = { todo: 'À faire', in_progress: 'En cours', done: 'Terminé' };
 
+export const MILESTONES = [
+  ['12plus', '12+ mois avant'],
+  ['9-12', '9-12 mois avant'],
+  ['6-9', '6-9 mois avant'],
+  ['3-6', '3-6 mois avant'],
+  ['1-3', '1-3 mois avant'],
+  ['week', 'Semaine du mariage'],
+];
+
 export function escapeHtml(str) {
   if (typeof str !== 'string') return '';
   const div = document.createElement('div');
@@ -56,6 +65,12 @@ export function openTaskPanel(id, tasks, { onSaved, defaults = {}, readOnly = fa
         <label class="field"><span>Statut</span>
           <select id="task-status" ${dis}>
             ${Object.entries(STATUS_LABELS).map(([val, label]) => `<option value="${val}" ${v('status', 'todo') === val ? 'selected' : ''}>${label}</option>`).join('')}
+          </select>
+        </label>
+        <label class="field"><span>Palier</span>
+          <select id="task-milestone" ${dis}>
+            <option value="none" ${!v('milestone') ? 'selected' : ''}>Aucun</option>
+            ${MILESTONES.map(([val, label]) => `<option value="${val}" ${v('milestone') === val ? 'selected' : ''}>${label}</option>`).join('')}
           </select>
         </label>
         <label class="field"><span>Échéance</span><input id="task-due" type="date" value="${escapeHtml(v('dueDate', ''))}" ${dis}></label>
@@ -112,6 +127,7 @@ export function openTaskPanel(id, tasks, { onSaved, defaults = {}, readOnly = fa
           linkedType: linkedTypeVal,
           linkedId: linkedTypeVal === 'none' ? null : (get('#task-linked-id') || null),
           assignedTo: get('#task-assigned') || null,
+          milestone: get('#task-milestone') === 'none' ? null : get('#task-milestone'),
         };
         if (id) {
           await updateDoc(doc(db, 'tasks', id), data);

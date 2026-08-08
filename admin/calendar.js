@@ -2,7 +2,7 @@
 import { db } from '../firebase-init.js';
 import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
-import { loadTasks, openTaskPanel } from './tasks-shared.js?v=1';
+import { loadTasks, openTaskPanel } from './tasks-shared.js?v=2';
 
 const FC_SRC = 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js';
 const FC_LOCALES_SRC = 'https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/locales-all.global.min.js';
