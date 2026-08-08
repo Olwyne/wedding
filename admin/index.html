@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Back office — Sophie &amp; Ruiyuan</title>
-<link rel="stylesheet" href="/admin/styles.css?v=15">
+<link rel="stylesheet" href="/admin/styles.css?v=16">
 </head>
 <body>
 
@@ -60,6 +60,12 @@
       <button class="nav-item" data-section="events" hidden>
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span> Événements
       </button>
+      <button class="nav-item" data-section="todo" hidden>
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span> To-Do
+      </button>
+      <button class="nav-item" data-section="calendar" hidden>
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg></span> Calendrier
+      </button>
       <button class="nav-item" data-section="users" hidden>
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg></span> Utilisateurs
       </button>
@@ -83,11 +89,13 @@
       <div id="tab-witnesses" class="tab-panel" hidden></div>
       <div id="tab-tables" class="tab-panel" hidden></div>
       <div id="tab-events" class="tab-panel" hidden></div>
+      <div id="tab-todo" class="tab-panel" hidden></div>
+      <div id="tab-calendar" class="tab-panel" hidden></div>
       <div id="tab-users" class="tab-panel" hidden></div>
     </div>
   </main>
 </div>
 
-<script type="module" src="/admin/script.js?v=19"></script>
+<script type="module" src="/admin/script.js?v=20"></script>
 </body>
 </html>

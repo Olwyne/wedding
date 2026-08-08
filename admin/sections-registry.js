@@ -6,5 +6,7 @@ export const SECTIONS = [
   { id: 'tables', label: 'Tables', collection: 'tables' },
   { id: 'witnesses', label: 'Témoins', collection: 'guests' },
   { id: 'events', label: 'Événements', collection: 'events' },
+  { id: 'todo', label: 'To-Do', collection: 'tasks' },
+  { id: 'calendar', label: 'Calendrier', collection: 'tasks' },
   { id: 'users', label: 'Utilisateurs', collection: 'admins' },
 ];

@@ -31,7 +31,7 @@ function generatePassword(length = 12) {
   return pw;
 }
 
-async function loadUsers() {
+export async function loadUsers() {
   const snap = await getDocs(adminsCol);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
