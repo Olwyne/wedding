@@ -5,7 +5,7 @@ import {
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { loadGuests } from './guests.js?v=5';
-import { loadVendors } from './vendors.js?v=6';
+import { loadVendors } from './vendors.js?v=7';
 import { loadUsers } from './users.js?v=1';
 
 const tasksCol = collection(db, 'tasks');

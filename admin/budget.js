@@ -1,7 +1,7 @@
 // admin/budget.js
 import { db } from '../firebase-init.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadVendors, paidAmount, CATEGORIES } from './vendors.js?v=6';
+import { loadVendors, paidAmount, CATEGORIES } from './vendors.js?v=7';
 import { canWrite } from './permissions.js';
 
 const budgetDocRef = doc(db, 'settings', 'budget');
@@ -47,9 +47,9 @@ function computeCategoryStats(vendors, categoryTargets) {
     byCategory[cat] = { category: cat, engaged: 0, paid: 0 };
   });
   vendors.forEach(v => {
-    if (!ENGAGED_STATUSES.includes(v.status)) return;
     const cat = v.category || 'Autre';
     if (!byCategory[cat]) byCategory[cat] = { category: cat, engaged: 0, paid: 0 };
+    if (!ENGAGED_STATUSES.includes(v.status || 'contacted')) return;
     byCategory[cat].engaged += Number(v.total) || 0;
     byCategory[cat].paid += paidAmount(v);
   });
@@ -120,14 +120,14 @@ export async function renderBudgetTab() {
   let { target, categoryTargets } = budgetDoc;
 
   const totalEngaged = vendors
-    .filter(v => ENGAGED_STATUSES.includes(v.status))
+    .filter(v => ENGAGED_STATUSES.includes(v.status || 'contacted'))
     .reduce((sum, v) => sum + (Number(v.total) || 0), 0);
   const totalPreferred = vendors
     .filter(v => v.status === 'candidat' && v.preferred)
     .reduce((sum, v) => sum + (Number(v.total) || 0), 0);
   const totalEstimated = totalEngaged + totalPreferred;
   const totalPaid = vendors
-    .filter(v => ENGAGED_STATUSES.includes(v.status))
+    .filter(v => ENGAGED_STATUSES.includes(v.status || 'contacted'))
     .reduce((sum, v) => sum + paidAmount(v), 0);
 
   async function persistTarget(key, value) {

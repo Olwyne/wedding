@@ -12,7 +12,7 @@ let currentFilter = 'all';
 const FILTERS = [['all', 'Tous'], ['candidat', 'Candidat'], ['contacted', 'Contacté'], ['booked', 'Réservé'], ['paid', 'Payé'], ['rejected', 'Rejeté']];
 
 async function markPreferred(vendorId, category, vendors) {
-  const others = vendors.filter(v => v.id !== vendorId && v.category === category && v.status === 'candidat' && v.preferred);
+  const others = vendors.filter(v => v.id !== vendorId && v.category === category && v.preferred);
   await Promise.all(others.map(v => updateDoc(doc(db, 'vendors', v.id), { preferred: false })));
   await updateDoc(doc(db, 'vendors', vendorId), { preferred: true });
 }
@@ -56,7 +56,7 @@ function renderVendorRow(v, editable) {
   const preferredCell = status === 'candidat'
     ? (v.preferred
         ? '<span class="badge badge-preferred">★ Préféré</span>'
-        : (editable ? `<button type="button" class="btn-secondary btn-mark-preferred" data-id="${escapeHtml(v.id)}" data-category="${escapeHtml(v.category || '')}">Marquer préféré</button>` : ''))
+        : (editable ? `<button type="button" class="btn-secondary btn-mark-preferred" data-id="${escapeHtml(v.id)}">Marquer préféré</button>` : ''))
     : '';
   const actionsCell = editable
     ? `<div class="table-actions">
@@ -140,7 +140,8 @@ export async function renderVendorsTab() {
     panel.querySelectorAll('.btn-mark-preferred').forEach(btn =>
       btn.addEventListener('click', async () => {
         try {
-          await markPreferred(btn.dataset.id, btn.dataset.category, vendors);
+          const category = vendors.find(v => v.id === btn.dataset.id)?.category;
+          await markPreferred(btn.dataset.id, category, vendors);
           renderVendorsTab();
         } catch (err) {
           alert(`Erreur : ${err.message}`);

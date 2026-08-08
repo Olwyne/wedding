@@ -6,7 +6,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
 import { loadGuests } from './guests.js?v=5';
-import { loadVendors } from './vendors.js?v=6';
+import { loadVendors } from './vendors.js?v=7';
 
 const dayOfCol = collection(db, 'runOfShow');
 
