@@ -75,7 +75,15 @@ export async function renderCalendarTab() {
       openTaskPanel(null, tasks, { onSaved: renderCalendarTab, defaults: { dueDate: info.dateStr } });
     },
     eventDrop: async (info) => {
-      await updateDoc(doc(db, 'tasks', info.event.id), { dueDate: info.event.startStr.slice(0, 10) });
+      const newDue = info.event.startStr.slice(0, 10);
+      try {
+        await updateDoc(doc(db, 'tasks', info.event.id), { dueDate: newDue });
+        const task = tasks.find(t => t.id === info.event.id);
+        if (task) task.dueDate = newDue;
+      } catch (err) {
+        console.error(err);
+        info.revert();
+      }
     },
   });
 

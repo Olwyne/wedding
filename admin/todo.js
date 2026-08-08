@@ -60,9 +60,6 @@ function renderTodoPanel(tasks, guestsById, vendorsById, adminsById, editable) {
   );
 
   if (editable) {
-    document.getElementById('add-task-btn').addEventListener('click', () =>
-      openTaskPanel(null, tasks, { onSaved: renderTodoTab })
-    );
     panel.querySelectorAll('.btn-edit-task').forEach(btn =>
       btn.addEventListener('click', () => openTaskPanel(btn.dataset.id, tasks, { onSaved: renderTodoTab }))
     );
@@ -97,6 +94,12 @@ export async function renderTodoTab() {
   const guestsById = new Map(guests.map(g => [g.id, g]));
   const vendorsById = new Map(vendors.map(v => [v.id, v]));
   const adminsById = new Map(admins.map(a => [a.id, a]));
+
+  if (editable) {
+    document.getElementById('add-task-btn').addEventListener('click', () =>
+      openTaskPanel(null, tasks, { onSaved: renderTodoTab })
+    );
+  }
 
   renderTodoPanel(tasks, guestsById, vendorsById, adminsById, editable);
 }
