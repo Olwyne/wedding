@@ -52,7 +52,7 @@ function hourMarkers() {
   return rows.join('');
 }
 
-export function renderTimelineGrid(container, lanes, items, onBlockClick, editable) {
+export function renderTimelineGrid(container, lanes, items, { onBlockClick, onItemMoved, editable }) {
   const gridHeight = (DAY_END_MIN - DAY_START_MIN) * PX_PER_MIN;
   let activeLaneId = lanes[0]?.id;
 
@@ -84,4 +84,50 @@ export function renderTimelineGrid(container, lanes, items, onBlockClick, editab
   });
 
   applyMobileFilter();
+
+  if (editable) {
+    container.querySelectorAll('.timeline-block').forEach(block => {
+      attachDragHandlers(block, items, onItemMoved);
+    });
+  }
+}
+
+function attachDragHandlers(block, items, onItemMoved) {
+  const itemId = block.dataset.itemId;
+
+  block.addEventListener('mousedown', (e) => {
+    if (e.target.classList.contains('timeline-resize-handle')) return; // handled by Task 7
+    e.preventDefault();
+    const item = items.find(i => i.id === itemId);
+    const startY = e.clientY;
+    const startMin = timeToMinutes(item.time);
+    const endMin = item.endTime ? timeToMinutes(item.endTime) : startMin + DEFAULT_DURATION_MIN;
+    const durationMin = endMin - startMin;
+    let moved = false;
+    let finalStartMin = startMin;
+
+    function onMouseMove(ev) {
+      const deltaPx = ev.clientY - startY;
+      if (Math.abs(deltaPx) > 3) moved = true;
+      const deltaMinRaw = deltaPx / PX_PER_MIN;
+      const snappedDelta = Math.round(deltaMinRaw / SNAP_MIN) * SNAP_MIN;
+      let newStart = startMin + snappedDelta;
+      newStart = Math.max(DAY_START_MIN, Math.min(DAY_END_MIN - durationMin, newStart));
+      finalStartMin = newStart;
+      block.style.top = `${(newStart - DAY_START_MIN) * PX_PER_MIN}px`;
+    }
+
+    function onMouseUp() {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      if (moved && finalStartMin !== startMin) {
+        onItemMoved(itemId, minutesToTime(finalStartMin), minutesToTime(finalStartMin + durationMin));
+      } else if (!moved) {
+        block.dataset.wasClick = 'true';
+      }
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
 }

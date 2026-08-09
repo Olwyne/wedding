@@ -98,7 +98,14 @@ export async function renderDayOfTab() {
   );
 
   if (currentView === 'frise') {
-    renderTimelineGrid(document.getElementById('dayof-timeline-view'), lanes, items, () => {}, editable);
+    renderTimelineGrid(document.getElementById('dayof-timeline-view'), lanes, items, {
+      onBlockClick: () => {},
+      onItemMoved: async (id, newTime, newEndTime) => {
+        await updateDoc(doc(db, 'runOfShow', id), { time: newTime, endTime: newEndTime });
+        renderDayOfTab();
+      },
+      editable,
+    });
   }
 
   if (editable) {
