@@ -1,5 +1,5 @@
 // admin/dayof-timeline.js
-import { GENERAL_LANE_ID } from './timeline-lanes.js?v=1';
+import { GENERAL_LANE_ID } from './timeline-lanes.js?v=2';
 
 export const DAY_START_MIN = 0;        // 00:00
 export const DAY_END_MIN = 24 * 60;    // 24:00
@@ -115,10 +115,12 @@ function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
     const durationMin = Math.max(SNAP_MIN, endMin - startMin);
     let moved = false;
     let finalStartMin = startMin;
+    const pointerId = e.pointerId;
 
     block.setPointerCapture(e.pointerId);
 
     function onPointerMove(ev) {
+      if (ev.pointerId !== pointerId) return;
       const deltaPx = ev.clientY - startY;
       if (Math.abs(deltaPx) > 3) moved = true;
       const deltaMinRaw = deltaPx / PX_PER_MIN;
@@ -129,7 +131,8 @@ function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
       block.style.top = `${(newStart - DAY_START_MIN) * PX_PER_MIN}px`;
     }
 
-    function onPointerUp() {
+    function onPointerUp(ev) {
+      if (ev.pointerId !== pointerId) return;
       block.removeEventListener('pointermove', onPointerMove);
       block.removeEventListener('pointerup', onPointerUp);
       block.removeEventListener('pointercancel', onPointerUp);
@@ -154,10 +157,12 @@ function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
     const startMin = timeToMinutes(item.time);
     const initialEndMin = item.endTime ? timeToMinutes(item.endTime) : startMin + DEFAULT_DURATION_MIN;
     let finalEndMin = initialEndMin;
+    const pointerId = e.pointerId;
 
     handle.setPointerCapture(e.pointerId);
 
     function onPointerMove(ev) {
+      if (ev.pointerId !== pointerId) return;
       const deltaPx = ev.clientY - startY;
       const deltaMinRaw = deltaPx / PX_PER_MIN;
       const snappedDelta = Math.round(deltaMinRaw / SNAP_MIN) * SNAP_MIN;
@@ -167,12 +172,16 @@ function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
       block.style.height = `${(newEnd - startMin) * PX_PER_MIN}px`;
     }
 
-    function onPointerUp() {
+    function onPointerUp(ev) {
+      if (ev.pointerId !== pointerId) return;
       handle.removeEventListener('pointermove', onPointerMove);
       handle.removeEventListener('pointerup', onPointerUp);
       handle.removeEventListener('pointercancel', onPointerUp);
       if (finalEndMin !== initialEndMin) {
-        onItemMoved(itemId, minutesToTime(startMin), minutesToTime(finalEndMin));
+        // Clamp to 23:59 so the value round-trips through <input type="time">,
+        // which rejects "24:00" and silently reads back as "".
+        const clampedEndMin = Math.min(finalEndMin, DAY_END_MIN - 1);
+        onItemMoved(itemId, minutesToTime(startMin), minutesToTime(clampedEndMin));
       }
     }
 

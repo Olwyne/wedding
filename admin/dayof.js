@@ -7,8 +7,8 @@ import {
 import { canWrite } from './permissions.js';
 import { loadGuests } from './guests.js?v=5';
 import { loadVendors } from './vendors.js?v=7';
-import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=1';
-import { renderTimelineGrid } from './dayof-timeline.js?v=1';
+import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=2';
+import { renderTimelineGrid } from './dayof-timeline.js?v=2';
 
 const dayOfCol = collection(db, 'runOfShow');
 let currentView = 'table';
