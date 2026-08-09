@@ -43,6 +43,11 @@ service cloud.firestore {
       allow write: if perm('dayof') == 'write';
     }
 
+    match /timelineLanes/{laneId} {
+      allow read: if perm('dayof') in ['read', 'write'];
+      allow write: if perm('dayof') == 'write';
+    }
+
     match /tasks/{taskId} {
       allow read: if perm('todo') in ['read', 'write'] || perm('calendar') in ['read', 'write'];
       allow write: if perm('todo') == 'write' || perm('calendar') == 'write';
