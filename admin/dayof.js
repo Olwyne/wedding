@@ -7,7 +7,7 @@ import {
 import { canWrite } from './permissions.js';
 import { loadGuests } from './guests.js?v=5';
 import { loadVendors } from './vendors.js?v=7';
-import { loadLanes, GENERAL_LANE_ID } from './timeline-lanes.js?v=1';
+import { loadLanes, GENERAL_LANE_ID, openLaneManagerPanel } from './timeline-lanes.js?v=1';
 import { renderTimelineGrid } from './dayof-timeline.js?v=1';
 
 const dayOfCol = collection(db, 'runOfShow');
@@ -50,9 +50,12 @@ export async function renderDayOfTab() {
 
   panel.innerHTML = `
     <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div class="btn-group" style="margin-bottom:0;width:auto">
-        <button class="btn-group-item dayof-view-btn ${currentView === 'table' ? 'active' : ''}" data-view="table">Tableau</button>
-        <button class="btn-group-item dayof-view-btn ${currentView === 'frise' ? 'active' : ''}" data-view="frise">Frise</button>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="btn-group" style="margin-bottom:0;width:auto">
+          <button class="btn-group-item dayof-view-btn ${currentView === 'table' ? 'active' : ''}" data-view="table">Tableau</button>
+          <button class="btn-group-item dayof-view-btn ${currentView === 'frise' ? 'active' : ''}" data-view="frise">Frise</button>
+        </div>
+        ${editable ? '<button id="manage-lanes-btn" class="btn-secondary">Gérer les lanes</button>' : ''}
       </div>
       <button id="print-dayof-btn" class="btn-secondary">Imprimer</button>
     </div>
@@ -99,7 +102,7 @@ export async function renderDayOfTab() {
 
   if (currentView === 'frise') {
     renderTimelineGrid(document.getElementById('dayof-timeline-view'), lanes, items, {
-      onBlockClick: () => {},
+      onBlockClick: (id) => openDayOfPanel(id, items, guests, vendors, lanes),
       onItemMoved: async (id, newTime, newEndTime) => {
         await updateDoc(doc(db, 'runOfShow', id), { time: newTime, endTime: newEndTime });
         renderDayOfTab();
@@ -109,6 +112,9 @@ export async function renderDayOfTab() {
   }
 
   if (editable) {
+    document.getElementById('manage-lanes-btn').addEventListener('click', () => {
+      openLaneManagerPanel(lanes, () => renderDayOfTab());
+    });
     document.getElementById('add-dayof-btn').addEventListener('click', () =>
       openDayOfPanel(null, items, guests, vendors, lanes)
     );
@@ -143,7 +149,7 @@ export async function renderDayOfTab() {
   }
 }
 
-function openDayOfPanel(id, items, guests, vendors, lanes) {
+export function openDayOfPanel(id, items, guests, vendors, lanes) {
   const item = id ? items.find(i => i.id === id) : null;
   const isNew = !item;
   const v = (key, fallback = '') => item?.[key] ?? fallback;

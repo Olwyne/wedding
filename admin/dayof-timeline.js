@@ -87,16 +87,20 @@ export function renderTimelineGrid(container, lanes, items, { onBlockClick, onIt
 
   if (editable) {
     container.querySelectorAll('.timeline-block').forEach(block => {
-      attachDragHandlers(block, items, onItemMoved);
+      attachDragHandlers(block, items, onItemMoved, onBlockClick);
+    });
+  } else {
+    container.querySelectorAll('.timeline-block').forEach(block => {
+      block.style.cursor = 'default';
     });
   }
 }
 
-function attachDragHandlers(block, items, onItemMoved) {
+function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
   const itemId = block.dataset.itemId;
 
   block.addEventListener('mousedown', (e) => {
-    if (e.target.classList.contains('timeline-resize-handle')) return; // handled by Task 7
+    if (e.target.classList.contains('timeline-resize-handle')) return;
     e.preventDefault();
     const item = items.find(i => i.id === itemId);
     const startY = e.clientY;
@@ -123,7 +127,7 @@ function attachDragHandlers(block, items, onItemMoved) {
       if (moved && finalStartMin !== startMin) {
         onItemMoved(itemId, minutesToTime(finalStartMin), minutesToTime(finalStartMin + durationMin));
       } else if (!moved) {
-        block.dataset.wasClick = 'true';
+        onBlockClick(itemId);
       }
     }
 
