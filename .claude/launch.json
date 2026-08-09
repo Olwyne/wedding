@@ -5,7 +5,8 @@
       "name": "wedding",
       "runtimeExecutable": "docker",
       "runtimeArgs": ["compose", "up", "--build"],
-      "port": 8090
+      "port": 8090,
+      "autoPort": true
     }
   ]
 }
