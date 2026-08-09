@@ -9,7 +9,7 @@ const lanesCol = collection(db, 'timelineLanes');
 const runOfShowCol = collection(db, 'runOfShow');
 
 export const GENERAL_LANE_ID = '__general__';
-const GENERAL_LANE = { id: GENERAL_LANE_ID, label: 'Général', order: -1, color: '#9ca3af' };
+export const GENERAL_LANE = { id: GENERAL_LANE_ID, label: 'Général', order: -1, color: '#9ca3af' };
 
 export async function loadLanes() {
   const snap = await getDocs(query(lanesCol, orderBy('order')));

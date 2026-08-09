@@ -1,11 +1,13 @@
 // admin/dayof-timeline.js
 import { GENERAL_LANE_ID } from './timeline-lanes.js?v=1';
 
-export const DAY_START_MIN = 6 * 60;   // 06:00
+export const DAY_START_MIN = 0;        // 00:00
 export const DAY_END_MIN = 24 * 60;    // 24:00
 export const PX_PER_MIN = 2;
 export const SNAP_MIN = 15;
 export const DEFAULT_DURATION_MIN = 30;
+
+let activeLaneId = null;
 
 export function timeToMinutes(hhmm) {
   const [h, m] = hhmm.split(':').map(Number);
@@ -13,7 +15,7 @@ export function timeToMinutes(hhmm) {
 }
 
 export function minutesToTime(min) {
-  const clamped = Math.max(0, Math.min(23 * 60 + 59, Math.round(min)));
+  const clamped = Math.max(0, Math.min(24 * 60, Math.round(min)));
   const h = Math.floor(clamped / 60);
   const m = clamped % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
@@ -54,7 +56,9 @@ function hourMarkers() {
 
 export function renderTimelineGrid(container, lanes, items, { onBlockClick, onItemMoved, editable }) {
   const gridHeight = (DAY_END_MIN - DAY_START_MIN) * PX_PER_MIN;
-  let activeLaneId = lanes[0]?.id;
+  if (!lanes.some(l => l.id === activeLaneId)) {
+    activeLaneId = lanes[0]?.id;
+  }
 
   container.innerHTML = `
     <div class="timeline-mobile-tabs">
@@ -92,6 +96,8 @@ export function renderTimelineGrid(container, lanes, items, { onBlockClick, onIt
   } else {
     container.querySelectorAll('.timeline-block').forEach(block => {
       block.style.cursor = 'default';
+      const handle = block.querySelector('.timeline-resize-handle');
+      if (handle) handle.style.cursor = 'default';
     });
   }
 }
@@ -99,18 +105,20 @@ export function renderTimelineGrid(container, lanes, items, { onBlockClick, onIt
 function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
   const itemId = block.dataset.itemId;
 
-  block.addEventListener('mousedown', (e) => {
+  block.addEventListener('pointerdown', (e) => {
     if (e.target.classList.contains('timeline-resize-handle')) return;
     e.preventDefault();
     const item = items.find(i => i.id === itemId);
     const startY = e.clientY;
     const startMin = timeToMinutes(item.time);
     const endMin = item.endTime ? timeToMinutes(item.endTime) : startMin + DEFAULT_DURATION_MIN;
-    const durationMin = endMin - startMin;
+    const durationMin = Math.max(SNAP_MIN, endMin - startMin);
     let moved = false;
     let finalStartMin = startMin;
 
-    function onMouseMove(ev) {
+    block.setPointerCapture(e.pointerId);
+
+    function onPointerMove(ev) {
       const deltaPx = ev.clientY - startY;
       if (Math.abs(deltaPx) > 3) moved = true;
       const deltaMinRaw = deltaPx / PX_PER_MIN;
@@ -121,9 +129,10 @@ function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
       block.style.top = `${(newStart - DAY_START_MIN) * PX_PER_MIN}px`;
     }
 
-    function onMouseUp() {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
+    function onPointerUp() {
+      block.removeEventListener('pointermove', onPointerMove);
+      block.removeEventListener('pointerup', onPointerUp);
+      block.removeEventListener('pointercancel', onPointerUp);
       if (moved && finalStartMin !== startMin) {
         onItemMoved(itemId, minutesToTime(finalStartMin), minutesToTime(finalStartMin + durationMin));
       } else if (!moved) {
@@ -131,12 +140,13 @@ function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
       }
     }
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    block.addEventListener('pointermove', onPointerMove);
+    block.addEventListener('pointerup', onPointerUp);
+    block.addEventListener('pointercancel', onPointerUp);
   });
 
   const handle = block.querySelector('.timeline-resize-handle');
-  handle.addEventListener('mousedown', (e) => {
+  handle.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     e.stopPropagation();
     const item = items.find(i => i.id === itemId);
@@ -145,7 +155,9 @@ function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
     const initialEndMin = item.endTime ? timeToMinutes(item.endTime) : startMin + DEFAULT_DURATION_MIN;
     let finalEndMin = initialEndMin;
 
-    function onMouseMove(ev) {
+    handle.setPointerCapture(e.pointerId);
+
+    function onPointerMove(ev) {
       const deltaPx = ev.clientY - startY;
       const deltaMinRaw = deltaPx / PX_PER_MIN;
       const snappedDelta = Math.round(deltaMinRaw / SNAP_MIN) * SNAP_MIN;
@@ -155,15 +167,17 @@ function attachDragHandlers(block, items, onItemMoved, onBlockClick) {
       block.style.height = `${(newEnd - startMin) * PX_PER_MIN}px`;
     }
 
-    function onMouseUp() {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
+    function onPointerUp() {
+      handle.removeEventListener('pointermove', onPointerMove);
+      handle.removeEventListener('pointerup', onPointerUp);
+      handle.removeEventListener('pointercancel', onPointerUp);
       if (finalEndMin !== initialEndMin) {
         onItemMoved(itemId, minutesToTime(startMin), minutesToTime(finalEndMin));
       }
     }
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    handle.addEventListener('pointermove', onPointerMove);
+    handle.addEventListener('pointerup', onPointerUp);
+    handle.addEventListener('pointercancel', onPointerUp);
   });
 }

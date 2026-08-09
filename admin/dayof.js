@@ -7,7 +7,7 @@ import {
 import { canWrite } from './permissions.js';
 import { loadGuests } from './guests.js?v=5';
 import { loadVendors } from './vendors.js?v=7';
-import { loadLanes, GENERAL_LANE_ID, openLaneManagerPanel } from './timeline-lanes.js?v=1';
+import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=1';
 import { renderTimelineGrid } from './dayof-timeline.js?v=1';
 
 const dayOfCol = collection(db, 'runOfShow');
@@ -35,7 +35,11 @@ export async function renderDayOfTab() {
     : '';
 
   const [items, guests, vendors, lanes] = await Promise.all([
-    loadRunOfShow(), loadGuests(), loadVendors(), loadLanes()
+    loadRunOfShow(), loadGuests(), loadVendors(),
+    loadLanes().catch(err => {
+      console.error('loadLanes failed', err);
+      return [GENERAL_LANE];
+    }),
   ]);
   const guestsById = new Map(guests.map(g => [g.id, g]));
   const vendorsById = new Map(vendors.map(v => [v.id, v]));
@@ -149,7 +153,7 @@ export async function renderDayOfTab() {
   }
 }
 
-export function openDayOfPanel(id, items, guests, vendors, lanes) {
+function openDayOfPanel(id, items, guests, vendors, lanes) {
   const item = id ? items.find(i => i.id === id) : null;
   const isNew = !item;
   const v = (key, fallback = '') => item?.[key] ?? fallback;
@@ -230,9 +234,13 @@ export function openDayOfPanel(id, items, guests, vendors, lanes) {
     const title = get('#dayof-title').trim();
     const time = get('#dayof-time');
     if (!title || !time) return;
+    const endTimeVal = get('#dayof-end-time');
+    if (endTimeVal && endTimeVal <= time) {
+      alert('L\'heure de fin doit être après l\'heure de début.');
+      return;
+    }
     const responsibleTypeVal = get('#dayof-responsible-type');
     const responsibleIdVal = responsibleTypeVal === 'none' ? null : (get('#dayof-responsible-id') || null);
-    const endTimeVal = get('#dayof-end-time');
     const laneVal = get('#dayof-lane');
     const data = {
       time,

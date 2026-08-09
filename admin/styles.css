@@ -311,11 +311,11 @@ button{cursor:pointer;font-family:inherit}
 .timeline-lane-col:last-child{border-right:none}
 
 /* ── Timeline blocks ── */
-.timeline-block{position:absolute;left:2px;right:2px;border-left:4px solid;border-radius:4px;padding:4px 6px;overflow:hidden;cursor:grab;background-clip:padding-box;user-select:none}
+.timeline-block{position:absolute;left:2px;right:2px;border-left:4px solid;border-radius:4px;padding:4px 6px;overflow:hidden;cursor:grab;background-clip:padding-box;user-select:none;touch-action:none}
 .timeline-block:active{cursor:grabbing}
 .timeline-block-title{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .timeline-block-time{font-size:11px;color:var(--muted)}
-.timeline-resize-handle{position:absolute;left:0;right:0;bottom:0;height:6px;cursor:ns-resize}
+.timeline-resize-handle{position:absolute;left:0;right:0;bottom:0;height:6px;cursor:ns-resize;touch-action:none}
 
 /* ── Mobile lane tabs ── */
 .timeline-mobile-tabs{display:none;gap:6px;overflow-x:auto;margin-bottom:10px}
