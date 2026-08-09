@@ -130,4 +130,36 @@ function attachDragHandlers(block, items, onItemMoved) {
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
   });
+
+  const handle = block.querySelector('.timeline-resize-handle');
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const item = items.find(i => i.id === itemId);
+    const startY = e.clientY;
+    const startMin = timeToMinutes(item.time);
+    const initialEndMin = item.endTime ? timeToMinutes(item.endTime) : startMin + DEFAULT_DURATION_MIN;
+    let finalEndMin = initialEndMin;
+
+    function onMouseMove(ev) {
+      const deltaPx = ev.clientY - startY;
+      const deltaMinRaw = deltaPx / PX_PER_MIN;
+      const snappedDelta = Math.round(deltaMinRaw / SNAP_MIN) * SNAP_MIN;
+      let newEnd = initialEndMin + snappedDelta;
+      newEnd = Math.max(startMin + SNAP_MIN, Math.min(DAY_END_MIN, newEnd));
+      finalEndMin = newEnd;
+      block.style.height = `${(newEnd - startMin) * PX_PER_MIN}px`;
+    }
+
+    function onMouseUp() {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      if (finalEndMin !== initialEndMin) {
+        onItemMoved(itemId, minutesToTime(startMin), minutesToTime(finalEndMin));
+      }
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
 }
