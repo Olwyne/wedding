@@ -8,8 +8,10 @@ import { canWrite } from './permissions.js';
 import { loadGuests } from './guests.js?v=5';
 import { loadVendors } from './vendors.js?v=7';
 import { loadLanes, GENERAL_LANE_ID } from './timeline-lanes.js?v=1';
+import { renderTimelineGrid } from './dayof-timeline.js?v=1';
 
 const dayOfCol = collection(db, 'runOfShow');
+let currentView = 'table';
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -47,7 +49,14 @@ export async function renderDayOfTab() {
   const laneLabel = (item) => lanesById.get(item.laneId || GENERAL_LANE_ID)?.label || '—';
 
   panel.innerHTML = `
-    <button id="print-dayof-btn" class="btn-secondary no-print" style="margin-bottom:16px">Imprimer</button>
+    <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="btn-group" style="margin-bottom:0;width:auto">
+        <button class="btn-group-item dayof-view-btn ${currentView === 'table' ? 'active' : ''}" data-view="table">Tableau</button>
+        <button class="btn-group-item dayof-view-btn ${currentView === 'frise' ? 'active' : ''}" data-view="frise">Frise</button>
+      </div>
+      <button id="print-dayof-btn" class="btn-secondary">Imprimer</button>
+    </div>
+    <div id="dayof-table-view" ${currentView === 'frise' ? 'hidden' : ''}>
     <table class="admin-table">
       <thead>
         <tr>
@@ -75,9 +84,22 @@ export async function renderDayOfTab() {
           </tr>`).join('')
           : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px">Aucune ligne.</td></tr>'}
       </tbody>
-    </table>`;
+    </table>
+    </div>
+    <div id="dayof-timeline-view" ${currentView === 'table' ? 'hidden' : ''}></div>`;
 
   document.getElementById('print-dayof-btn').addEventListener('click', () => window.print());
+
+  document.querySelectorAll('.dayof-view-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      currentView = btn.dataset.view;
+      renderDayOfTab();
+    })
+  );
+
+  if (currentView === 'frise') {
+    renderTimelineGrid(document.getElementById('dayof-timeline-view'), lanes, items, () => {}, editable);
+  }
 
   if (editable) {
     document.getElementById('add-dayof-btn').addEventListener('click', () =>

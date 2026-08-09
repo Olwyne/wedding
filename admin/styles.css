@@ -299,3 +299,13 @@ button{cursor:pointer;font-family:inherit}
   .admin-table { border: 1px solid #000; }
   .admin-table th, .admin-table td { border: 1px solid #ccc; }
 }
+
+.dayof-view-btn.active{background:var(--accent);color:#fff}
+
+/* ── Day-of timeline (frise) ── */
+.timeline-grid{display:grid;position:relative;background:var(--admin-card);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);overflow:hidden}
+.timeline-axis-header,.timeline-lane-header{padding:8px 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#f9fafb;border-bottom:1px solid var(--border);border-top:3px solid transparent;text-align:center}
+.timeline-axis{position:relative;border-right:1px solid var(--border)}
+.timeline-hour{position:absolute;left:0;right:0;font-size:11px;color:var(--muted);padding:2px 6px;border-top:1px solid var(--border)}
+.timeline-lane-col{position:relative;border-right:1px solid var(--border)}
+.timeline-lane-col:last-child{border-right:none}
