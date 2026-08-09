@@ -7,6 +7,7 @@ import {
 import { canWrite } from './permissions.js';
 import { loadGuests } from './guests.js?v=5';
 import { loadVendors } from './vendors.js?v=7';
+import { loadLanes, GENERAL_LANE_ID } from './timeline-lanes.js?v=1';
 
 const dayOfCol = collection(db, 'runOfShow');
 
@@ -31,24 +32,26 @@ export async function renderDayOfTab() {
     ? '<button id="add-dayof-btn" class="btn-primary">+ Ajouter une ligne</button>'
     : '';
 
-  const [items, guests, vendors] = await Promise.all([
-    loadRunOfShow(), loadGuests(), loadVendors()
+  const [items, guests, vendors, lanes] = await Promise.all([
+    loadRunOfShow(), loadGuests(), loadVendors(), loadLanes()
   ]);
   const guestsById = new Map(guests.map(g => [g.id, g]));
   const vendorsById = new Map(vendors.map(v => [v.id, v]));
+  const lanesById = new Map(lanes.map(l => [l.id, l]));
 
   const responsibleLabel = (item) => {
     if (item.responsibleType === 'guest') return guestsById.get(item.responsibleId)?.name || '—';
     if (item.responsibleType === 'vendor') return vendorsById.get(item.responsibleId)?.name || '—';
     return '—';
   };
+  const laneLabel = (item) => lanesById.get(item.laneId || GENERAL_LANE_ID)?.label || '—';
 
   panel.innerHTML = `
     <button id="print-dayof-btn" class="btn-secondary no-print" style="margin-bottom:16px">Imprimer</button>
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Heure</th><th>Titre</th><th>Lieu</th><th>Responsable</th><th>Notes</th>
+          <th>Heure</th><th>Heure fin</th><th>Titre</th><th>Lieu</th><th>Lane</th><th>Responsable</th><th>Notes</th>
           <th class="no-print">Fait</th><th class="no-print">Actions</th>
         </tr>
       </thead>
@@ -56,8 +59,10 @@ export async function renderDayOfTab() {
         ${items.length ? items.map(item => `
           <tr>
             <td>${escapeHtml(item.time)}</td>
+            <td>${escapeHtml(item.endTime || '—')}</td>
             <td>${escapeHtml(item.title)}</td>
             <td>${escapeHtml(item.location || '—')}</td>
+            <td>${escapeHtml(laneLabel(item))}</td>
             <td>${escapeHtml(responsibleLabel(item))}</td>
             <td>${escapeHtml(item.notes || '—')}</td>
             <td class="no-print"><input type="checkbox" class="dayof-quick-done" data-id="${item.id}" ${item.done ? 'checked' : ''} ${editable ? '' : 'disabled'}></td>
@@ -68,7 +73,7 @@ export async function renderDayOfTab() {
                  </div>`
               : ''}</td>
           </tr>`).join('')
-          : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px">Aucune ligne.</td></tr>'}
+          : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px">Aucune ligne.</td></tr>'}
       </tbody>
     </table>`;
 
@@ -76,10 +81,10 @@ export async function renderDayOfTab() {
 
   if (editable) {
     document.getElementById('add-dayof-btn').addEventListener('click', () =>
-      openDayOfPanel(null, items, guests, vendors)
+      openDayOfPanel(null, items, guests, vendors, lanes)
     );
     panel.querySelectorAll('.btn-edit-dayof').forEach(btn =>
-      btn.addEventListener('click', () => openDayOfPanel(btn.dataset.id, items, guests, vendors))
+      btn.addEventListener('click', () => openDayOfPanel(btn.dataset.id, items, guests, vendors, lanes))
     );
     panel.querySelectorAll('.btn-delete-dayof').forEach(btn =>
       btn.addEventListener('click', async () => {
@@ -109,7 +114,7 @@ export async function renderDayOfTab() {
   }
 }
 
-function openDayOfPanel(id, items, guests, vendors) {
+function openDayOfPanel(id, items, guests, vendors, lanes) {
   const item = id ? items.find(i => i.id === id) : null;
   const isNew = !item;
   const v = (key, fallback = '') => item?.[key] ?? fallback;
@@ -141,6 +146,12 @@ function openDayOfPanel(id, items, guests, vendors) {
     </div>
     <div class="panel-body">
       <label class="field"><span>Heure</span><input id="dayof-time" type="time" value="${escapeHtml(v('time'))}" required></label>
+      <label class="field"><span>Heure fin</span><input id="dayof-end-time" type="time" value="${escapeHtml(v('endTime'))}"></label>
+      <label class="field"><span>Lane</span>
+        <select id="dayof-lane">
+          ${lanes.map(l => `<option value="${escapeHtml(l.id)}" ${(v('laneId', GENERAL_LANE_ID) || GENERAL_LANE_ID) === l.id ? 'selected' : ''}>${escapeHtml(l.label)}</option>`).join('')}
+        </select>
+      </label>
       <label class="field"><span>Titre</span><input id="dayof-title" value="${escapeHtml(v('title'))}" required></label>
       <label class="field"><span>Lieu</span><input id="dayof-location" value="${escapeHtml(v('location'))}"></label>
       <label class="field"><span>Responsable</span>
@@ -186,8 +197,12 @@ function openDayOfPanel(id, items, guests, vendors) {
     if (!title || !time) return;
     const responsibleTypeVal = get('#dayof-responsible-type');
     const responsibleIdVal = responsibleTypeVal === 'none' ? null : (get('#dayof-responsible-id') || null);
+    const endTimeVal = get('#dayof-end-time');
+    const laneVal = get('#dayof-lane');
     const data = {
       time,
+      endTime: endTimeVal || null,
+      laneId: laneVal === GENERAL_LANE_ID ? null : laneVal,
       title,
       location: get('#dayof-location'),
       responsibleType: responsibleIdVal ? responsibleTypeVal : 'none',
