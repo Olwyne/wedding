@@ -697,6 +697,8 @@ function escapeHtml(str) {
     function renderExtraPeople() {
       const adults = Math.max(1, Math.min(Number(state.rsvp.adults) || 1, state.maxAdults));
       const children = state.childrenAllowed ? Math.max(0, Math.min(Number(state.rsvp.children) || 0, state.maxChildren)) : 0;
+      state.rsvp.adults = adults;
+      state.rsvp.children = children;
       const extraAdultsCount = Math.max(0, adults - 1);
 
       while (state.rsvp.extraAdults.length < extraAdultsCount) state.rsvp.extraAdults.push('');
