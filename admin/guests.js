@@ -9,6 +9,11 @@ import { loadChildrenAllowed } from './settings.js?v=1';
 
 const guestsCol = collection(db, 'guests');
 
+let statusFilter = 'all';
+let eventFilters = new Set();
+
+const STATUS_FILTERS = [['all', 'Tous'], ['confirmed', 'Confirmés'], ['pending', 'En attente'], ['declined', 'Refusés']];
+
 export const SIDE_LABELS = { marie: 'Marié', mariee: 'Mariée', deux: 'Les deux' };
 export const SIDE_BADGE  = { marie: 'badge-marie', mariee: 'badge-mariee', deux: 'badge-deux' };
 
@@ -51,41 +56,78 @@ export async function loadGuests() {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-function renderGuestRow(g, eventById, editable) {
+function guestStatus(g) {
+  return g.rsvp?.status === 'confirmed' || g.rsvp?.status === 'declined' ? g.rsvp.status : 'pending';
+}
+
+function passesFilters(g) {
+  if (statusFilter !== 'all' && guestStatus(g) !== statusFilter) return false;
+  if (eventFilters.size > 0) {
+    const assigned = g.assignedEvents || [];
+    if (!assigned.some(id => eventFilters.has(id))) return false;
+  }
+  return true;
+}
+
+function renderGuestFilters(events) {
+  return `
+    <div class="guest-filters">
+      <div class="filter-group">
+        <button class="filter-pill ${eventFilters.size === 0 ? 'filter-pill-active' : ''}" data-event-filter="__all__">Tous les événements</button>
+        ${events.map(e => `<button class="filter-pill ${eventFilters.has(e.id) ? 'filter-pill-active' : ''}" data-event-filter="${escapeHtml(e.id)}">${escapeHtml(e.title_fr)}</button>`).join('')}
+      </div>
+      <div class="filter-group">
+        ${STATUS_FILTERS.map(([id, label]) => `<button class="filter-pill ${statusFilter === id ? 'filter-pill-active' : ''}" data-status-filter="${id}">${label}</button>`).join('')}
+      </div>
+    </div>`;
+}
+
+let menuCloseListenerAttached = false;
+function ensureMenuCloseListener() {
+  if (menuCloseListenerAttached) return;
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.action-menu:not([hidden])').forEach(m => { m.hidden = true; });
+  });
+  menuCloseListenerAttached = true;
+}
+
+function renderActionsCell(g, editable) {
+  const items = editable
+    ? [
+        { action: 'view-rsvp', label: 'Réponse' },
+        { action: 'edit-guest', label: 'Modifier' },
+        { action: 'delete-guest', label: 'Supprimer', danger: true },
+      ]
+    : [{ action: 'view-rsvp', label: 'Réponse' }];
+  return `
+    <div class="action-menu-wrap">
+      <button type="button" class="btn-icon action-menu-btn" data-id="${escapeHtml(g.id)}" title="Actions" aria-label="Actions">⋮</button>
+      <div class="action-menu" hidden>
+        ${items.map(it => `<button type="button" class="action-menu-item ${it.danger ? 'action-menu-item-danger' : ''}" data-action="${it.action}" data-id="${escapeHtml(g.id)}">${it.label}</button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderGuestRow(g, editable) {
   const side = g.side || 'deux';
-  const pills = (g.assignedEvents || [])
-    .map(id => eventById[id]
-      ? `<span class="pill">${escapeHtml(eventById[id].title_fr)}</span>`
-      : '')
-    .join('');
   const rsvp = g.rsvp || {};
   const STATUS_LABELS = { confirmed: 'Confirmé', declined: 'Décliné', pending: 'En attente' };
   const STATUS_BADGE = { confirmed: 'badge-confirmed', declined: 'badge-declined', pending: 'badge-pending' };
   const status = rsvp.status || 'pending';
   const statusLabel = STATUS_LABELS[status] || STATUS_LABELS.pending;
   const statusClass = STATUS_BADGE[status] || STATUS_BADGE.pending;
-  const actionsCell = editable
-    ? `<div class="table-actions">
-         <button class="btn-secondary btn-view-rsvp" data-id="${escapeHtml(g.id)}">Réponse</button>
-         <button class="btn-secondary btn-edit-guest" data-id="${escapeHtml(g.id)}">Modifier</button>
-         <button class="btn-danger btn-delete-guest" data-id="${escapeHtml(g.id)}">Supprimer</button>
-       </div>`
-    : `<div class="table-actions">
-         <button class="btn-secondary btn-view-rsvp" data-id="${escapeHtml(g.id)}">Réponse</button>
-       </div>`;
   return `
     <tr class="guest-row" data-id="${escapeHtml(g.id)}">
       <td>${escapeHtml(g.name)}</td>
       <td><span class="badge ${SIDE_BADGE[side]}">${SIDE_LABELS[side]}</span></td>
       <td>${formatMax(g)}</td>
-      <td><div class="pills">${pills}</div></td>
       <td><span class="badge ${statusClass}">${statusLabel}</span></td>
       <td>${rsvp.adults ?? ''}</td>
       <td>${rsvp.children ?? ''}</td>
       <td>
         <button class="btn-icon btn-copy-link" data-token="${escapeHtml(g.id)}" title="Copier le lien">${LINK_ICON}</button>
       </td>
-      <td>${actionsCell}</td>
+      <td>${renderActionsCell(g, editable)}</td>
     </tr>`;
 }
 
@@ -159,40 +201,70 @@ export async function renderGuestsTab() {
 
   const [guests, events, childrenAllowed] = await Promise.all([loadGuests(), loadEvents(), loadChildrenAllowed()]);
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
+  const validEventIds = new Set(events.map(e => e.id));
+  Array.from(eventFilters).forEach(id => { if (!validEventIds.has(id)) eventFilters.delete(id); });
+  const filteredGuests = guests.filter(passesFilters);
 
   panel.innerHTML = `
+    ${renderGuestFilters(events)}
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Nom</th><th>Côté</th><th>Max</th><th>Événements</th><th>RSVP</th>
+          <th>Nom</th><th>Côté</th><th>Max</th><th>RSVP</th>
           <th>Adultes</th><th>Enfants</th><th>Lien</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        ${guests.length
-          ? guests.map(g => renderGuestRow(g, eventById, editable)).join('')
-          : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px">Aucun invité.</td></tr>'}
+        ${filteredGuests.length
+          ? filteredGuests.map(g => renderGuestRow(g, editable)).join('')
+          : `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">${guests.length > 0 ? 'Aucun invité ne correspond aux filtres.' : 'Aucun invité.'}</td></tr>`}
       </tbody>
     </table>`;
 
+  panel.querySelectorAll('[data-event-filter]').forEach(btn =>
+    btn.addEventListener('click', () => {
+      const val = btn.dataset.eventFilter;
+      if (val === '__all__') eventFilters.clear();
+      else if (eventFilters.has(val)) eventFilters.delete(val);
+      else eventFilters.add(val);
+      renderGuestsTab();
+    })
+  );
+  panel.querySelectorAll('[data-status-filter]').forEach(btn =>
+    btn.addEventListener('click', () => { statusFilter = btn.dataset.statusFilter; renderGuestsTab(); })
+  );
+
+  ensureMenuCloseListener();
+  panel.querySelectorAll('.action-menu-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const menu = btn.nextElementSibling;
+      const wasOpen = !menu.hidden;
+      document.querySelectorAll('.action-menu').forEach(m => { m.hidden = true; });
+      menu.hidden = wasOpen;
+    });
+  });
+  panel.querySelectorAll('.action-menu-item').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const action = btn.dataset.action;
+      const guestId = btn.dataset.id;
+      btn.closest('.action-menu').hidden = true;
+      if (action === 'view-rsvp') {
+        openRsvpDetail(guests.find(g => g.id === guestId), eventById);
+      } else if (action === 'edit-guest') {
+        openGuestPanel(guestId, guests, events, childrenAllowed);
+      } else if (action === 'delete-guest') {
+        if (!confirm('Supprimer cet invité ?')) return;
+        await deleteDoc(doc(db, 'guests', guestId));
+        renderGuestsTab();
+      }
+    });
+  });
   if (editable) {
     document.getElementById('add-guest-btn').addEventListener('click', () =>
       openGuestPanel(null, guests, events, childrenAllowed)
     );
-    panel.querySelectorAll('.btn-edit-guest').forEach(btn =>
-      btn.addEventListener('click', () => openGuestPanel(btn.dataset.id, guests, events, childrenAllowed))
-    );
-    panel.querySelectorAll('.btn-delete-guest').forEach(btn =>
-      btn.addEventListener('click', async () => {
-        if (!confirm('Supprimer cet invité ?')) return;
-        await deleteDoc(doc(db, 'guests', btn.dataset.id));
-        renderGuestsTab();
-      })
-    );
   }
-  panel.querySelectorAll('.btn-view-rsvp').forEach(btn =>
-    btn.addEventListener('click', () => openRsvpDetail(guests.find(g => g.id === btn.dataset.id), eventById))
-  );
   panel.querySelectorAll('.btn-copy-link').forEach(btn => {
     btn.addEventListener('click', async () => {
       const url = `${location.origin}/?invite=${btn.dataset.token}`;
@@ -283,6 +355,10 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
       <label class="field">
         <span>Nom</span>
         <input id="guest-name" value="${escapeHtml(guest?.name || '')}" required>
+      </label>
+      <label class="field">
+        <span>Email</span>
+        <input id="guest-email" type="email" value="${escapeHtml(guest?.email || '')}" placeholder="email@exemple.com">
       </label>
       <div class="field">
         <span>Côté</span>
@@ -386,6 +462,7 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
 
     const name = panelEl.querySelector('#guest-name').value.trim();
     if (!name) { saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer'; return; }
+    const email = panelEl.querySelector('#guest-email').value.trim();
 
     const side = panelEl.querySelector('.btn-group-item.active')?.dataset.side || 'deux';
     const assignedEvents = Array.from(
@@ -395,12 +472,12 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
     if (maxAdults < 1) { saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer'; return; }
 
     if (id) {
-      await updateDoc(doc(db, 'guests', id), { name, side, assignedEvents, expectedGuests, maxAdults, maxChildren });
+      await updateDoc(doc(db, 'guests', id), { name, email, side, assignedEvents, expectedGuests, maxAdults, maxChildren });
       close();
     } else {
       const token = generateToken();
       await setDoc(doc(db, 'guests', token), {
-        name, side, assignedEvents, expectedGuests, maxAdults, maxChildren,
+        name, email, side, assignedEvents, expectedGuests, maxAdults, maxChildren,
         createdAt: new Date().toISOString(),
         rsvp: { status: 'pending', name: '', email: '', phone: '', adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: '', confirmedEvents: {}, respondedAt: null },
       });

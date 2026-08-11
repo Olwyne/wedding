@@ -167,11 +167,12 @@ function escapeHtml(str) {
       state.maxAdults = guest.maxAdults ?? 1;
       state.maxChildren = guest.maxChildren ?? 0;
       state.childrenAllowed = settingsSnap && settingsSnap.exists() && settingsSnap.data().childrenAllowed === false ? false : true;
+      state.rsvp.email = guest.email || '';
       if (guest.rsvp && (guest.rsvp.status === 'confirmed' || guest.rsvp.status === 'declined')) {
         state.submitted = true;
         state.rsvp = {
           name: guest.rsvp.name || '',
-          email: guest.rsvp.email || '',
+          email: guest.rsvp.email || guest.email || '',
           phone: guest.rsvp.phone || '',
           adults: guest.rsvp.adults ?? 1,
           children: guest.rsvp.children ?? 0,
