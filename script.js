@@ -876,12 +876,12 @@ function escapeHtml(str) {
         <h2 class="footer-title">${escapeHtml(bf(block, 'title', lang))}</h2>
         <div class="footer-text rich-text">${sanitizeHtml(bf(block, 'text', lang))}</div>
         <div class="footer-contacts">
-          <a href="mailto:sophie.ruiyuan@example.com" class="footer-email">✉︎ sophie.ruiyuan@example.com</a>
-          <span class="footer-phone">☎ +33 6 00 00 00 00</span>
+          <a href="mailto:${escapeHtml(block.email || 'sophie.ruiyuan@example.com')}" class="footer-email">✉︎ ${escapeHtml(block.email || 'sophie.ruiyuan@example.com')}</a>
+          <span class="footer-phone">☎ ${escapeHtml(block.phone || '+33 6 00 00 00 00')}</span>
         </div>
         <div class="footer-rule"></div>
-        <div class="footer-names">Sophie <span class="amp">&amp;</span> Ruiyuan</div>
-        <div class="footer-date">24 · 07 · 2027 — LOGNES</div>
+        <div class="footer-names">${escapeHtml(block.names || 'Sophie & Ruiyuan').replace(/&amp;/g, '<span class="amp">&amp;</span>')}</div>
+        <div class="footer-date">${escapeHtml(block.dateLocation || '24 · 07 · 2027 — LOGNES')}</div>
       </div>`;
     return footer;
   }

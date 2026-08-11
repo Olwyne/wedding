@@ -98,6 +98,10 @@ const TYPE_DEFS = {
   contact: { label: 'Contact', audience: 'invite', fields: [
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
+      { key: 'email', label: 'Email', kind: 'plain' },
+      { key: 'phone', label: 'Téléphone', kind: 'plain' },
+      { key: 'names', label: 'Noms (ex : Sophie & Ruiyuan)', kind: 'plain' },
+      { key: 'dateLocation', label: 'Date et lieu (ex : 24 · 07 · 2027 — LOGNES)', kind: 'plain' },
     ] },
 };
 
@@ -252,6 +256,14 @@ function buildScalarFieldHtml(field, data) {
       <label class="field">
         <span>${escapeHtml(field.label)}</span>
         <input id="blk-${field.key}" value="${v}" placeholder="https://…">
+      </label>`;
+  }
+  if (field.kind === 'plain') {
+    const v = escapeHtml(data?.[field.key] || '');
+    return `
+      <label class="field">
+        <span>${escapeHtml(field.label)}</span>
+        <input id="blk-${field.key}" value="${v}">
       </label>`;
   }
   if (field.kind === 'textarea') {
@@ -459,7 +471,7 @@ async function saveBlock(id, filteredBlocks, panelEl, audience) {
   };
 
   def.fields.forEach(f => {
-    if (f.kind === 'url') {
+    if (f.kind === 'url' || f.kind === 'plain') {
       data[f.key] = panelEl.querySelector(`#blk-${f.key}`)?.value || '';
     } else if (f.kind === 'textarea') {
       ['fr', 'zh'].forEach(lang => {
