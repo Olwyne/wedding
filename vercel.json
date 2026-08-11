@@ -1,4 +1,5 @@
 {
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/admin/:path*", "destination": "/admin/index.html" }
   ],
