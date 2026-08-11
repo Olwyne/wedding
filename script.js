@@ -158,7 +158,7 @@ function escapeHtml(str) {
       const guest = guestSnap.data();
       const [eventsSnap, settingsSnap] = await Promise.all([
         getDocs(collection(db, 'events')),
-        getDoc(doc(db, 'settings', 'general')),
+        getDoc(doc(db, 'settings', 'general')).catch(() => null),
       ]);
       state.access = 'guest';
       state.guestToken = token;
@@ -166,7 +166,7 @@ function escapeHtml(str) {
       state.rawEvents = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       state.maxAdults = guest.maxAdults ?? 1;
       state.maxChildren = guest.maxChildren ?? 0;
-      state.childrenAllowed = settingsSnap.exists() && settingsSnap.data().childrenAllowed === false ? false : true;
+      state.childrenAllowed = settingsSnap && settingsSnap.exists() && settingsSnap.data().childrenAllowed === false ? false : true;
       if (guest.rsvp && (guest.rsvp.status === 'confirmed' || guest.rsvp.status === 'declined')) {
         state.submitted = true;
         state.rsvp = {
@@ -656,7 +656,7 @@ function escapeHtml(str) {
                 <span class="field-label">${escapeHtml(L.fAdults)} (${escapeHtml(L.maxWord)} ${state.maxAdults}) *</span>
                 <input id="r-adults" type="number" min="1" max="${state.maxAdults}" value="${escapeHtml(String(Math.min(Number(state.rsvp.adults) || 1, state.maxAdults)))}">
               </label>
-              ${state.childrenAllowed ? `
+              ${state.childrenAllowed && state.maxChildren > 0 ? `
               <label class="field">
                 <span class="field-label">${escapeHtml(L.fChildren)} (${escapeHtml(L.maxWord)} ${state.maxChildren}) *</span>
                 <input id="r-children" type="number" min="0" max="${state.maxChildren}" value="${escapeHtml(String(Math.min(Number(state.rsvp.children) || 0, state.maxChildren)))}">

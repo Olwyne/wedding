@@ -392,6 +392,7 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
       panelEl.querySelectorAll('.event-card.selected')
     ).map(c => c.dataset.eventId);
     const { maxAdults, maxChildren } = computeMaxCounts(expectedGuests);
+    if (maxAdults < 1) { saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer'; return; }
 
     if (id) {
       await updateDoc(doc(db, 'guests', id), { name, side, assignedEvents, expectedGuests, maxAdults, maxChildren });

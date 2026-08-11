@@ -5,7 +5,7 @@ import { canWrite } from './permissions.js';
 import { loadGuests } from './guests.js?v=7';
 import { loadVendors } from './vendors.js?v=7';
 import { loadUsers } from './users.js?v=1';
-import { loadTasks, escapeHtml, STATUS_LABELS, MILESTONES, openTaskPanel } from './tasks-shared.js?v=2';
+import { loadTasks, escapeHtml, STATUS_LABELS, MILESTONES, openTaskPanel } from './tasks-shared.js?v=3';
 
 const tasksCol = collection(db, 'tasks');
 

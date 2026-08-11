@@ -1,18 +1,18 @@
 // admin/script.js
 import { initAuth } from './auth.js?v=1';
-import { renderDashboardTab } from './dashboard.js?v=3';
+import { renderDashboardTab } from './dashboard.js?v=4';
 import { renderBlocksTab } from './blocks.js?v=7';
 import { renderGuestsTab } from './guests.js?v=7';
-import { renderTablesTab } from './tables.js?v=1';
+import { renderTablesTab } from './tables.js?v=2';
 import { renderVendorsTab } from './vendors.js?v=7';
 import { renderBudgetTab } from './budget.js?v=7';
 import { renderEventsTab } from './events.js?v=4';
-import { renderDayOfTab } from './dayof.js?v=4';
-import { renderTodoTab } from './todo.js?v=2';
+import { renderDayOfTab } from './dayof.js?v=5';
+import { renderTodoTab } from './todo.js?v=3';
 import { renderCalendarTab } from './calendar.js?v=2';
 import { renderUsersTab } from './users.js?v=1';
 import { renderSettingsTab } from './settings.js?v=1';
-import { renderWitnessesTab } from './witnesses.js?v=3';
+import { renderWitnessesTab } from './witnesses.js?v=4';
 import { openAccountPanel } from './account.js';
 import { canRead } from './permissions.js';
 import { SECTIONS as PERM_SECTIONS } from './sections-registry.js?v=2';
