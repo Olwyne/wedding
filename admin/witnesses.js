@@ -1,7 +1,7 @@
 // admin/witnesses.js
 import { db } from '../firebase-init.js';
 import { doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=5';
+import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=7';
 import { canWrite } from './permissions.js';
 
 const SIDES = [

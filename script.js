@@ -47,7 +47,7 @@ function escapeHtml(str) {
       fName: 'Votre nom', fNamePh: 'Nom et prénom', fEmail: 'Email', fEmailPh: 'vous@email.com',
       fPhone: 'Téléphone', fPhonePh: '06 12 34 56 78',
       fPresenceQ: 'Serez-vous présent·e ?', yesLabel: 'Oui', noLabel: 'Non',
-      fAdults: "Nombre d'adultes", fChildren: "Nombre d'enfants", fPresence: 'Je serai présent·e à :',
+      fAdults: "Nombre d'adultes", fChildren: "Nombre d'enfants", fPresence: 'Je serai présent·e à :', maxWord: 'max',
       fExtraAdult: 'Adulte', fChildName: 'Enfant',
       fDiet: 'Allergies / régime', fDietPh: 'Ex : végétarien, sans gluten…', fMsg: 'Un petit mot', fMsgPh: 'Un message pour les mariés…',
       fSubmit: 'Envoyer ma réponse', thankTitle: 'Merci du fond du cœur',
@@ -66,7 +66,7 @@ function escapeHtml(str) {
       fName: '您的姓名', fNamePh: '姓名', fEmail: '邮箱', fEmailPh: 'vous@email.com',
       fPhone: '电话', fPhonePh: '06 12 34 56 78',
       fPresenceQ: '您是否出席？', yesLabel: '是', noLabel: '否',
-      fAdults: '成人人数', fChildren: '儿童人数', fPresence: '我将出席：',
+      fAdults: '成人人数', fChildren: '儿童人数', fPresence: '我将出席：', maxWord: '最多',
       fExtraAdult: '成人', fChildName: '儿童',
       fDiet: '过敏 / 饮食', fDietPh: '如：素食、无麸质…', fMsg: '留言', fMsgPh: '给新人的祝福…',
       fSubmit: '提交回复', thankTitle: '衷心感谢',
@@ -88,6 +88,21 @@ function escapeHtml(str) {
     return (lang === 'zh' ? (zh || fr) : (fr || zh)) || '';
   }
 
+  function buildInviteIntro(lang, maxAdults, maxChildren, childrenEnabled) {
+    if (lang === 'zh') {
+      let s = `您受邀最多携${maxAdults}位成人`;
+      if (childrenEnabled && maxChildren > 0) s += `及${maxChildren}位儿童`;
+      return s + '出席。';
+    }
+    const adultWord = maxAdults > 1 ? 'adultes' : 'adulte';
+    let s = `Vous êtes invité(s) pour ${maxAdults} ${adultWord}`;
+    if (childrenEnabled && maxChildren > 0) {
+      const childWord = maxChildren > 1 ? 'enfants' : 'enfant';
+      s += ` et ${maxChildren} ${childWord}`;
+    }
+    return s + ' maximum.';
+  }
+
   // Block types that get a nav link, mapped to the DOM id their builder assigns.
   // hero/teaser are excluded (hero = top of page, teaser = public-only, no #site nav).
   const TYPE_TO_ANCHOR = {
@@ -106,6 +121,9 @@ function escapeHtml(str) {
     guestToken: null,
     rawEvents: [],
     assignedEventIds: [],
+    maxAdults: 1,
+    maxChildren: 0,
+    childrenAllowed: true,
     rsvp: { name: '', email: '', phone: '', adults: 1, children: 0, extraAdults: [], childNames: [], presence: null, events: {}, diet: '', message: '' },
     submitting: false,
     cd: { d: 0, h: 0, m: 0, s: 0, passed: false },
@@ -138,11 +156,17 @@ function escapeHtml(str) {
       const guestSnap = await getDoc(doc(db, 'guests', token));
       if (!guestSnap.exists()) { state.access = 'public'; return; }
       const guest = guestSnap.data();
-      const eventsSnap = await getDocs(collection(db, 'events'));
+      const [eventsSnap, settingsSnap] = await Promise.all([
+        getDocs(collection(db, 'events')),
+        getDoc(doc(db, 'settings', 'general')).catch(() => null),
+      ]);
       state.access = 'guest';
       state.guestToken = token;
       state.assignedEventIds = guest.assignedEvents || [];
       state.rawEvents = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      state.maxAdults = guest.maxAdults ?? 1;
+      state.maxChildren = guest.maxChildren ?? 0;
+      state.childrenAllowed = settingsSnap && settingsSnap.exists() && settingsSnap.data().childrenAllowed === false ? false : true;
       if (guest.rsvp && (guest.rsvp.status === 'confirmed' || guest.rsvp.status === 'declined')) {
         state.submitted = true;
         state.rsvp = {
@@ -626,15 +650,17 @@ function escapeHtml(str) {
           </div>
 
           <div id="rsvp-presence-yes" hidden>
+            <p class="rsvp-invite-intro">${escapeHtml(buildInviteIntro(lang, state.maxAdults, state.maxChildren, state.childrenAllowed))}</p>
             <div class="field field-row">
               <label class="field">
-                <span class="field-label">${escapeHtml(L.fAdults)} *</span>
-                <input id="r-adults" type="number" min="1" max="12" value="${escapeHtml(String(state.rsvp.adults))}">
+                <span class="field-label">${escapeHtml(L.fAdults)} (${escapeHtml(L.maxWord)} ${state.maxAdults}) *</span>
+                <input id="r-adults" type="number" min="1" max="${state.maxAdults}" value="${escapeHtml(String(Math.min(Number(state.rsvp.adults) || 1, state.maxAdults)))}">
               </label>
+              ${state.childrenAllowed && state.maxChildren > 0 ? `
               <label class="field">
-                <span class="field-label">${escapeHtml(L.fChildren)} *</span>
-                <input id="r-children" type="number" min="0" max="12" value="${escapeHtml(String(state.rsvp.children))}">
-              </label>
+                <span class="field-label">${escapeHtml(L.fChildren)} (${escapeHtml(L.maxWord)} ${state.maxChildren}) *</span>
+                <input id="r-children" type="number" min="0" max="${state.maxChildren}" value="${escapeHtml(String(Math.min(Number(state.rsvp.children) || 0, state.maxChildren)))}">
+              </label>` : ''}
             </div>
             <div id="rsvp-extra-people"></div>
             <div class="field">
@@ -669,8 +695,10 @@ function escapeHtml(str) {
     const toggleBtns = section.querySelectorAll('.rsvp-toggle-btn');
 
     function renderExtraPeople() {
-      const adults = Math.max(1, Number(state.rsvp.adults) || 1);
-      const children = Math.max(0, Number(state.rsvp.children) || 0);
+      const adults = Math.max(1, Math.min(Number(state.rsvp.adults) || 1, state.maxAdults));
+      const children = state.childrenAllowed ? Math.max(0, Math.min(Number(state.rsvp.children) || 0, state.maxChildren)) : 0;
+      state.rsvp.adults = adults;
+      state.rsvp.children = children;
       const extraAdultsCount = Math.max(0, adults - 1);
 
       while (state.rsvp.extraAdults.length < extraAdultsCount) state.rsvp.extraAdults.push('');
@@ -686,13 +714,15 @@ function escapeHtml(str) {
         label.querySelector('input').addEventListener('input', e => state.rsvp.extraAdults[i] = e.target.value);
         extraPeopleEl.appendChild(label);
       });
-      state.rsvp.childNames.forEach((val, i) => {
-        const label = document.createElement('label');
-        label.className = 'field';
-        label.innerHTML = `<span class="field-label">${escapeHtml(L.fChildName)} ${i + 1} *</span><input type="text" required placeholder="${escapeHtml(L.fNamePh)}" value="${escapeHtml(val)}">`;
-        label.querySelector('input').addEventListener('input', e => state.rsvp.childNames[i] = e.target.value);
-        extraPeopleEl.appendChild(label);
-      });
+      if (state.childrenAllowed) {
+        state.rsvp.childNames.forEach((val, i) => {
+          const label = document.createElement('label');
+          label.className = 'field';
+          label.innerHTML = `<span class="field-label">${escapeHtml(L.fChildName)} ${i + 1} *</span><input type="text" required placeholder="${escapeHtml(L.fNamePh)}" value="${escapeHtml(val)}">`;
+          label.querySelector('input').addEventListener('input', e => state.rsvp.childNames[i] = e.target.value);
+          extraPeopleEl.appendChild(label);
+        });
+      }
     }
 
     function setPresence(val) {
@@ -708,8 +738,21 @@ function escapeHtml(str) {
     section.querySelector('#r-name').addEventListener('input', e => state.rsvp.name = e.target.value);
     section.querySelector('#r-email').addEventListener('input', e => state.rsvp.email = e.target.value);
     section.querySelector('#r-phone').addEventListener('input', e => state.rsvp.phone = e.target.value);
-    section.querySelector('#r-adults').addEventListener('input', e => { state.rsvp.adults = e.target.value; renderExtraPeople(); });
-    section.querySelector('#r-children').addEventListener('input', e => { state.rsvp.children = e.target.value; renderExtraPeople(); });
+    section.querySelector('#r-adults').addEventListener('input', e => {
+      const v = Math.max(1, Math.min(Number(e.target.value) || 1, state.maxAdults));
+      e.target.value = v;
+      state.rsvp.adults = v;
+      renderExtraPeople();
+    });
+    const childrenInput = section.querySelector('#r-children');
+    if (childrenInput) {
+      childrenInput.addEventListener('input', e => {
+        const v = Math.max(0, Math.min(Number(e.target.value) || 0, state.maxChildren));
+        e.target.value = v;
+        state.rsvp.children = v;
+        renderExtraPeople();
+      });
+    }
     section.querySelector('#r-diet').addEventListener('input', e => state.rsvp.diet = e.target.value);
     section.querySelector('#r-msg').addEventListener('input', e => state.rsvp.message = e.target.value);
 

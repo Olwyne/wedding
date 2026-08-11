@@ -19,8 +19,17 @@ service cloud.firestore {
       allow list: if perm('guests') in ['read', 'write'] || perm('witnesses') in ['read', 'write'] || perm('tables') in ['read', 'write'] || perm('dayof') in ['read', 'write'] || perm('todo') in ['read', 'write'] || perm('calendar') in ['read', 'write'];
       allow create, delete: if perm('guests') == 'write';
       allow update: if perm('guests') == 'write'
-        || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp'])
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp'])
+            && request.resource.data.rsvp.adults >= 0
+            && request.resource.data.rsvp.adults <= resource.data.get('maxAdults', 1)
+            && request.resource.data.rsvp.children >= 0
+            && request.resource.data.rsvp.children <= resource.data.get('maxChildren', 0))
         || (perm('witnesses') == 'write' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['weddingParty']));
+    }
+
+    match /settings/general {
+      allow read: if true;
+      allow write: if perm('settings') == 'write';
     }
 
     match /blocks/{blockId} {
