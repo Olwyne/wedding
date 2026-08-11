@@ -297,3 +297,4 @@ input:focus,textarea:focus,select:focus{outline:none}
 .blocks-list-teaser { max-width: 600px; margin: 48px auto 0; padding: 0 24px; gap: 36px; }
 .blocks-list-teaser .block-title { color: rgba(255,255,255,.85); font-size: clamp(16px,2.5vw,20px); }
 .blocks-list-teaser .block-content { color: rgba(255,255,255,.75); font-size: clamp(13px,1.8vw,15px); }
+.rsvp-invite-intro{color:var(--parchment2);font-size:14px;line-height:1.6;margin-bottom:4px}
