@@ -116,9 +116,13 @@ button{cursor:pointer;font-family:inherit}
 .progress-bar-fill.over{background:var(--danger)}
 
 /* ── Table ── */
-.admin-table{width:100%;border-collapse:collapse;background:var(--admin-card);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04)}
+.admin-table{width:100%;border-collapse:collapse;background:var(--admin-card);border-radius:8px;overflow:visible;box-shadow:0 1px 3px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04)}
 .admin-table th,.admin-table td{padding:10px 14px;font-size:13px;text-align:left;border-bottom:1px solid var(--border)}
 .admin-table th{background:#f9fafb;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.admin-table thead tr:first-child th:first-child{border-top-left-radius:8px}
+.admin-table thead tr:first-child th:last-child{border-top-right-radius:8px}
+.admin-table tbody tr:last-child td:first-child{border-bottom-left-radius:8px}
+.admin-table tbody tr:last-child td:last-child{border-bottom-right-radius:8px}
 .admin-table tr:last-child td{border-bottom:none}
 .admin-table tbody tr:hover td{background:#fafafa}
 

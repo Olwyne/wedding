@@ -101,7 +101,7 @@ function renderActionsCell(g, editable) {
     : [{ action: 'view-rsvp', label: 'Réponse' }];
   return `
     <div class="action-menu-wrap">
-      <button type="button" class="btn-icon action-menu-btn" data-id="${escapeHtml(g.id)}">⋮</button>
+      <button type="button" class="btn-icon action-menu-btn" data-id="${escapeHtml(g.id)}" title="Actions" aria-label="Actions">⋮</button>
       <div class="action-menu" hidden>
         ${items.map(it => `<button type="button" class="action-menu-item ${it.danger ? 'action-menu-item-danger' : ''}" data-action="${it.action}" data-id="${escapeHtml(g.id)}">${it.label}</button>`).join('')}
       </div>
@@ -201,6 +201,8 @@ export async function renderGuestsTab() {
 
   const [guests, events, childrenAllowed] = await Promise.all([loadGuests(), loadEvents(), loadChildrenAllowed()]);
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
+  const validEventIds = new Set(events.map(e => e.id));
+  Array.from(eventFilters).forEach(id => { if (!validEventIds.has(id)) eventFilters.delete(id); });
   const filteredGuests = guests.filter(passesFilters);
 
   panel.innerHTML = `
@@ -215,7 +217,7 @@ export async function renderGuestsTab() {
       <tbody>
         ${filteredGuests.length
           ? filteredGuests.map(g => renderGuestRow(g, editable)).join('')
-          : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">Aucun invité.</td></tr>'}
+          : `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">${guests.length > 0 ? 'Aucun invité ne correspond aux filtres.' : 'Aucun invité.'}</td></tr>`}
       </tbody>
     </table>`;
 
