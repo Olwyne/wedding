@@ -23,6 +23,11 @@ service cloud.firestore {
         || (perm('witnesses') == 'write' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['weddingParty']));
     }
 
+    match /settings/general {
+      allow read: if true;
+      allow write: if perm('settings') == 'write';
+    }
+
     match /blocks/{blockId} {
       allow read: if true;
       allow write: if perm('blocks') == 'write';

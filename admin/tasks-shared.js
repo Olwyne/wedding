@@ -4,7 +4,7 @@ import {
   collection, getDocs, doc, addDoc, updateDoc,
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests } from './guests.js?v=6';
+import { loadGuests } from './guests.js?v=7';
 import { loadVendors } from './vendors.js?v=7';
 import { loadUsers } from './users.js?v=1';
 

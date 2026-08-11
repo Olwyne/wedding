@@ -10,4 +10,5 @@ export const SECTIONS = [
   { id: 'todo', label: 'To-Do', collection: 'tasks' },
   { id: 'calendar', label: 'Calendrier', collection: 'tasks' },
   { id: 'users', label: 'Utilisateurs', collection: 'admins' },
+  { id: 'settings', label: 'Paramètres', collection: 'settings' },
 ];

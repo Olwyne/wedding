@@ -5,6 +5,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { loadEvents } from './events.js?v=2';
 import { canWrite } from './permissions.js';
+import { loadChildrenAllowed } from './settings.js?v=1';
 
 const guestsCol = collection(db, 'guests');
 
@@ -156,7 +157,7 @@ export async function renderGuestsTab() {
     ? '<button id="add-guest-btn" class="btn-primary">+ Ajouter un invité</button>'
     : '';
 
-  const [guests, events] = await Promise.all([loadGuests(), loadEvents()]);
+  const [guests, events, childrenAllowed] = await Promise.all([loadGuests(), loadEvents(), loadChildrenAllowed()]);
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
 
   panel.innerHTML = `
@@ -176,10 +177,10 @@ export async function renderGuestsTab() {
 
   if (editable) {
     document.getElementById('add-guest-btn').addEventListener('click', () =>
-      openGuestPanel(null, guests, events)
+      openGuestPanel(null, guests, events, childrenAllowed)
     );
     panel.querySelectorAll('.btn-edit-guest').forEach(btn =>
-      btn.addEventListener('click', () => openGuestPanel(btn.dataset.id, guests, events))
+      btn.addEventListener('click', () => openGuestPanel(btn.dataset.id, guests, events, childrenAllowed))
     );
     panel.querySelectorAll('.btn-delete-guest').forEach(btn =>
       btn.addEventListener('click', async () => {
@@ -247,11 +248,11 @@ function openRsvpDetail(guest, eventById) {
   overlay.addEventListener('click', close);
 }
 
-function renderExpectedGuestRow(p, idx) {
+function renderExpectedGuestRow(p, idx, childrenAllowed) {
   return `
     <div class="expected-guest-row" data-idx="${idx}">
       <input type="text" class="eg-name" placeholder="Nom (optionnel)" value="${escapeHtml(p.name || '')}">
-      <select class="eg-type">
+      <select class="eg-type" ${childrenAllowed ? '' : 'disabled'}>
         <option value="adult" ${p.type === 'adult' ? 'selected' : ''}>Adulte</option>
         <option value="child" ${p.type === 'child' ? 'selected' : ''}>Enfant</option>
       </select>
@@ -259,7 +260,7 @@ function renderExpectedGuestRow(p, idx) {
     </div>`;
 }
 
-function openGuestPanel(id, guests, events) {
+function openGuestPanel(id, guests, events, childrenAllowed) {
   const guest = id ? guests.find(g => g.id === id) : null;
   const isNew = !guest;
 
@@ -337,7 +338,7 @@ function openGuestPanel(id, guests, events) {
   // Expected guests list
   function refreshExpectedGuestList() {
     const listEl = panelEl.querySelector('#expected-guest-list');
-    listEl.innerHTML = expectedGuests.map((p, i) => renderExpectedGuestRow(p, i)).join('');
+    listEl.innerHTML = expectedGuests.map((p, i) => renderExpectedGuestRow(p, i, childrenAllowed)).join('');
     listEl.querySelectorAll('.eg-name').forEach(input =>
       input.addEventListener('input', e => {
         expectedGuests[Number(e.target.closest('.expected-guest-row').dataset.idx)].name = e.target.value;
