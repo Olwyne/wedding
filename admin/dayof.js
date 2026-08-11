@@ -5,7 +5,7 @@ import {
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
-import { loadGuests } from './guests.js?v=5';
+import { loadGuests } from './guests.js?v=6';
 import { loadVendors } from './vendors.js?v=7';
 import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=2';
 import { renderTimelineGrid } from './dayof-timeline.js?v=2';

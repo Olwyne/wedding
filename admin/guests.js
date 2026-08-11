@@ -29,6 +29,22 @@ function generateToken(length = 12) {
   return token;
 }
 
+function expectedGuestsOf(guest) {
+  return guest?.expectedGuests || [{ name: guest?.name || '', type: 'adult' }];
+}
+
+function computeMaxCounts(expectedGuests) {
+  const maxAdults = expectedGuests.filter(p => p.type === 'adult').length;
+  const maxChildren = expectedGuests.filter(p => p.type === 'child').length;
+  return { maxAdults, maxChildren };
+}
+
+function formatMax(g) {
+  const maxAdults = g.maxAdults ?? 1;
+  const maxChildren = g.maxChildren ?? 0;
+  return `${maxAdults}A / ${maxChildren}E`;
+}
+
 export async function loadGuests() {
   const snap = await getDocs(guestsCol);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -60,6 +76,7 @@ function renderGuestRow(g, eventById, editable) {
     <tr class="guest-row" data-id="${escapeHtml(g.id)}">
       <td>${escapeHtml(g.name)}</td>
       <td><span class="badge ${SIDE_BADGE[side]}">${SIDE_LABELS[side]}</span></td>
+      <td>${formatMax(g)}</td>
       <td><div class="pills">${pills}</div></td>
       <td><span class="badge ${statusClass}">${statusLabel}</span></td>
       <td>${rsvp.adults ?? ''}</td>
@@ -146,14 +163,14 @@ export async function renderGuestsTab() {
     <table class="admin-table">
       <thead>
         <tr>
-          <th>Nom</th><th>Côté</th><th>Événements</th><th>RSVP</th>
+          <th>Nom</th><th>Côté</th><th>Max</th><th>Événements</th><th>RSVP</th>
           <th>Adultes</th><th>Enfants</th><th>Lien</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
         ${guests.length
           ? guests.map(g => renderGuestRow(g, eventById, editable)).join('')
-          : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">Aucun invité.</td></tr>'}
+          : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px">Aucun invité.</td></tr>'}
       </tbody>
     </table>`;
 
@@ -230,11 +247,26 @@ function openRsvpDetail(guest, eventById) {
   overlay.addEventListener('click', close);
 }
 
+function renderExpectedGuestRow(p, idx) {
+  return `
+    <div class="expected-guest-row" data-idx="${idx}">
+      <input type="text" class="eg-name" placeholder="Nom (optionnel)" value="${escapeHtml(p.name || '')}">
+      <select class="eg-type">
+        <option value="adult" ${p.type === 'adult' ? 'selected' : ''}>Adulte</option>
+        <option value="child" ${p.type === 'child' ? 'selected' : ''}>Enfant</option>
+      </select>
+      <button type="button" class="btn-icon eg-remove" data-idx="${idx}">✕</button>
+    </div>`;
+}
+
 function openGuestPanel(id, guests, events) {
   const guest = id ? guests.find(g => g.id === id) : null;
   const isNew = !guest;
 
   const assignedSet = new Set(guest?.assignedEvents || []);
+  const expectedGuests = isNew
+    ? [{ name: '', type: 'adult' }]
+    : expectedGuestsOf(guest).map(p => ({ ...p }));
 
   const overlay = document.createElement('div');
   overlay.className = 'panel-overlay';
@@ -259,6 +291,12 @@ function openGuestPanel(id, guests, events) {
               ${SIDE_LABELS[s]}
             </button>`).join('')}
         </div>
+      </div>
+      <div class="field">
+        <span>Personnes attendues</span>
+        <div class="expected-guest-list" id="expected-guest-list"></div>
+        <button type="button" class="btn-secondary" id="eg-add">+ Ajouter une personne</button>
+        <p class="expected-guest-summary" id="expected-guest-summary"></p>
       </div>
       <div class="field">
         <span>Événements</span>
@@ -296,6 +334,41 @@ function openGuestPanel(id, guests, events) {
     });
   });
 
+  // Expected guests list
+  function refreshExpectedGuestList() {
+    const listEl = panelEl.querySelector('#expected-guest-list');
+    listEl.innerHTML = expectedGuests.map((p, i) => renderExpectedGuestRow(p, i)).join('');
+    listEl.querySelectorAll('.eg-name').forEach(input =>
+      input.addEventListener('input', e => {
+        expectedGuests[Number(e.target.closest('.expected-guest-row').dataset.idx)].name = e.target.value;
+      })
+    );
+    listEl.querySelectorAll('.eg-type').forEach(select =>
+      select.addEventListener('change', e => {
+        expectedGuests[Number(e.target.closest('.expected-guest-row').dataset.idx)].type = e.target.value;
+        refreshSummary();
+      })
+    );
+    listEl.querySelectorAll('.eg-remove').forEach(btn =>
+      btn.addEventListener('click', () => {
+        if (expectedGuests.length <= 1) return;
+        expectedGuests.splice(Number(btn.dataset.idx), 1);
+        refreshExpectedGuestList();
+      })
+    );
+    refreshSummary();
+  }
+  function refreshSummary() {
+    const { maxAdults, maxChildren } = computeMaxCounts(expectedGuests);
+    panelEl.querySelector('#expected-guest-summary').textContent = `Max actuel : ${maxAdults} adulte(s) / ${maxChildren} enfant(s)`;
+  }
+  refreshExpectedGuestList();
+
+  panelEl.querySelector('#eg-add').addEventListener('click', () => {
+    expectedGuests.push({ name: '', type: 'adult' });
+    refreshExpectedGuestList();
+  });
+
   // Event card toggle
   panelEl.querySelectorAll('.event-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -317,14 +390,15 @@ function openGuestPanel(id, guests, events) {
     const assignedEvents = Array.from(
       panelEl.querySelectorAll('.event-card.selected')
     ).map(c => c.dataset.eventId);
+    const { maxAdults, maxChildren } = computeMaxCounts(expectedGuests);
 
     if (id) {
-      await updateDoc(doc(db, 'guests', id), { name, side, assignedEvents });
+      await updateDoc(doc(db, 'guests', id), { name, side, assignedEvents, expectedGuests, maxAdults, maxChildren });
       close();
     } else {
       const token = generateToken();
       await setDoc(doc(db, 'guests', token), {
-        name, side, assignedEvents,
+        name, side, assignedEvents, expectedGuests, maxAdults, maxChildren,
         createdAt: new Date().toISOString(),
         rsvp: { status: 'pending', name: '', email: '', phone: '', adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: '', confirmedEvents: {}, respondedAt: null },
       });

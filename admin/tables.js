@@ -3,7 +3,7 @@ import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests } from './guests.js?v=5';
+import { loadGuests } from './guests.js?v=6';
 import { canWrite } from './permissions.js';
 
 const tablesCol = collection(db, 'tables');
