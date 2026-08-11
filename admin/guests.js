@@ -82,6 +82,32 @@ function renderGuestFilters(events) {
     </div>`;
 }
 
+let menuCloseListenerAttached = false;
+function ensureMenuCloseListener() {
+  if (menuCloseListenerAttached) return;
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.action-menu:not([hidden])').forEach(m => { m.hidden = true; });
+  });
+  menuCloseListenerAttached = true;
+}
+
+function renderActionsCell(g, editable) {
+  const items = editable
+    ? [
+        { action: 'view-rsvp', label: 'Réponse' },
+        { action: 'edit-guest', label: 'Modifier' },
+        { action: 'delete-guest', label: 'Supprimer', danger: true },
+      ]
+    : [{ action: 'view-rsvp', label: 'Réponse' }];
+  return `
+    <div class="action-menu-wrap">
+      <button type="button" class="btn-icon action-menu-btn" data-id="${escapeHtml(g.id)}">⋮</button>
+      <div class="action-menu" hidden>
+        ${items.map(it => `<button type="button" class="action-menu-item ${it.danger ? 'action-menu-item-danger' : ''}" data-action="${it.action}" data-id="${escapeHtml(g.id)}">${it.label}</button>`).join('')}
+      </div>
+    </div>`;
+}
+
 function renderGuestRow(g, editable) {
   const side = g.side || 'deux';
   const rsvp = g.rsvp || {};
@@ -90,15 +116,6 @@ function renderGuestRow(g, editable) {
   const status = rsvp.status || 'pending';
   const statusLabel = STATUS_LABELS[status] || STATUS_LABELS.pending;
   const statusClass = STATUS_BADGE[status] || STATUS_BADGE.pending;
-  const actionsCell = editable
-    ? `<div class="table-actions">
-         <button class="btn-secondary btn-view-rsvp" data-id="${escapeHtml(g.id)}">Réponse</button>
-         <button class="btn-secondary btn-edit-guest" data-id="${escapeHtml(g.id)}">Modifier</button>
-         <button class="btn-danger btn-delete-guest" data-id="${escapeHtml(g.id)}">Supprimer</button>
-       </div>`
-    : `<div class="table-actions">
-         <button class="btn-secondary btn-view-rsvp" data-id="${escapeHtml(g.id)}">Réponse</button>
-       </div>`;
   return `
     <tr class="guest-row" data-id="${escapeHtml(g.id)}">
       <td>${escapeHtml(g.name)}</td>
@@ -110,7 +127,7 @@ function renderGuestRow(g, editable) {
       <td>
         <button class="btn-icon btn-copy-link" data-token="${escapeHtml(g.id)}" title="Copier le lien">${LINK_ICON}</button>
       </td>
-      <td>${actionsCell}</td>
+      <td>${renderActionsCell(g, editable)}</td>
     </tr>`;
 }
 
@@ -215,24 +232,37 @@ export async function renderGuestsTab() {
     btn.addEventListener('click', () => { statusFilter = btn.dataset.statusFilter; renderGuestsTab(); })
   );
 
+  ensureMenuCloseListener();
+  panel.querySelectorAll('.action-menu-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const menu = btn.nextElementSibling;
+      const wasOpen = !menu.hidden;
+      document.querySelectorAll('.action-menu').forEach(m => { m.hidden = true; });
+      menu.hidden = wasOpen;
+    });
+  });
+  panel.querySelectorAll('.action-menu-item').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const action = btn.dataset.action;
+      const guestId = btn.dataset.id;
+      btn.closest('.action-menu').hidden = true;
+      if (action === 'view-rsvp') {
+        openRsvpDetail(guests.find(g => g.id === guestId), eventById);
+      } else if (action === 'edit-guest') {
+        openGuestPanel(guestId, guests, events, childrenAllowed);
+      } else if (action === 'delete-guest') {
+        if (!confirm('Supprimer cet invité ?')) return;
+        await deleteDoc(doc(db, 'guests', guestId));
+        renderGuestsTab();
+      }
+    });
+  });
   if (editable) {
     document.getElementById('add-guest-btn').addEventListener('click', () =>
       openGuestPanel(null, guests, events, childrenAllowed)
     );
-    panel.querySelectorAll('.btn-edit-guest').forEach(btn =>
-      btn.addEventListener('click', () => openGuestPanel(btn.dataset.id, guests, events, childrenAllowed))
-    );
-    panel.querySelectorAll('.btn-delete-guest').forEach(btn =>
-      btn.addEventListener('click', async () => {
-        if (!confirm('Supprimer cet invité ?')) return;
-        await deleteDoc(doc(db, 'guests', btn.dataset.id));
-        renderGuestsTab();
-      })
-    );
   }
-  panel.querySelectorAll('.btn-view-rsvp').forEach(btn =>
-    btn.addEventListener('click', () => openRsvpDetail(guests.find(g => g.id === btn.dataset.id), eventById))
-  );
   panel.querySelectorAll('.btn-copy-link').forEach(btn => {
     btn.addEventListener('click', async () => {
       const url = `${location.origin}/?invite=${btn.dataset.token}`;

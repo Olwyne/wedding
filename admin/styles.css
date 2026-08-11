@@ -340,3 +340,10 @@ button{cursor:pointer;font-family:inherit}
 
 .guest-filters{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
 .guest-filters .filter-group{display:flex;gap:8px;flex-wrap:wrap}
+
+.action-menu-wrap{position:relative;display:inline-block}
+.action-menu-btn{font-size:18px;line-height:1;padding:4px 10px}
+.action-menu{position:absolute;right:0;top:100%;z-index:20;background:#fff;border:1px solid var(--border);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.12);min-width:140px;display:flex;flex-direction:column;padding:4px;margin-top:4px}
+.action-menu-item{background:none;border:none;text-align:left;padding:8px 10px;border-radius:4px;cursor:pointer;font-size:13px;color:var(--text)}
+.action-menu-item:hover{background:#f3f4f6}
+.action-menu-item-danger{color:var(--danger)}
