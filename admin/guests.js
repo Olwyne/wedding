@@ -284,6 +284,10 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
         <span>Nom</span>
         <input id="guest-name" value="${escapeHtml(guest?.name || '')}" required>
       </label>
+      <label class="field">
+        <span>Email</span>
+        <input id="guest-email" type="email" value="${escapeHtml(guest?.email || '')}" placeholder="email@exemple.com">
+      </label>
       <div class="field">
         <span>Côté</span>
         <div class="btn-group" id="side-group">
@@ -386,6 +390,7 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
 
     const name = panelEl.querySelector('#guest-name').value.trim();
     if (!name) { saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer'; return; }
+    const email = panelEl.querySelector('#guest-email').value.trim();
 
     const side = panelEl.querySelector('.btn-group-item.active')?.dataset.side || 'deux';
     const assignedEvents = Array.from(
@@ -395,12 +400,12 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
     if (maxAdults < 1) { saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer'; return; }
 
     if (id) {
-      await updateDoc(doc(db, 'guests', id), { name, side, assignedEvents, expectedGuests, maxAdults, maxChildren });
+      await updateDoc(doc(db, 'guests', id), { name, email, side, assignedEvents, expectedGuests, maxAdults, maxChildren });
       close();
     } else {
       const token = generateToken();
       await setDoc(doc(db, 'guests', token), {
-        name, side, assignedEvents, expectedGuests, maxAdults, maxChildren,
+        name, email, side, assignedEvents, expectedGuests, maxAdults, maxChildren,
         createdAt: new Date().toISOString(),
         rsvp: { status: 'pending', name: '', email: '', phone: '', adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: '', confirmedEvents: {}, respondedAt: null },
       });
