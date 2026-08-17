@@ -62,6 +62,7 @@ export function mountRichEditor(container, initialValue) {
 
   const contentEl = container.querySelector('.rich-editor-content');
   container.querySelectorAll('.rich-editor-btn').forEach(btn => {
+    btn.addEventListener('mousedown', e => e.preventDefault());
     btn.addEventListener('click', () => {
       contentEl.focus();
       document.execCommand(btn.dataset.cmd);

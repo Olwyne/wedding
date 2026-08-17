@@ -425,25 +425,6 @@ function escapeHtml(str) {
     header.className = 'hero';
     header.innerHTML = `
       <div class="hero-xi cal">囍</div>
-      <svg class="hero-peony" viewBox="-56 -56 112 112" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z"/>
-        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(45)"/>
-        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(90)"/>
-        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(135)"/>
-        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(180)"/>
-        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(225)"/>
-        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(270)"/>
-        <path d="M0 0 C-9 -17 -9 -33 0 -45 C9 -33 9 -17 0 0Z" transform="rotate(315)"/>
-        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(22.5)"/>
-        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(67.5)"/>
-        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(112.5)"/>
-        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(157.5)"/>
-        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(202.5)"/>
-        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(247.5)"/>
-        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(292.5)"/>
-        <path d="M0 0 C-6 -11 -6 -21 0 -28 C6 -21 6 -11 0 0Z" transform="rotate(337.5)"/>
-        <circle r="5"/>
-      </svg>
       <svg class="hero-rose" viewBox="-45 -45 90 90" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
         <path d="M-3 -1 C-1 -6 5 -6 6 -1 C7 4 1 8 -3 5 C-10 2 -9 -8 -2 -12"/>
         <path d="M-13 -4 C-16 -15 -5 -23 6 -20 C18 -17 22 -4 16 5 C11 13 0 18 -9 14"/>
@@ -525,7 +506,7 @@ function escapeHtml(str) {
   function buildProgrammeBlock(block, lang) {
     const section = document.createElement('section');
     section.id = 'programme';
-    section.className = 'section section-bordeaux';
+    section.className = block.bgColor === 'blue' ? 'section section-navy' : 'section section-bordeaux';
     section.innerHTML = `
       <div class="prog-xi cal">囍</div>
       <div class="section-inner section-narrow" style="margin-bottom:56px">
@@ -576,6 +557,7 @@ function escapeHtml(str) {
         <div class="cal place-zh">${escapeHtml(p.zh || '')}</div>
         <h3 class="place-name">${escapeHtml(name || '')}</h3>
         <p class="place-addr">${escapeHtml(addr || '')}</p>
+        ${(() => { const note = lang === 'zh' ? (p.note_zh || p.note_fr) : (p.note_fr || p.note_zh); return note ? `<p class="place-note">${escapeHtml(note)}</p>` : ''; })()}
         <a href="${escapeHtml(p.mapUrl || '#')}" target="_blank" rel="noopener" class="place-map-btn">${mapBtnLabel}</a>`;
       grid.appendChild(card);
     });
@@ -618,7 +600,7 @@ function escapeHtml(str) {
     const L = T[lang];
     const section = document.createElement('section');
     section.id = 'rsvp';
-    section.className = 'section section-bordeaux-radial';
+    section.className = block.bgColor === 'blue' ? 'section section-navy-radial' : 'section section-bordeaux-radial';
     section.innerHTML = `
       <div class="rsvp-xi cal">囍</div>
       <div class="section-inner section-form">
@@ -675,8 +657,8 @@ function escapeHtml(str) {
           </div>
 
           <label class="field">
-            <span class="field-label">${escapeHtml(L.fMsg)}</span>
-            <textarea id="r-msg" rows="3" placeholder="${escapeHtml(L.fMsgPh)}">${escapeHtml(state.rsvp.message)}</textarea>
+            <span class="field-label">${escapeHtml(L.fMsg)} *</span>
+            <textarea id="r-msg" rows="3" required placeholder="${escapeHtml(L.fMsgPh)}">${escapeHtml(state.rsvp.message)}</textarea>
           </label>
           <p id="rsvp-error" class="rsvp-error" hidden></p>
           <button type="submit" class="btn-submit">${escapeHtml(L.fSubmit)}</button>
@@ -849,14 +831,27 @@ function escapeHtml(str) {
         <div class="divider" style="margin-top:24px"><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg><span class="divider-diamond divider-diamond-blue"><span class="divider-diamond-inner"></span></span><svg width="76" height="10" viewBox="0 0 76 10" fill="none" stroke="#C1993F" stroke-width="1" stroke-linecap="round" style="transform:scaleX(-1)"><path d="M2 5 Q14 -2 26 5 T50 5 T74 5"></path><path d="M2 5 Q14 12 26 5 T50 5 T74 5" opacity=".55"></path></svg></div>
         <div class="section-text-narrow rich-text">${sanitizeHtml(bf(block, 'hint', lang))}</div>
       </div>
-      <div class="gallery-grid">
-        <div class="gallery-slot" aria-label="Photo 1"></div>
-        <div class="gallery-slot" aria-label="Photo 2"></div>
-        <div class="gallery-slot" aria-label="Photo 3"></div>
-        <div class="gallery-slot" aria-label="Photo 4"></div>
-        <div class="gallery-slot" aria-label="Photo 5"></div>
-        <div class="gallery-slot" aria-label="Photo 6"></div>
-      </div>`;
+      <div class="gallery-grid" id="gallery-grid"></div>`;
+    const galleryGrid = section.querySelector('#gallery-grid');
+    const photos = block.photos || [];
+    if (photos.length) {
+      photos.forEach((p, i) => {
+        const url = typeof p === 'string' ? p : p.url;
+        const alt = (typeof p === 'object' && p.alt) ? p.alt : `Photo ${i + 1}`;
+        if (!url) return;
+        const slot = document.createElement('div');
+        slot.className = 'gallery-slot';
+        slot.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" loading="lazy">`;
+        galleryGrid.appendChild(slot);
+      });
+    } else {
+      for (let i = 0; i < 6; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'gallery-slot';
+        slot.setAttribute('aria-label', `Photo ${i + 1}`);
+        galleryGrid.appendChild(slot);
+      }
+    }
     return section;
   }
 
@@ -876,8 +871,8 @@ function escapeHtml(str) {
         <h2 class="footer-title">${escapeHtml(bf(block, 'title', lang))}</h2>
         <div class="footer-text rich-text">${sanitizeHtml(bf(block, 'text', lang))}</div>
         <div class="footer-contacts">
-          <a href="mailto:${escapeHtml(block.email || 'sophie.ruiyuan@example.com')}" class="footer-email">✉︎ ${escapeHtml(block.email || 'sophie.ruiyuan@example.com')}</a>
-          <span class="footer-phone">☎ ${escapeHtml(block.phone || '+33 6 00 00 00 00')}</span>
+          ${block.email ? `<a href="mailto:${escapeHtml(block.email)}" class="footer-email">✉︎ ${escapeHtml(block.email)}</a>` : ''}
+          ${block.phone ? `<span class="footer-phone">☎ ${escapeHtml(block.phone)}</span>` : ''}
         </div>
         <div class="footer-rule"></div>
         <div class="footer-names">${escapeHtml(block.names || 'Sophie & Ruiyuan').replace(/&amp;/g, '<span class="amp">&amp;</span>')}</div>

@@ -137,46 +137,72 @@ export function computeStats(guests) {
     mariee: { confirmed: 0, pending: 0, declined: 0 },
     deux: { confirmed: 0, pending: 0, declined: 0 },
   };
-  let confirmed = 0, pending = 0, declined = 0, adults = 0, children = 0;
+  const totals = {
+    confirmed: { adults: 0, children: 0 },
+    pending:   { adults: 0, children: 0 },
+    declined:  { adults: 0, children: 0 },
+  };
 
   guests.forEach(g => {
     const status = g.rsvp?.status === 'confirmed' || g.rsvp?.status === 'declined' ? g.rsvp.status : 'pending';
     const side = bySide[g.side] ? g.side : 'deux';
-    bySide[side][status]++;
     if (status === 'confirmed') {
-      confirmed++;
-      adults += g.rsvp.adults ?? 0;
-      children += g.rsvp.children ?? 0;
+      const a = g.rsvp.adults ?? 0;
+      const c = g.rsvp.children ?? 0;
+      totals.confirmed.adults += a;
+      totals.confirmed.children += c;
+      bySide[side].confirmed += a + c;
     } else if (status === 'declined') {
-      declined++;
+      const a = g.maxAdults ?? 1;
+      const c = g.maxChildren ?? 0;
+      totals.declined.adults += a;
+      totals.declined.children += c;
+      bySide[side].declined += a + c;
     } else {
-      pending++;
+      const a = g.maxAdults ?? 1;
+      const c = g.maxChildren ?? 0;
+      totals.pending.adults += a;
+      totals.pending.children += c;
+      bySide[side].pending += a + c;
     }
   });
 
-  return { total: guests.length, confirmed, pending, declined, adults, children, bySide };
+  const adults = totals.confirmed.adults + totals.pending.adults + totals.declined.adults;
+  const children = totals.confirmed.children + totals.pending.children + totals.declined.children;
+  const total = adults + children;
+  const confirmed = totals.confirmed.adults + totals.confirmed.children;
+  const pending = totals.pending.adults + totals.pending.children;
+  const declined = totals.declined.adults + totals.declined.children;
+
+  return { total, confirmed, pending, declined, adults, children, totals, bySide };
+}
+
+function statSub(t) {
+  return `<div class="stat-sub"><span>${t.adults} adulte${t.adults > 1 ? 's' : ''}</span><span>${t.children} enfant${t.children > 1 ? 's' : ''}</span></div>`;
 }
 
 export function renderStatsBar(stats) {
-  const totalPeople = stats.adults + stats.children;
   return `
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-value">${stats.total}</div>
         <div class="stat-label">Invités</div>
+        ${statSub({ adults: stats.adults, children: stats.children })}
       </div>
       <div class="stat-card stat-confirmed">
         <div class="stat-value">${stats.confirmed}</div>
-        <div class="stat-label">Confirmés — ${totalPeople} personne${totalPeople > 1 ? 's' : ''}</div>
-        <div class="stat-sub"><span>${stats.adults} adulte${stats.adults > 1 ? 's' : ''}</span><span>${stats.children} enfant${stats.children > 1 ? 's' : ''}</span></div>
+        <div class="stat-label">Confirmés</div>
+        ${statSub(stats.totals.confirmed)}
       </div>
       <div class="stat-card stat-pending">
         <div class="stat-value">${stats.pending}</div>
         <div class="stat-label">En attente</div>
+        ${statSub(stats.totals.pending)}
       </div>
       <div class="stat-card stat-declined">
         <div class="stat-value">${stats.declined}</div>
         <div class="stat-label">Refusés</div>
+        ${statSub(stats.totals.declined)}
       </div>
     </div>
     <div class="stats-side-grid">

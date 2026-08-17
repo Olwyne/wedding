@@ -7,6 +7,12 @@
       "runtimeArgs": ["compose", "up", "--build"],
       "port": 8090,
       "autoPort": true
+    },
+    {
+      "name": "static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8091"],
+      "port": 8091
     }
   ]
 }

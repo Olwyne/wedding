@@ -1,8 +1,8 @@
 // admin/script.js
 import { initAuth } from './auth.js?v=1';
-import { renderDashboardTab } from './dashboard.js?v=4';
+import { renderDashboardTab } from './dashboard.js?v=5';
 import { renderBlocksTab } from './blocks.js?v=7';
-import { renderGuestsTab } from './guests.js?v=8';
+import { renderGuestsTab } from './guests.js?v=9';
 import { renderTablesTab } from './tables.js?v=2';
 import { renderVendorsTab } from './vendors.js?v=7';
 import { renderBudgetTab } from './budget.js?v=7';

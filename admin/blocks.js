@@ -51,6 +51,10 @@ const TYPE_DEFS = {
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'subtitle', label: 'Sous-titre', kind: 'textarea' },
+      { key: 'bgColor', label: 'Fond', kind: 'select', options: [
+        { value: 'red', label: 'Rouge (bordeaux)' },
+        { value: 'blue', label: 'Bleu (drapeau)' },
+      ] },
     ] },
   infos: { label: 'Infos pratiques', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
@@ -60,6 +64,7 @@ const TYPE_DEFS = {
         { key: 'zh', label: 'Repère (中文)' },
         { key: 'name_fr', label: 'Nom FR' }, { key: 'name_zh', label: 'Nom ZH' },
         { key: 'addr_fr', label: 'Adresse FR' }, { key: 'addr_zh', label: 'Adresse ZH' },
+        { key: 'note_fr', label: 'Note FR' }, { key: 'note_zh', label: 'Note ZH' },
         { key: 'mapUrl', label: 'URL carte' },
       ] } },
   hebergement: { label: 'Hébergement', audience: 'invite', fields: [
@@ -76,6 +81,10 @@ const TYPE_DEFS = {
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'intro', label: 'Intro', kind: 'textarea' },
+      { key: 'bgColor', label: 'Fond', kind: 'select', options: [
+        { value: 'red', label: 'Rouge (bordeaux)' },
+        { value: 'blue', label: 'Bleu (drapeau)' },
+      ] },
     ] },
   gift: { label: 'Cadeaux', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
@@ -94,7 +103,10 @@ const TYPE_DEFS = {
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'hint', label: 'Indice', kind: 'textarea' },
-    ] },
+    ], list: { key: 'photos', label: 'Photos', itemFields: [
+        { key: 'url', label: 'URL image' },
+        { key: 'alt', label: 'Alt (accessibilité)' },
+      ] } },
   contact: { label: 'Contact', audience: 'invite', fields: [
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
@@ -256,6 +268,17 @@ function buildScalarFieldHtml(field, data) {
       <label class="field">
         <span>${escapeHtml(field.label)}</span>
         <input id="blk-${field.key}" value="${v}" placeholder="https://…">
+      </label>`;
+  }
+  if (field.kind === 'select') {
+    const v = data?.[field.key] || '';
+    const opts = (field.options || []).map(o =>
+      `<option value="${escapeHtml(o.value)}"${o.value === v ? ' selected' : ''}>${escapeHtml(o.label)}</option>`
+    ).join('');
+    return `
+      <label class="field">
+        <span>${escapeHtml(field.label)}</span>
+        <select id="blk-${field.key}">${opts}</select>
       </label>`;
   }
   if (field.kind === 'plain') {
@@ -471,7 +494,7 @@ async function saveBlock(id, filteredBlocks, panelEl, audience) {
   };
 
   def.fields.forEach(f => {
-    if (f.kind === 'url' || f.kind === 'plain') {
+    if (f.kind === 'url' || f.kind === 'plain' || f.kind === 'select') {
       data[f.key] = panelEl.querySelector(`#blk-${f.key}`)?.value || '';
     } else if (f.kind === 'textarea') {
       ['fr', 'zh'].forEach(lang => {
