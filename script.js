@@ -871,8 +871,8 @@ function escapeHtml(str) {
         <h2 class="footer-title">${escapeHtml(bf(block, 'title', lang))}</h2>
         <div class="footer-text rich-text">${sanitizeHtml(bf(block, 'text', lang))}</div>
         <div class="footer-contacts">
-          ${block.email ? `<a href="mailto:${escapeHtml(block.email)}" class="footer-email">✉︎ ${escapeHtml(block.email)}</a>` : ''}
-          ${block.phone ? `<span class="footer-phone">☎ ${escapeHtml(block.phone)}</span>` : ''}
+          ${block.email && !block.email.includes('example.com') ? `<a href="mailto:${escapeHtml(block.email)}" class="footer-email">✉︎ ${escapeHtml(block.email)}</a>` : ''}
+          ${block.phone && !block.phone.includes('00 00 00') ? `<span class="footer-phone">☎ ${escapeHtml(block.phone)}</span>` : ''}
         </div>
         <div class="footer-rule"></div>
         <div class="footer-names">${escapeHtml(block.names || 'Sophie & Ruiyuan').replace(/&amp;/g, '<span class="amp">&amp;</span>')}</div>
