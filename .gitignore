@@ -1,2 +1,6 @@
 .superpowers/
 sdd/
+.vercel
+.env*
+*-firebase-adminsdk-*.json
+*.json.key
