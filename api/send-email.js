@@ -1,5 +1,12 @@
 import { Resend } from 'resend';
 import admin from 'firebase-admin';
+import crypto from 'crypto';
+
+function generatePassword(length = 12) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  const bytes = crypto.randomBytes(length);
+  return Array.from(bytes).map(b => chars[b % chars.length]).join('');
+}
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -139,6 +146,14 @@ export default async function handler(req, res) {
   const VALID_TYPES = ['relance', 'rappel', 'account'];
   if (!VALID_TYPES.includes(type)) {
     return res.status(400).json({ error: `Unknown type: ${type}` });
+  }
+
+  // Password reset for admin resend-accès
+  if (type === 'account' && req.body.resetUid) {
+    const newPassword = generatePassword();
+    await admin.auth().updateUser(req.body.resetUid, { password: newPassword });
+    // Re-build recipients with new password
+    recipients[0].password = newPassword;
   }
 
   const subject = buildSubject(type);

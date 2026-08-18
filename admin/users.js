@@ -79,7 +79,10 @@ function renderUserRow(u, editable) {
       <td>${escapeHtml(u.email)}</td>
       <td>${escapeHtml(permSummary(u.permissions))}</td>
       <td>${editable
-        ? `<div class="table-actions"><button class="btn-secondary btn-edit-user" data-id="${escapeHtml(u.id)}">Modifier</button></div>`
+        ? `<div class="table-actions">
+            <button class="btn-secondary btn-edit-user" data-id="${escapeHtml(u.id)}">Modifier</button>
+            <button class="btn-secondary btn-resend-access" data-id="${escapeHtml(u.id)}" data-email="${escapeHtml(u.email)}" ${u.id === auth.currentUser?.uid ? 'disabled title="Impossible pour soi-même"' : ''}>Renvoyer les accès</button>
+           </div>`
         : ''}</td>
     </tr>`;
 }
@@ -118,6 +121,41 @@ export async function renderUsersTab() {
     panel.querySelectorAll('.btn-edit-user').forEach(btn =>
       btn.addEventListener('click', () => openUserPanel(btn.dataset.id, users))
     );
+    panel.querySelectorAll('.btn-resend-access').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const uid = btn.dataset.id;
+        const email = btn.dataset.email;
+        if (!confirm(`Réinitialiser le mot de passe et renvoyer les accès à ${email} ?`)) return;
+        btn.disabled = true;
+        btn.textContent = 'Envoi…';
+        try {
+          const token = await auth.currentUser.getIdToken();
+          const res = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              type: 'account',
+              resetUid: uid,
+              recipients: [{ name: email, email, login_url: `${location.origin}/admin/` }],
+              origin: location.origin,
+            }),
+          });
+          if (!res.ok) throw new Error(`Erreur ${res.status}`);
+          btn.textContent = '✓ Envoyé';
+          setTimeout(() => {
+            btn.textContent = 'Renvoyer les accès';
+            btn.disabled = false;
+          }, 3000);
+        } catch (err) {
+          alert(`Erreur : ${err.message}`);
+          btn.textContent = 'Renvoyer les accès';
+          btn.disabled = false;
+        }
+      });
+    });
   }
 }
 
@@ -235,6 +273,20 @@ function openUserPanel(id, users) {
           }),
           setDoc(doc(db, 'guests', previewToken), buildPreviewGuestDoc(email, eventIds)),
         ]);
+        // Send account creation email (non-blocking — user is created regardless)
+        const loginUrl = `${location.origin}/admin/`;
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${await auth.currentUser.getIdToken()}`,
+          },
+          body: JSON.stringify({
+            type: 'account',
+            recipients: [{ name: email, email, password: generatedPassword, login_url: loginUrl }],
+            origin: location.origin,
+          }),
+        }).catch(err => console.warn('Account email failed:', err));
       } else {
         await updateDoc(doc(db, 'admins', id), { permissions });
       }
