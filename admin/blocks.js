@@ -96,6 +96,10 @@ const TYPE_DEFS = {
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
+      { key: 'bgColor', label: 'Fond', kind: 'select', options: [
+        { value: 'red', label: 'Rouge (bordeaux)' },
+        { value: 'blue', label: 'Bleu (drapeau)' },
+      ] },
     ], list: { key: 'avoidColors', label: 'Couleurs à éviter', itemFields: [
         { key: 'hex', label: 'Couleur (hex)' },
         { key: 'label_fr', label: 'Libellé FR' }, { key: 'label_zh', label: 'Libellé ZH' },
@@ -338,7 +342,11 @@ function buildListItemHtml(listDef, item, idx, eventOptions) {
   }).join('');
   return `
     <div class="section-list-item" data-idx="${idx}">
-      <button type="button" class="btn-icon btn-remove-item">✕</button>
+      <div style="display:flex;gap:4px;margin-bottom:6px">
+        <button type="button" class="btn-icon btn-list-up" title="Monter">↑</button>
+        <button type="button" class="btn-icon btn-list-down" title="Descendre">↓</button>
+        <button type="button" class="btn-icon btn-remove-item" style="margin-left:auto">✕</button>
+      </div>
       ${fields}
     </div>`;
 }
@@ -376,17 +384,31 @@ function attachListHandlers(panelEl, def, eventOptions) {
   if (!def.list) return;
   const listEl = panelEl.querySelector(`#blk-list-${def.list.key}`);
 
-  function bindRemoveButtons() {
+  function bindItemButtons() {
     listEl.querySelectorAll('.btn-remove-item').forEach(btn => {
       btn.onclick = () => { btn.closest('.section-list-item').remove(); };
     });
+    listEl.querySelectorAll('.btn-list-up').forEach(btn => {
+      btn.onclick = () => {
+        const item = btn.closest('.section-list-item');
+        const prev = item.previousElementSibling;
+        if (prev) listEl.insertBefore(item, prev);
+      };
+    });
+    listEl.querySelectorAll('.btn-list-down').forEach(btn => {
+      btn.onclick = () => {
+        const item = btn.closest('.section-list-item');
+        const next = item.nextElementSibling;
+        if (next) listEl.insertBefore(next, item);
+      };
+    });
   }
-  bindRemoveButtons();
+  bindItemButtons();
 
   panelEl.querySelector(`#blk-list-add-${def.list.key}`).addEventListener('click', () => {
     const idx = listEl.children.length;
     listEl.insertAdjacentHTML('beforeend', buildListItemHtml(def.list, {}, idx, eventOptions));
-    bindRemoveButtons();
+    bindItemButtons();
   });
 }
 
