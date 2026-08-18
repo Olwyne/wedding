@@ -39,15 +39,24 @@ function generateToken(length = 12) {
   return t;
 }
 
+async function getAllEventIds() {
+  const snap = await getDocs(collection(db, 'events'));
+  return snap.docs.map(d => d.id);
+}
+
+function buildPreviewGuestDoc(email, assignedEvents) {
+  return { isPreview: true, name: email, assignedEvents, maxAdults: 2, maxChildren: 0, createdAt: new Date().toISOString() };
+}
+
 export async function ensurePreviewToken(uid) {
   const adminRef = doc(db, 'admins', uid);
   const adminSnap = await getDoc(adminRef);
   if (!adminSnap.exists()) return null;
   const data = adminSnap.data();
   if (data.previewToken) return data.previewToken;
-  const token = generateToken();
+  const [token, eventIds] = await Promise.all([generateToken(), getAllEventIds()]);
   await Promise.all([
-    setDoc(doc(db, 'guests', token), { isPreview: true, name: data.email, createdAt: new Date().toISOString() }),
+    setDoc(doc(db, 'guests', token), buildPreviewGuestDoc(data.email, eventIds)),
     updateDoc(adminRef, { previewToken: token }),
   ]);
   return token;
@@ -215,7 +224,7 @@ function openUserPanel(id, users) {
         if (!email) throw new Error('no-email');
         const uid = await createAuthAccount(email, generatedPassword);
         createdUid = uid;
-        const previewToken = generateToken();
+        const [previewToken, eventIds] = await Promise.all([generateToken(), getAllEventIds()]);
         await Promise.all([
           setDoc(doc(db, 'admins', uid), {
             email,
@@ -224,7 +233,7 @@ function openUserPanel(id, users) {
             createdAt: new Date().toISOString(),
             createdBy: auth.currentUser.uid,
           }),
-          setDoc(doc(db, 'guests', previewToken), { isPreview: true, name: email, createdAt: new Date().toISOString() }),
+          setDoc(doc(db, 'guests', previewToken), buildPreviewGuestDoc(email, eventIds)),
         ]);
       } else {
         await updateDoc(doc(db, 'admins', id), { permissions });
