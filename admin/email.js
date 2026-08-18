@@ -36,6 +36,7 @@ function buildRecipientList(recipients) {
 }
 
 async function doSend(type, recipients) {
+  if (!auth.currentUser) throw new Error('Session expirée, rechargez la page.');
   const token = await auth.currentUser.getIdToken();
   const res = await fetch('/api/send-email', {
     method: 'POST',
@@ -50,7 +51,7 @@ async function doSend(type, recipients) {
   return res.json();
 }
 
-export function sendEmailWithConfirm(type, recipients) {
+export function sendEmailWithConfirm(type, recipients, eventById) {
   return new Promise((resolve, reject) => {
     const overlay = document.createElement('div');
     overlay.className = 'panel-overlay';
@@ -66,6 +67,7 @@ export function sendEmailWithConfirm(type, recipients) {
       : `Envoyer un email de ${label} à ${count} invités :`;
 
     modal.innerHTML = `
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
       <div class="panel-header">
         <h3>${escapeHtml(title)}</h3>
         <button class="btn-icon" id="email-modal-close">✕</button>
@@ -102,20 +104,25 @@ export function sendEmailWithConfirm(type, recipients) {
       sendBtn.disabled = true;
       cancelBtn.disabled = true;
       sendBtn.textContent = 'Envoi…';
-      resultEl.style.display = 'none';
+      resultEl.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--muted);border-top-color:var(--primary,#2F5FB0);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle"></span> Envoi en cours…';
+      resultEl.style.color = 'inherit';
+      resultEl.style.display = 'block';
 
       try {
         const result = await doSend(type, recipients);
-        const failText = result.failed.length
-          ? ` · ${result.failed.length} échec(s)`
+        const failed = result.failed ?? [];
+        const failText = failed.length
+          ? ` · ${failed.length} échec(s)`
           : '';
         resultEl.textContent = `✓ ${result.sent} email(s) envoyé(s)${failText}`;
-        resultEl.style.color = result.failed.length ? 'var(--warning, orange)' : 'var(--success, green)';
+        resultEl.style.color = failed.length ? 'var(--warning, orange)' : 'var(--success, green)';
         resultEl.style.display = 'block';
-        sendBtn.textContent = 'Fermer';
-        sendBtn.disabled = false;
+        const newBtn = sendBtn.cloneNode(true);
+        newBtn.textContent = 'Fermer';
+        newBtn.disabled = false;
+        sendBtn.replaceWith(newBtn);
         cancelBtn.style.display = 'none';
-        sendBtn.onclick = () => close(result);
+        newBtn.addEventListener('click', () => close(result));
       } catch (err) {
         resultEl.textContent = `Erreur : ${err.message}`;
         resultEl.style.color = 'var(--danger)';
