@@ -579,7 +579,7 @@ function escapeHtml(str) {
         <div class="section-text-narrow rich-text">${sanitizeHtml(bf(block, 'intro', lang))}</div>
       </div>
       <div class="hotels-grid" id="hotels-grid"></div>
-      <div class="shuttle-box">
+      <div class="shuttle-box${block.bgColor === 'blue' ? ' shuttle-box-navy' : ''}">
         <div class="cal shuttle-glyph">车</div>
         <div class="rich-text">${sanitizeHtml(bf(block, 'shuttle', lang))}</div>
       </div>`;

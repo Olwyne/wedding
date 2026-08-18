@@ -73,6 +73,10 @@ const TYPE_DEFS = {
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'intro', label: 'Intro', kind: 'textarea' },
       { key: 'shuttle', label: 'Navette', kind: 'textarea' },
+      { key: 'bgColor', label: 'Fond navette', kind: 'select', options: [
+        { value: 'red', label: 'Rouge (bordeaux)' },
+        { value: 'blue', label: 'Bleu (drapeau)' },
+      ] },
     ], list: { key: 'hotels', label: 'Hôtels', itemFields: [
         { key: 'tag_fr', label: 'Tag FR' }, { key: 'tag_zh', label: 'Tag ZH' },
         { key: 'name_fr', label: 'Nom FR' }, { key: 'name_zh', label: 'Nom ZH' },
