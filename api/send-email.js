@@ -74,12 +74,12 @@ function buildRelanceHtml({ name, token, origin }) {
         <p>Nous organisons notre mariage et nous n'avons pas encore reçu votre réponse.
         Nous serions ravis de vous compter parmi nous !</p>
         <p>Merci de confirmer votre présence via le lien ci-dessous :</p>
-        <a class="btn" href="${link}">Confirmer ma présence</a>
+        <a class="btn" href="${escapeHtml(link)}">Confirmer ma présence</a>
         <hr class="divider">
         <p class="zh">亲爱的 ${escapeHtml(name)}，</p>
         <p class="zh">我们正在筹备婚礼，但还未收到您的回复。我们非常期待您的到来！</p>
         <p class="zh">请点击以下链接确认您是否出席：</p>
-        <a class="btn" href="${link}">确认出席</a>
+        <a class="btn" href="${escapeHtml(link)}">确认出席</a>
       </div>
       <div class="footer">Sophie &amp; Sob · 24 juillet 2027</div>
     </div>
@@ -88,7 +88,7 @@ function buildRelanceHtml({ name, token, origin }) {
 
 function buildRappelHtml({ name, events }) {
   const eventList = Array.isArray(events) && events.length
-    ? `<ul>${events.map(e => `<li>${e}</li>`).join('')}</ul>`
+    ? `<ul>${events.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>`
     : '';
   // Event titles come from admin (French only); no separate ZH titles stored
   const eventListZh = eventList;
@@ -147,6 +147,10 @@ export default async function handler(req, res) {
   const VALID_TYPES = ['relance', 'rappel', 'account'];
   if (!VALID_TYPES.includes(type)) {
     return res.status(400).json({ error: `Unknown type: ${type}` });
+  }
+
+  if (recipients.length > 50) {
+    return res.status(400).json({ error: 'Too many recipients (max 50 per request)' });
   }
 
   // Password reset for admin resend-accès

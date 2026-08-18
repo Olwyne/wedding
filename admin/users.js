@@ -129,6 +129,12 @@ export async function renderUsersTab() {
         btn.disabled = true;
         btn.textContent = 'Envoi…';
         try {
+          if (!auth.currentUser) {
+            alert('Session expirée, rechargez la page.');
+            btn.textContent = 'Renvoyer les accès';
+            btn.disabled = false;
+            return;
+          }
           const token = await auth.currentUser.getIdToken();
           const res = await fetch('/api/send-email', {
             method: 'POST',
