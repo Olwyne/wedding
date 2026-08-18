@@ -1,4 +1,3 @@
-import { Resend } from 'resend';
 import admin from 'firebase-admin';
 import crypto from 'crypto';
 
@@ -8,7 +7,25 @@ function generatePassword(length = 12) {
   return Array.from(bytes).map(b => chars[b % chars.length]).join('');
 }
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+async function sendViaBrevo(to, toName, subject, html) {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': process.env.BREVO_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { name: 'Sophie & Sob', email: process.env.BREVO_SENDER_EMAIL },
+      to: [{ email: to, name: toName }],
+      subject,
+      htmlContent: html,
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Brevo ${res.status}: ${body}`);
+  }
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -177,12 +194,12 @@ export default async function handler(req, res) {
   for (const recipient of recipients) {
     if (!recipient.email) { failed.push({ email: '(none)', error: 'no email' }); continue; }
     try {
-      await resend.emails.send({
-        from: 'Sophie & Sob <onboarding@resend.dev>',
-        to: recipient.email,
+      await sendViaBrevo(
+        recipient.email,
+        recipient.name,
         subject,
-        html: buildHtml(type, { ...recipient, origin: origin || 'https://sophieandsob.com' }),
-      });
+        buildHtml(type, { ...recipient, origin: origin || '' }),
+      );
       sent.push(recipient.email);
     } catch (err) {
       failed.push({ email: recipient.email, error: err.message });
