@@ -15,7 +15,7 @@ async function sendViaBrevo(to, toName, subject, html) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      sender: { name: 'Sophie & Sob', email: process.env.BREVO_SENDER_EMAIL },
+      sender: { name: 'Sophie & Ruiyuan', email: process.env.BREVO_SENDER_EMAIL },
       to: [{ email: to, name: toName }],
       subject,
       htmlContent: html,
@@ -52,9 +52,9 @@ function escapeHtml(str) {
 }
 
 function buildSubject(type) {
-  if (type === 'relance') return 'Sophie & Sob – Nous attendons votre réponse 💌';
-  if (type === 'rappel') return 'Sophie & Sob – On se retrouve bientôt ! 🎉';
-  if (type === 'account') return 'Accès admin – Site de mariage Sophie & Sob';
+  if (type === 'relance') return 'Sophie & Ruiyuan – Nous attendons votre réponse 💌';
+  if (type === 'rappel') return 'Sophie & Ruiyuan – On se retrouve bientôt ! 🎉';
+  if (type === 'account') return 'Accès admin – Site de mariage Sophie & Ruiyuan';
   return '';
 }
 
@@ -85,7 +85,7 @@ function buildRelanceHtml({ name, token, origin }) {
   const link = `${origin}/?invite=${encodeURIComponent(token)}`;
   return `<!DOCTYPE html><html><head>${baseStyle()}</head><body>
     <div class="wrap">
-      <div class="header"><h1>Sophie &amp; Sob</h1></div>
+      <div class="header"><h1>Sophie &amp; Ruiyuan</h1></div>
       <div class="body">
         <p>Bonjour ${escapeHtml(name)},</p>
         <p>Nous organisons notre mariage et nous n'avons pas encore reçu votre réponse.
@@ -98,7 +98,7 @@ function buildRelanceHtml({ name, token, origin }) {
         <p class="zh">请点击以下链接确认您是否出席：</p>
         <a class="btn" href="${escapeHtml(link)}">确认出席</a>
       </div>
-      <div class="footer">Sophie &amp; Sob · 24 juillet 2027</div>
+      <div class="footer">Sophie &amp; Ruiyuan · 24 juillet 2027</div>
     </div>
   </body></html>`;
 }
@@ -111,7 +111,7 @@ function buildRappelHtml({ name, events }) {
   const eventListZh = eventList;
   return `<!DOCTYPE html><html><head>${baseStyle()}</head><body>
     <div class="wrap">
-      <div class="header"><h1>Sophie &amp; Sob</h1></div>
+      <div class="header"><h1>Sophie &amp; Ruiyuan</h1></div>
       <div class="body">
         <p>Bonjour ${escapeHtml(name)},</p>
         <p>Le grand jour approche ! Nous avons hâte de vous retrouver pour célébrer avec vous.</p>
@@ -125,7 +125,7 @@ function buildRappelHtml({ name, events }) {
         ${eventListZh ? `<p class="zh"><strong>您的活动：</strong></p>${eventListZh}` : ''}
         <p class="zh">如有任何问题，请直接回复此邮件。</p>
       </div>
-      <div class="footer">Sophie &amp; Sob · 24 juillet 2027</div>
+      <div class="footer">Sophie &amp; Ruiyuan · 24 juillet 2027</div>
     </div>
   </body></html>`;
 }
@@ -141,7 +141,7 @@ function buildAccountHtml({ email, password, login_url }) {
         <p>Connectez-vous via le lien ci-dessous. Changez votre mot de passe après la première connexion.</p>
         <a class="btn" href="${escapeHtml(login_url)}">Accéder au site</a>
       </div>
-      <div class="footer">Sophie &amp; Sob</div>
+      <div class="footer">Sophie &amp; Ruiyuan</div>
     </div>
   </body></html>`;
 }
