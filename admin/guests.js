@@ -7,7 +7,6 @@ import { loadEvents } from './events.js?v=2';
 import { canWrite } from './permissions.js';
 import { loadChildrenAllowed } from './settings.js?v=1';
 import { sendEmailWithConfirm } from './email.js';
-import { auth } from '../firebase-init.js';
 
 const guestsCol = collection(db, 'guests');
 
@@ -71,8 +70,9 @@ function passesFilters(g) {
   return true;
 }
 
-function renderEmailBulkButton(type, guests) {
-  const eligible = guests.filter(g => guestStatus(g) === (type === 'relance' ? 'pending' : 'confirmed') && g.email);
+function renderEmailBulkButton(type, allGuests) {
+  const targetStatus = type === 'relance' ? 'pending' : 'confirmed';
+  const eligible = allGuests.filter(g => passesFilters(g) && guestStatus(g) === targetStatus && g.email);
   if (eligible.length === 0) return '';
   const label = type === 'relance'
     ? `📧 Relancer tous (${eligible.length})`
@@ -310,6 +310,7 @@ export async function renderGuestsTab() {
         const g = guests.find(g => g.id === guestId);
         if (!g?.email) return;
         const status = guestStatus(g);
+        if (status !== 'pending' && status !== 'confirmed') return;
         const type = status === 'pending' ? 'relance' : 'rappel';
         const recipient = {
           name: g.name,
@@ -332,7 +333,7 @@ export async function renderGuestsTab() {
       const type = bulkEmailBtn.dataset.emailType;
       const targetStatus = type === 'relance' ? 'pending' : 'confirmed';
       const recipients = guests
-        .filter(g => guestStatus(g) === targetStatus && g.email)
+        .filter(g => passesFilters(g) && guestStatus(g) === targetStatus && g.email)
         .map(g => ({
           name: g.name,
           email: g.email,
