@@ -150,8 +150,13 @@ export default async function handler(req, res) {
 
   // Password reset for admin resend-accès
   if (type === 'account' && req.body.resetUid) {
+    const resetUid = req.body.resetUid;
+    const adminDoc = await admin.firestore().collection('admins').doc(resetUid).get();
+    if (!adminDoc.exists) {
+      return res.status(403).json({ error: 'Target UID is not an admin' });
+    }
     const newPassword = generatePassword();
-    await admin.auth().updateUser(req.body.resetUid, { password: newPassword });
+    await admin.auth().updateUser(resetUid, { password: newPassword });
     // Re-build recipients with new password
     recipients[0].password = newPassword;
   }
