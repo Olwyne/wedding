@@ -1,7 +1,7 @@
 // admin/users.js
 import { db, auth } from '../firebase-init.js';
 import {
-  collection, getDocs, doc, setDoc, updateDoc
+  collection, getDocs, doc, getDoc, setDoc, updateDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import {
   initializeApp, deleteApp
@@ -29,6 +29,28 @@ function generatePassword(length = 12) {
   let pw = '';
   for (let i = 0; i < length; i++) pw += chars[bytes[i] % chars.length];
   return pw;
+}
+
+function generateToken(length = 12) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  let t = '';
+  for (let i = 0; i < length; i++) t += chars[bytes[i] % chars.length];
+  return t;
+}
+
+export async function ensurePreviewToken(uid) {
+  const adminRef = doc(db, 'admins', uid);
+  const adminSnap = await getDoc(adminRef);
+  if (!adminSnap.exists()) return null;
+  const data = adminSnap.data();
+  if (data.previewToken) return data.previewToken;
+  const token = generateToken();
+  await Promise.all([
+    setDoc(doc(db, 'guests', token), { isPreview: true, name: data.email, createdAt: new Date().toISOString() }),
+    updateDoc(adminRef, { previewToken: token }),
+  ]);
+  return token;
 }
 
 export async function loadUsers() {
@@ -193,12 +215,17 @@ function openUserPanel(id, users) {
         if (!email) throw new Error('no-email');
         const uid = await createAuthAccount(email, generatedPassword);
         createdUid = uid;
-        await setDoc(doc(db, 'admins', uid), {
-          email,
-          permissions,
-          createdAt: new Date().toISOString(),
-          createdBy: auth.currentUser.uid,
-        });
+        const previewToken = generateToken();
+        await Promise.all([
+          setDoc(doc(db, 'admins', uid), {
+            email,
+            permissions,
+            previewToken,
+            createdAt: new Date().toISOString(),
+            createdBy: auth.currentUser.uid,
+          }),
+          setDoc(doc(db, 'guests', previewToken), { isPreview: true, name: email, createdAt: new Date().toISOString() }),
+        ]);
       } else {
         await updateDoc(doc(db, 'admins', id), { permissions });
       }

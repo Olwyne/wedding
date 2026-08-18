@@ -53,7 +53,7 @@ function formatMax(g) {
 
 export async function loadGuests() {
   const snap = await getDocs(guestsCol);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(g => !g.isPreview);
 }
 
 function guestStatus(g) {

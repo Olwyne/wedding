@@ -10,7 +10,7 @@ import { renderEventsTab } from './events.js?v=4';
 import { renderDayOfTab } from './dayof.js?v=5';
 import { renderTodoTab } from './todo.js?v=3';
 import { renderCalendarTab } from './calendar.js?v=2';
-import { renderUsersTab } from './users.js?v=1';
+import { renderUsersTab, ensurePreviewToken } from './users.js?v=1';
 import { renderSettingsTab } from './settings.js?v=1';
 import { renderWitnessesTab } from './witnesses.js?v=4';
 import { openAccountPanel } from './account.js';
@@ -77,9 +77,18 @@ function initNav() {
 
 initNav();
 initAuth({
-  onSignedIn: () => {
+  onSignedIn: async (user) => {
     updateNavVisibility();
     switchToSection(sectionFromPath(), { push: false });
+    try {
+      const token = await ensurePreviewToken(user.uid);
+      if (token) {
+        const link = document.getElementById('sidebar-preview-link');
+        if (link) link.href = `../?invite=${token}`;
+      }
+    } catch (e) {
+      console.error('ensurePreviewToken failed', e);
+    }
   },
   onSignedOut: () => {},
 });

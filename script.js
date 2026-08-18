@@ -117,6 +117,7 @@ function escapeHtml(str) {
     env: 'sealed',
     menuOpen: false,
     submitted: false,
+    isPreview: false,
     dataReady: false,
     guestToken: null,
     rawEvents: [],
@@ -161,6 +162,7 @@ function escapeHtml(str) {
         getDoc(doc(db, 'settings', 'general')).catch(() => null),
       ]);
       state.access = 'guest';
+      state.isPreview = !!guest.isPreview;
       state.guestToken = token;
       state.assignedEventIds = guest.assignedEvents || [];
       state.rawEvents = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -744,7 +746,7 @@ function escapeHtml(str) {
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
-      if (state.submitting || !state.guestToken) return;
+      if (state.submitting || !state.guestToken || state.isPreview) return;
       const submitBtn = section.querySelector('.btn-submit');
       const errEl = section.querySelector('#rsvp-error');
       errEl.hidden = true;

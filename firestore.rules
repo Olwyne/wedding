@@ -17,7 +17,11 @@ service cloud.firestore {
     match /guests/{guestId} {
       allow get: if true;
       allow list: if perm('guests') in ['read', 'write'] || perm('witnesses') in ['read', 'write'] || perm('tables') in ['read', 'write'] || perm('dayof') in ['read', 'write'] || perm('todo') in ['read', 'write'] || perm('calendar') in ['read', 'write'];
-      allow create, delete: if perm('guests') == 'write';
+      allow create: if perm('guests') == 'write'
+        || (request.auth != null
+            && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+            && request.resource.data.isPreview == true);
+      allow delete: if perm('guests') == 'write';
       allow update: if perm('guests') == 'write'
         || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp'])
             && request.resource.data.rsvp.adults >= 0
@@ -74,7 +78,10 @@ service cloud.firestore {
             && !exists(/databases/$(database)/documents/admins/$(uid))
             && request.auth.token.email == 'sophbyr@gmail.com')
         || perm('users') == 'write';
-      allow update, delete: if perm('users') == 'write';
+      allow update: if perm('users') == 'write'
+        || (request.auth != null && request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['previewToken']));
+      allow delete: if perm('users') == 'write';
     }
   }
 }
