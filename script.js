@@ -801,9 +801,10 @@ function escapeHtml(str) {
   function buildDressBlock(block, lang) {
     const section = document.createElement('section');
     section.className = 'section section-cream';
+    const cardClass = block.bgColor === 'blue' ? 'card-dresscode card-dresscode-navy' : 'card-dresscode';
     section.innerHTML = `
       <div class="cadeau-grid">
-        <div id="dresscode" class="card-dresscode">
+        <div id="dresscode" class="${cardClass}">
           <div class="cal card-glyph card-glyph-gold">衣</div>
           <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
           <h3 class="card-title card-title-light">${escapeHtml(bf(block, 'title', lang))}</h3>

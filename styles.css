@@ -256,6 +256,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .cadeau-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px}
 .card-cadeau{background:linear-gradient(160deg,#fff,#FBF3E4);border:1px solid rgba(193,153,63,.35);border-radius:6px;padding:44px 36px;text-align:center}
 .card-dresscode{background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux4));color:#F4E9CE;border-radius:6px;padding:44px 36px;text-align:center}
+.card-dresscode.card-dresscode-navy{background:linear-gradient(160deg,var(--navy),var(--navy-deep4))}
 .card-glyph{font-size:34px;color:var(--red);margin-bottom:8px}
 .card-glyph-gold{color:var(--gold)}
 .card-title{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--bordeaux);margin-bottom:16px}
