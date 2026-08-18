@@ -18,17 +18,37 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-export async function loadTables() {
-  const snap = await getDocs(tablesCol);
-  return snap.docs.map(d => ({ id: d.id, guestIds: [], ...d.data() }));
+// Returns [{name, type}] for a guest, always at least 1 entry
+function personsOf(guest) {
+  if (guest.expectedGuests && guest.expectedGuests.length > 0) return guest.expectedGuests;
+  return [{ name: guest.name || '?', type: 'adult' }];
 }
 
-export function guestPartySize(guest) {
-  return Math.max(1, (guest.rsvp?.adults ?? 0) + (guest.rsvp?.children ?? 0));
+function personName(guest, personIdx, person) {
+  return person?.name?.trim() || `${guest.name} – Invité ${personIdx + 1}`;
+}
+
+// seat key = "guestId:personIdx"
+function seatKey(guestId, personIdx) { return `${guestId}:${personIdx}`; }
+function parseSeatKey(key) {
+  const colon = key.lastIndexOf(':');
+  return { guestId: key.slice(0, colon), personIdx: Number(key.slice(colon + 1)) };
+}
+
+export async function loadTables() {
+  const snap = await getDocs(tablesCol);
+  return snap.docs.map(d => {
+    const data = d.data();
+    // Migrate legacy guestIds: treat each as personIdx 0
+    if (!data.seats && data.guestIds && data.guestIds.length > 0) {
+      data.seats = data.guestIds.map(id => seatKey(id, 0));
+    }
+    return { id: d.id, seats: [], ...data };
+  });
 }
 
 export async function createTable(name, capacity, x, y) {
-  const ref = await addDoc(tablesCol, { name, capacity, x, y, guestIds: [] });
+  const ref = await addDoc(tablesCol, { name, capacity, x, y, seats: [] });
   return ref.id;
 }
 
@@ -36,36 +56,35 @@ export async function updateTablePosition(tableId, x, y) {
   await updateDoc(doc(db, 'tables', tableId), { x, y });
 }
 
-export async function assignGuestToTable(tables, guestId, targetTableId) {
+export async function assignPersonToTable(tables, guestId, personIdx, targetTableId) {
+  const key = seatKey(guestId, personIdx);
   const updates = [];
   for (const t of tables) {
-    const has = t.guestIds.includes(guestId);
+    const seats = t.seats || [];
+    const has = seats.includes(key);
     if (t.id === targetTableId && !has) {
-      updates.push(updateDoc(doc(db, 'tables', t.id), { guestIds: arrayUnion(guestId) }));
+      updates.push(updateDoc(doc(db, 'tables', t.id), { seats: arrayUnion(key) }));
     } else if (t.id !== targetTableId && has) {
-      updates.push(updateDoc(doc(db, 'tables', t.id), { guestIds: arrayRemove(guestId) }));
+      updates.push(updateDoc(doc(db, 'tables', t.id), { seats: arrayRemove(key) }));
     }
   }
   await Promise.all(updates);
 }
 
-export async function removeGuestFromTable(tableId, guestId) {
-  await updateDoc(doc(db, 'tables', tableId), { guestIds: arrayRemove(guestId) });
+export async function removePersonFromTable(tableId, key) {
+  await updateDoc(doc(db, 'tables', tableId), { seats: arrayRemove(key) });
 }
 
 export async function deleteTable(tableId) {
   await deleteDoc(doc(db, 'tables', tableId));
 }
 
-export function occupancy(table, guestById) {
-  return (table.guestIds || []).reduce((sum, id) => {
-    const g = guestById[id];
-    return sum + (g ? guestPartySize(g) : 0);
-  }, 0);
+export function occupancy(table) {
+  return (table.seats || []).length;
 }
 
-function renderTableCircle(table, guestById, editable) {
-  const count = occupancy(table, guestById);
+function renderTableCircle(table, editable) {
+  const count = occupancy(table);
   const over = count > (Number(table.capacity) || 0);
   return `
     <div class="table-circle${over ? ' over-capacity' : ''}" data-id="${escapeHtml(table.id)}"
@@ -123,49 +142,68 @@ function openAddTablePanel(onCreated) {
   });
 }
 
-function renderGuestCard(guest, editable) {
+function renderPersonCard(guest, personIdx, person, editable) {
   const status = guest.rsvp?.status || 'pending';
+  const typeLabel = person.type === 'child' ? 'E' : 'A';
+  const key = seatKey(guest.id, personIdx);
   return `
-    <div class="guest-card" draggable="${editable}" data-guest-id="${escapeHtml(guest.id)}">
-      <span>${escapeHtml(guest.name)} <span class="badge ${STATUS_BADGE[status]}" style="font-size:9px">${STATUS_LABELS[status]}</span></span>
-      <span class="guest-card-count">${guestPartySize(guest)}p</span>
+    <div class="guest-card" draggable="${editable}" data-seat-key="${escapeHtml(key)}">
+      <span>${escapeHtml(personName(guest, personIdx, person))} <span style="font-size:9px;opacity:.6">${typeLabel}</span> <span class="badge ${STATUS_BADGE[status]}" style="font-size:9px">${STATUS_LABELS[status]}</span></span>
     </div>`;
 }
 
-function renderGuestList(guests, placedIds, statusFilter, editable) {
-  const unplaced = guests.filter(g => !placedIds.has(g.id) && (statusFilter === 'all' || (g.rsvp?.status || 'pending') === statusFilter));
+function renderGuestList(guests, placedKeys, statusFilter, editable) {
   const filters = [
     { key: 'all', label: 'Tous' },
     { key: 'confirmed', label: 'Confirmés' },
     { key: 'pending', label: 'En attente' },
     { key: 'declined', label: 'Refusés' },
   ];
+
+  const cards = [];
+  for (const g of guests) {
+    if (statusFilter !== 'all' && (g.rsvp?.status || 'pending') !== statusFilter) continue;
+    const persons = personsOf(g);
+    for (let i = 0; i < persons.length; i++) {
+      const key = seatKey(g.id, i);
+      if (!placedKeys.has(key)) {
+        cards.push(renderPersonCard(g, i, persons[i], editable));
+      }
+    }
+  }
+
   return `
     <div class="tables-guest-list" id="tables-guest-list">
       <div class="tables-filter">
         ${filters.map(f => `<button type="button" class="guest-filter-btn${statusFilter === f.key ? ' active' : ''}" data-filter="${f.key}">${f.label}</button>`).join('')}
       </div>
-      ${unplaced.length
-        ? unplaced.map(g => renderGuestCard(g, editable)).join('')
-        : '<p style="color:var(--muted);font-size:12px">Aucun invité non placé.</p>'}
+      ${cards.length ? cards.join('') : '<p style="color:var(--muted);font-size:12px">Aucune personne non placée.</p>'}
     </div>`;
 }
 
-function openTableDetailPanel(table, guestById, onChange, editable) {
+function openTableDetailPanel(table, guests, onChange, editable) {
   const overlay = document.createElement('div');
   overlay.className = 'panel-overlay';
   const panelEl = document.createElement('div');
   panelEl.className = 'panel';
 
+  const guestById = Object.fromEntries(guests.map(g => [g.id, g]));
+
   function occupantRows() {
-    if (!table.guestIds.length) return '<p style="color:var(--muted);font-size:13px">Aucun invité sur cette table.</p>';
-    return table.guestIds.map(id => {
-      const g = guestById[id];
+    const seats = table.seats || [];
+    if (!seats.length) return '<p style="color:var(--muted);font-size:13px">Aucune personne sur cette table.</p>';
+    return seats.map(key => {
+      const { guestId, personIdx } = parseSeatKey(key);
+      const g = guestById[guestId];
       if (!g) return '';
+      const persons = personsOf(g);
+      const person = persons[personIdx];
+      if (!person) return '';
+      const typeLabel = person.type === 'child' ? 'enfant' : 'adulte';
       return `
-        <div class="table-occupant-row" data-guest-id="${escapeHtml(id)}">
-          <span>${escapeHtml(g.name)} (${guestPartySize(g)}p)</span>
-          ${editable ? `<button class="btn-secondary btn-remove-occupant" data-guest-id="${escapeHtml(id)}">Retirer</button>` : ''}
+        <div class="table-occupant-row" data-seat-key="${escapeHtml(key)}">
+          <span>${escapeHtml(personName(g, personIdx, person))} <span style="font-size:11px;opacity:.6">(${typeLabel})</span></span>
+          ${editable ? `<button class="btn-secondary btn-remove-occupant" data-seat-key="${escapeHtml(key)}">Retirer</button>` : ''}
         </div>`;
     }).join('');
   }
@@ -194,7 +232,7 @@ function openTableDetailPanel(table, guestById, onChange, editable) {
   panelEl.querySelectorAll('.btn-remove-occupant').forEach(btn => {
     btn.addEventListener('click', async () => {
       try {
-        await removeGuestFromTable(table.id, btn.dataset.guestId);
+        await removePersonFromTable(table.id, btn.dataset.seatKey);
         close();
         onChange();
       } catch (err) {
@@ -204,7 +242,7 @@ function openTableDetailPanel(table, guestById, onChange, editable) {
   });
 
   panelEl.querySelector('#panel-delete-table').addEventListener('click', async () => {
-    if (!confirm('Supprimer cette table ? Les invités qu\'elle contient redeviendront non placés.')) return;
+    if (!confirm('Supprimer cette table ? Les personnes qu\'elle contient redeviendront non placées.')) return;
     try {
       await deleteTable(table.id);
       close();
@@ -215,11 +253,11 @@ function openTableDetailPanel(table, guestById, onChange, editable) {
   });
 }
 
-function wireDragAndDrop(panel, tables, statusFilter, guestByIdRef, editable) {
+function wireDragAndDrop(panel, tables, guests, statusFilter, editable) {
   panel.querySelectorAll('.table-circle').forEach(circle => {
     circle.addEventListener('click', () => {
       const table = tables.find(t => t.id === circle.dataset.id);
-      if (table) openTableDetailPanel(table, guestByIdRef, () => renderTablesTab(statusFilter), editable);
+      if (table) openTableDetailPanel(table, guests, () => renderTablesTab(statusFilter), editable);
     });
   });
 
@@ -227,7 +265,7 @@ function wireDragAndDrop(panel, tables, statusFilter, guestByIdRef, editable) {
 
   panel.querySelectorAll('.guest-card').forEach(card => {
     card.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text/guest-id', card.dataset.guestId);
+      e.dataTransfer.setData('text/seat-key', card.dataset.seatKey);
       e.dataTransfer.effectAllowed = 'move';
     });
   });
@@ -242,15 +280,16 @@ function wireDragAndDrop(panel, tables, statusFilter, guestByIdRef, editable) {
       dragOffset = { x: e.clientX - rect.left, y: e.clientY - rect.top };
     });
     circle.addEventListener('dragover', e => {
-      if (e.dataTransfer.types.includes('text/guest-id')) e.preventDefault();
+      if (e.dataTransfer.types.includes('text/seat-key')) e.preventDefault();
     });
     circle.addEventListener('drop', async e => {
-      const guestId = e.dataTransfer.getData('text/guest-id');
-      if (!guestId) return;
+      const key = e.dataTransfer.getData('text/seat-key');
+      if (!key) return;
       e.preventDefault();
       e.stopPropagation();
       try {
-        await assignGuestToTable(tables, guestId, circle.dataset.id);
+        const { guestId, personIdx } = parseSeatKey(key);
+        await assignPersonToTable(tables, guestId, personIdx, circle.dataset.id);
         renderTablesTab(statusFilter);
       } catch (err) {
         alert(`Erreur : ${err.message}`);
@@ -295,15 +334,13 @@ export async function renderTablesTab(statusFilter = 'all') {
     return;
   }
 
-  const guestById = Object.fromEntries(guests.map(g => [g.id, g]));
-  const validGuestIds = new Set(guests.map(g => g.id));
-  tables = tables.map(t => ({ ...t, guestIds: t.guestIds.filter(id => validGuestIds.has(id)) }));
-  const placedIds = new Set(tables.flatMap(t => t.guestIds));
+  // Build set of all placed seat keys
+  const placedKeys = new Set(tables.flatMap(t => t.seats || []));
 
   panel.innerHTML = `
     <div class="tables-layout">
-      ${renderGuestList(guests, placedIds, statusFilter, editable)}
-      <div class="tables-canvas" id="tables-canvas">${tables.map(t => renderTableCircle(t, guestById, editable)).join('')}</div>
+      ${renderGuestList(guests, placedKeys, statusFilter, editable)}
+      <div class="tables-canvas" id="tables-canvas">${tables.map(t => renderTableCircle(t, editable)).join('')}</div>
     </div>`;
 
   panel.querySelectorAll('.guest-filter-btn').forEach(btn =>
@@ -316,5 +353,5 @@ export async function renderTablesTab(statusFilter = 'all') {
     );
   }
 
-  wireDragAndDrop(panel, tables, statusFilter, guestById, editable);
+  wireDragAndDrop(panel, tables, guests, statusFilter, editable);
 }
