@@ -1,6 +1,22 @@
 import { Resend } from 'resend';
+import admin from 'firebase-admin';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(
+      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    ),
+  });
+}
+
+async function verifyToken(req) {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) throw new Error('No token');
+  await admin.auth().verifyIdToken(token);
+}
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -108,6 +124,12 @@ function buildAccountHtml({ email, password, login_url }) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  try {
+    await verifyToken(req);
+  } catch {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   const { type, recipients, origin } = req.body;
   if (!type || !Array.isArray(recipients) || recipients.length === 0) {
