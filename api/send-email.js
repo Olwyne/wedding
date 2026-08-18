@@ -65,85 +65,110 @@ function buildHtml(type, recipient) {
   return '';
 }
 
-function baseStyle() {
+function emailHeader() {
   return `
-    <style>
-      body { font-family: Georgia, serif; background: #f9f6f1; margin: 0; padding: 0; }
-      .wrap { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 8px; overflow: hidden; }
-      .header { background: #2F5FB0; padding: 32px 40px; text-align: center; }
-      .header h1 { color: #fff; font-size: 22px; margin: 0; letter-spacing: 2px; }
-      .body { padding: 40px; color: #333; line-height: 1.7; }
-      .divider { border: none; border-top: 1px solid #e8e0d5; margin: 32px 0; }
-      .btn { display: inline-block; background: #2F5FB0; color: #fff !important; text-decoration: none;
-             padding: 14px 32px; border-radius: 6px; font-size: 15px; margin: 24px 0; }
-      .footer { padding: 20px 40px; font-size: 12px; color: #999; text-align: center; }
-      .zh { color: #555; font-size: 15px; }
-    </style>`;
+    <tr>
+      <td style="background:#6E1A1A;padding:36px 32px;text-align:center;">
+        <div style="font-size:38px;color:#C1993F;line-height:1;margin-bottom:10px;">囍</div>
+        <div style="color:#F4E9CE;font-size:13px;letter-spacing:.2em;text-transform:uppercase;">Sophie &amp; Ruiyuan</div>
+        <div style="color:#F4E9CE;font-size:12px;letter-spacing:.15em;opacity:.75;margin-top:4px;">24 · 07 · 2027</div>
+      </td>
+    </tr>`;
+}
+
+function emailFooter() {
+  return `
+    <tr>
+      <td style="padding:30px 32px 36px;text-align:center;">
+        <div style="height:1px;background:#eee;margin-bottom:24px;"></div>
+        <p style="margin:0;font-size:13px;color:#aaa;letter-spacing:.03em;">Avec toute notre affection,<br>Sophie &amp; Ruiyuan</p>
+      </td>
+    </tr>`;
+}
+
+function emailWrap(rows) {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+  <body style="margin:0;padding:0;background:#f5f1e6;">
+    <div style="background:#f5f1e6;padding:40px 16px;font-family:Georgia,'Times New Roman',serif;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);">
+        ${emailHeader()}
+        ${rows}
+        ${emailFooter()}
+      </table>
+    </div>
+  </body></html>`;
 }
 
 function buildRelanceHtml({ name, token, origin }) {
-  const link = `${origin}/?invite=${encodeURIComponent(token)}`;
-  return `<!DOCTYPE html><html><head>${baseStyle()}</head><body>
-    <div class="wrap">
-      <div class="header"><h1>Sophie &amp; Ruiyuan</h1></div>
-      <div class="body">
-        <p>Bonjour ${escapeHtml(name)},</p>
-        <p>Nous organisons notre mariage et nous n'avons pas encore reçu votre réponse.
-        Nous serions ravis de vous compter parmi nous !</p>
-        <p>Merci de confirmer votre présence via le lien ci-dessous :</p>
-        <a class="btn" href="${escapeHtml(link)}">Confirmer ma présence</a>
-        <hr class="divider">
-        <p class="zh">亲爱的 ${escapeHtml(name)}，</p>
-        <p class="zh">我们正在筹备婚礼，但还未收到您的回复。我们非常期待您的到来！</p>
-        <p class="zh">请点击以下链接确认您是否出席：</p>
-        <a class="btn" href="${escapeHtml(link)}">确认出席</a>
-      </div>
-      <div class="footer">Sophie &amp; Ruiyuan · 24 juillet 2027</div>
-    </div>
-  </body></html>`;
+  const link = escapeHtml(`${origin}/?invite=${encodeURIComponent(token)}`);
+  const btnStyle = 'display:inline-block;background:#6E1A1A;color:#F4E9CE!important;text-decoration:none;padding:13px 30px;border-radius:6px;font-size:14px;letter-spacing:.05em;margin:20px 0;';
+  return emailWrap(`
+    <tr><td style="padding:34px 32px 10px;">
+      <h1 style="margin:0 0 16px;font-size:20px;color:#3a1010;font-weight:600;">Nous attendons votre réponse 💌</h1>
+      <p style="margin:0 0 8px;font-size:14px;color:#3a1010;line-height:1.7;">Bonjour ${escapeHtml(name)},</p>
+      <p style="margin:0 0 20px;font-size:14px;color:#555;line-height:1.7;">Nous organisons notre mariage et nous n'avons pas encore reçu votre réponse. Nous serions ravis de vous compter parmi nous !</p>
+      <p style="margin:0 0 4px;font-size:14px;color:#555;">Merci de confirmer votre présence :</p>
+      <a href="${link}" style="${btnStyle}">Confirmer ma présence</a>
+    </td></tr>
+    <tr><td style="padding:0 32px 10px;">
+      <div style="height:1px;background:#eee;margin-bottom:20px;"></div>
+      <p style="margin:0 0 8px;font-size:14px;color:#3a1010;">亲爱的 ${escapeHtml(name)}，</p>
+      <p style="margin:0 0 20px;font-size:14px;color:#555;line-height:1.7;">我们正在筹备婚礼，但还未收到您的回复。我们非常期待您的到来！</p>
+      <a href="${link}" style="${btnStyle}">确认出席</a>
+    </td></tr>`);
 }
 
 function buildRappelHtml({ name, events }) {
   const eventList = Array.isArray(events) && events.length
-    ? `<ul>${events.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>`
+    ? `<ul style="margin:8px 0 16px;padding-left:20px;color:#3a1010;font-size:14px;">${events.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>`
     : '';
   // Event titles come from admin (French only); no separate ZH titles stored
   const eventListZh = eventList;
-  return `<!DOCTYPE html><html><head>${baseStyle()}</head><body>
-    <div class="wrap">
-      <div class="header"><h1>Sophie &amp; Ruiyuan</h1></div>
-      <div class="body">
-        <p>Bonjour ${escapeHtml(name)},</p>
-        <p>Le grand jour approche ! Nous avons hâte de vous retrouver pour célébrer avec vous.</p>
-        <p><strong>Date :</strong> 24 juillet 2027</p>
-        ${eventList ? `<p><strong>Vos événements :</strong></p>${eventList}` : ''}
-        <p>Pour toute question, répondez directement à cet email.</p>
-        <hr class="divider">
-        <p class="zh">亲爱的 ${escapeHtml(name)}，</p>
-        <p class="zh">婚礼的日子快到了！我们非常期待与您共同庆祝这一美好时刻。</p>
-        <p class="zh"><strong>日期：</strong>2027年7月24日</p>
-        ${eventListZh ? `<p class="zh"><strong>您的活动：</strong></p>${eventListZh}` : ''}
-        <p class="zh">如有任何问题，请直接回复此邮件。</p>
-      </div>
-      <div class="footer">Sophie &amp; Ruiyuan · 24 juillet 2027</div>
-    </div>
-  </body></html>`;
+  return emailWrap(`
+    <tr><td style="padding:34px 32px 10px;">
+      <h1 style="margin:0 0 16px;font-size:20px;color:#3a1010;font-weight:600;">On se retrouve bientôt ! 🎉</h1>
+      <p style="margin:0 0 8px;font-size:14px;color:#3a1010;line-height:1.7;">Bonjour ${escapeHtml(name)},</p>
+      <p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.7;">Le grand jour approche ! Nous avons hâte de vous retrouver pour célébrer avec vous.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;color:#999;font-size:12px;letter-spacing:.05em;text-transform:uppercase;width:40%;">Date</td>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;color:#3a1010;font-size:14px;">24 juillet 2027</td>
+        </tr>
+        ${eventList ? `<tr>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;color:#999;font-size:12px;letter-spacing:.05em;text-transform:uppercase;vertical-align:top;">Événements</td>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;color:#3a1010;font-size:14px;">${eventList}</td>
+        </tr>` : ''}
+      </table>
+      <p style="margin:16px 0 0;font-size:13px;color:#aaa;">Pour toute question, répondez directement à cet email.</p>
+    </td></tr>
+    <tr><td style="padding:0 32px 10px;">
+      <div style="height:1px;background:#eee;margin:20px 0;"></div>
+      <p style="margin:0 0 8px;font-size:14px;color:#3a1010;">亲爱的 ${escapeHtml(name)}，</p>
+      <p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.7;">婚礼的日子快到了！我们非常期待与您共同庆祝这一美好时刻。</p>
+      ${eventListZh ? `<p style="margin:0 0 4px;font-size:12px;color:#999;text-transform:uppercase;letter-spacing:.05em;">您的活动</p>${eventListZh}` : ''}
+      <p style="margin:8px 0 0;font-size:13px;color:#aaa;">如有任何问题，请直接回复此邮件。</p>
+    </td></tr>`);
 }
 
 function buildAccountHtml({ email, password, login_url }) {
-  return `<!DOCTYPE html><html><head>${baseStyle()}</head><body>
-    <div class="wrap">
-      <div class="header"><h1>Site de mariage – Accès admin</h1></div>
-      <div class="body">
-        <p>Un compte administrateur a été créé pour vous.</p>
-        <p><strong>Email :</strong> ${escapeHtml(email)}<br>
-           <strong>Mot de passe temporaire :</strong> <code>${escapeHtml(password)}</code></p>
-        <p>Connectez-vous via le lien ci-dessous. Changez votre mot de passe après la première connexion.</p>
-        <a class="btn" href="${escapeHtml(login_url)}">Accéder au site</a>
-      </div>
-      <div class="footer">Sophie &amp; Ruiyuan</div>
-    </div>
-  </body></html>`;
+  const btnStyle = 'display:inline-block;background:#6E1A1A;color:#F4E9CE!important;text-decoration:none;padding:13px 30px;border-radius:6px;font-size:14px;letter-spacing:.05em;margin:20px 0;';
+  return emailWrap(`
+    <tr><td style="padding:34px 32px 10px;">
+      <h1 style="margin:0 0 16px;font-size:20px;color:#3a1010;font-weight:600;">Votre accès admin</h1>
+      <p style="margin:0 0 20px;font-size:14px;color:#555;line-height:1.7;">Un compte administrateur a été créé pour vous.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;color:#999;font-size:12px;letter-spacing:.05em;text-transform:uppercase;width:40%;">Email</td>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;color:#3a1010;font-size:14px;">${escapeHtml(email)}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;color:#999;font-size:12px;letter-spacing:.05em;text-transform:uppercase;">Mot de passe</td>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;color:#3a1010;font-size:14px;font-family:monospace;">${escapeHtml(password)}</td>
+        </tr>
+      </table>
+      <a href="${escapeHtml(login_url)}" style="${btnStyle}">Accéder au site</a>
+      <p style="margin:0;font-size:12px;color:#aaa;">Changez votre mot de passe après la première connexion.</p>
+    </td></tr>`);
 }
 
 export default async function handler(req, res) {
