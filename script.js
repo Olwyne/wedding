@@ -548,7 +548,10 @@ function escapeHtml(str) {
       <div class="places-grid" id="places-grid"></div>`;
     const mapBtnLabel = escapeHtml(bf(block, 'mapBtnLabel', lang));
     const grid = section.querySelector('#places-grid');
-    (block.places || []).forEach(p => {
+    (block.places || []).filter(p => {
+      const ids = Array.isArray(p.eventIds) ? p.eventIds : [];
+      return ids.length === 0 || ids.some(id => state.assignedEventIds.includes(id));
+    }).forEach(p => {
       const name = lang === 'zh' ? (p.name_zh || p.name_fr) : (p.name_fr || p.name_zh);
       const addr = lang === 'zh' ? (p.addr_zh || p.addr_fr) : (p.addr_fr || p.addr_zh);
       const card = document.createElement('div');
