@@ -11,10 +11,10 @@
   --bordeaux-deep4:#5a1415;
   --gold:#C1993F;
   --red:#B03A2E;
-  --navy:#002395;
-  --navy-deep:#001a70;
-  --navy-deep2:#001560;
-  --navy-deep4:#00124a;
+  --navy:#2F5FB0;
+  --navy-deep:#284fa0;
+  --navy-deep2:#1f3e80;
+  --navy-deep4:#172e60;
   --ink:#2A211C;
   --ink2:#3a2b23;
   --ink3:#4b3a30;
@@ -212,7 +212,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .place-zh{font-size:26px;color:var(--red);margin-bottom:10px}
 .place-name{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--bordeaux);margin-bottom:6px}
 .place-addr{color:var(--taupe);line-height:1.6;margin-bottom:8px}
-.place-note{color:var(--ink3);font-size:14px;line-height:1.5;margin-bottom:16px;font-style:italic}
+.place-note{color:var(--ink3);font-size:14px;line-height:1.5;margin-bottom:16px}
 .place-map-btn{display:inline-block;border:1px solid var(--red);color:var(--red);text-decoration:none;padding:10px 22px;border-radius:999px;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
 
 /* ===================== HEBERGEMENT ===================== */
