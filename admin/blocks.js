@@ -66,6 +66,7 @@ const TYPE_DEFS = {
         { key: 'addr_fr', label: 'Adresse FR' }, { key: 'addr_zh', label: 'Adresse ZH' },
         { key: 'note_fr', label: 'Note FR' }, { key: 'note_zh', label: 'Note ZH' },
         { key: 'mapUrl', label: 'URL carte' },
+        { key: 'eventIds', label: 'Événements liés (vide = tous les invités)', kind: 'event-checkboxes' },
       ] } },
   hebergement: { label: 'Hébergement', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
@@ -313,12 +314,28 @@ function buildScalarFieldHtml(field, data) {
     </label>`;
 }
 
-function buildListItemHtml(listDef, item, idx) {
-  const fields = listDef.itemFields.map(f => `
+function buildListItemHtml(listDef, item, idx, eventOptions) {
+  const fields = listDef.itemFields.map(f => {
+    if (f.kind === 'event-checkboxes') {
+      const selected = Array.isArray(item?.[f.key]) ? item[f.key] : [];
+      const boxes = (eventOptions || []).map(ev =>
+        `<label style="display:flex;gap:6px;align-items:center;font-weight:normal;margin-bottom:4px">
+          <input type="checkbox" class="list-item-checkbox" data-field="${escapeHtml(f.key)}" data-value="${escapeHtml(ev.value)}" ${selected.includes(ev.value) ? 'checked' : ''}>
+          ${escapeHtml(ev.label)}
+        </label>`
+      ).join('');
+      return `
+        <label class="field">
+          <span>${escapeHtml(f.label)}</span>
+          <div>${boxes || '<em style="color:var(--muted)">Aucun événement configuré</em>'}</div>
+        </label>`;
+    }
+    return `
       <label class="field">
         <span>${escapeHtml(f.label)}</span>
-        <input class="list-item-field" data-field="${f.key}" value="${escapeHtml(item?.[f.key] || '')}">
-      </label>`).join('');
+        <input class="list-item-field" data-field="${escapeHtml(f.key)}" value="${escapeHtml(item?.[f.key] || '')}">
+      </label>`;
+  }).join('');
   return `
     <div class="section-list-item" data-idx="${idx}">
       <button type="button" class="btn-icon btn-remove-item">✕</button>
@@ -326,8 +343,8 @@ function buildListItemHtml(listDef, item, idx) {
     </div>`;
 }
 
-function buildListHtml(listDef, items) {
-  const rows = (items || []).map((item, idx) => buildListItemHtml(listDef, item, idx)).join('');
+function buildListHtml(listDef, items, eventOptions) {
+  const rows = (items || []).map((item, idx) => buildListItemHtml(listDef, item, idx, eventOptions)).join('');
   return `
     <div class="field">
       <span>${escapeHtml(listDef.label)}</span>
@@ -340,15 +357,22 @@ function readListFromPanel(panelEl, listDef) {
   const items = [];
   panelEl.querySelectorAll(`#blk-list-${listDef.key} .section-list-item`).forEach(row => {
     const item = {};
-    row.querySelectorAll('.list-item-field').forEach(input => {
-      item[input.dataset.field] = input.value;
+    listDef.itemFields.forEach(f => {
+      if (f.kind === 'event-checkboxes') {
+        item[f.key] = Array.from(
+          row.querySelectorAll(`.list-item-checkbox[data-field="${f.key}"]:checked`)
+        ).map(cb => cb.dataset.value);
+      } else {
+        const input = row.querySelector(`.list-item-field[data-field="${f.key}"]`);
+        if (input) item[f.key] = input.value;
+      }
     });
     items.push(item);
   });
   return items;
 }
 
-function attachListHandlers(panelEl, def) {
+function attachListHandlers(panelEl, def, eventOptions) {
   if (!def.list) return;
   const listEl = panelEl.querySelector(`#blk-list-${def.list.key}`);
 
@@ -361,18 +385,18 @@ function attachListHandlers(panelEl, def) {
 
   panelEl.querySelector(`#blk-list-add-${def.list.key}`).addEventListener('click', () => {
     const idx = listEl.children.length;
-    listEl.insertAdjacentHTML('beforeend', buildListItemHtml(def.list, {}, idx));
+    listEl.insertAdjacentHTML('beforeend', buildListItemHtml(def.list, {}, idx, eventOptions));
     bindRemoveButtons();
   });
 }
 
-function renderBlockForm(block) {
+function renderBlockForm(block, eventOptions) {
   const type = block?.type || '';
   if (!type) return '';
   const def = TYPE_DEFS[type];
   const data = block || {};
   const scalarHtml = def.fields.map(f => buildScalarFieldHtml(f, data)).join('');
-  const listHtml = def.list ? buildListHtml(def.list, data[def.list.key]) : '';
+  const listHtml = def.list ? buildListHtml(def.list, data[def.list.key], eventOptions) : '';
   const imagePreview = type === 'image' ? '<div id="img-existing-preview"></div>' : '';
 
   return `
@@ -410,10 +434,21 @@ function attachImagePreview(panelEl, imageUrl) {
   container.appendChild(img);
 }
 
-function openBlockPanel(id, allBlocks, audience) {
+async function openBlockPanel(id, allBlocks, audience) {
   const block = id ? allBlocks.find(b => b.id === id) : null;
   const isNew = !block;
   const filtered = allBlocks.filter(b => (b.audience || 'invite') === audience);
+
+  let eventOptions = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'events'), orderBy('order')));
+    eventOptions = snap.docs.map(d => {
+      const ev = d.data();
+      return { value: d.id, label: ev.title_fr || ev.title_zh || d.id };
+    });
+  } catch (e) {
+    console.warn('Could not load events for block panel', e);
+  }
 
   const overlay = document.createElement('div');
   overlay.className = 'panel-overlay';
@@ -426,7 +461,7 @@ function openBlockPanel(id, allBlocks, audience) {
       <button class="btn-icon" id="panel-close">✕</button>
     </div>
     <div class="panel-body" id="panel-body">
-      ${isNew ? renderTypeSelector(audience) : renderBlockForm(block)}
+      ${isNew ? renderTypeSelector(audience) : renderBlockForm(block, eventOptions)}
       <p id="block-error" class="login-error" hidden></p>
     </div>
     <div class="panel-footer">
@@ -449,15 +484,15 @@ function openBlockPanel(id, allBlocks, audience) {
         panelEl.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         panelEl.querySelector('#panel-body').innerHTML =
-          renderBlockForm({ type: card.dataset.type, visible: true });
+          renderBlockForm({ type: card.dataset.type, visible: true }, eventOptions);
         panelEl.querySelector('#panel-save').disabled = false;
-        attachListHandlers(panelEl, TYPE_DEFS[card.dataset.type]);
+        attachListHandlers(panelEl, TYPE_DEFS[card.dataset.type], eventOptions);
         mountRichEditorsForType(panelEl, TYPE_DEFS[card.dataset.type], { visible: true });
       });
     });
   } else {
     attachImagePreview(panelEl, block?.image_url);
-    attachListHandlers(panelEl, TYPE_DEFS[block.type]);
+    attachListHandlers(panelEl, TYPE_DEFS[block.type], eventOptions);
     mountRichEditorsForType(panelEl, TYPE_DEFS[block.type], block);
   }
 
