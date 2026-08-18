@@ -22,7 +22,7 @@ async function verifyToken(req) {
   const authHeader = req.headers.authorization || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (!token) throw new Error('No token');
-  await admin.auth().verifyIdToken(token);
+  return admin.auth().verifyIdToken(token);
 }
 
 function escapeHtml(str) {
@@ -132,8 +132,9 @@ function buildAccountHtml({ email, password, login_url }) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  let decodedToken;
   try {
-    await verifyToken(req);
+    decodedToken = await verifyToken(req);
   } catch {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -154,6 +155,10 @@ export default async function handler(req, res) {
     const adminDoc = await admin.firestore().collection('admins').doc(resetUid).get();
     if (!adminDoc.exists) {
       return res.status(403).json({ error: 'Target UID is not an admin' });
+    }
+    const requestorDoc = await admin.firestore().collection('admins').doc(decodedToken.uid).get();
+    if (requestorDoc.data()?.permissions?.users !== 'write') {
+      return res.status(403).json({ error: 'Insufficient permission' });
     }
     const newPassword = generatePassword();
     await admin.auth().updateUser(resetUid, { password: newPassword });
