@@ -99,9 +99,11 @@ function emailWrap(rows) {
   </body></html>`;
 }
 
-function buildRelanceHtml({ name, token, origin }) {
-  const link = escapeHtml(`${origin}/?invite=${encodeURIComponent(token)}`);
+function buildRelanceHtml({ name, token, origin, lang }) {
   const linkZh = escapeHtml(`${origin}/?invite=${encodeURIComponent(token)}&lang=zh`);
+  const link = lang === 'zh'
+    ? linkZh
+    : escapeHtml(`${origin}/?invite=${encodeURIComponent(token)}`);
   const btnStyle = 'display:inline-block;background:#6E1A1A;color:#F4E9CE!important;text-decoration:none;padding:13px 30px;border-radius:6px;font-size:14px;letter-spacing:.05em;margin:20px 0;';
   return emailWrap(`
     <tr><td style="padding:34px 32px 10px;">

@@ -316,6 +316,11 @@ function escapeHtml(str) {
   // ---- Language toggle ----
   function toggleLang() {
     state.lang = state.lang === 'fr' ? 'zh' : 'fr';
+    const params = new URLSearchParams(window.location.search);
+    if (state.lang === 'zh') params.set('lang', 'zh');
+    else params.delete('lang');
+    const q = params.toString();
+    history.replaceState(null, '', q ? `${location.pathname}?${q}` : location.pathname);
     fullRender();
   }
   document.getElementById('lang-btn').addEventListener('click', toggleLang);

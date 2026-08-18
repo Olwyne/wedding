@@ -316,6 +316,7 @@ export async function renderGuestsTab() {
           name: g.name,
           email: g.email,
           token: g.id,
+          lang: g.lang || 'fr',
           events: Object.keys(g.rsvp?.confirmedEvents || {})
             .filter(id => g.rsvp.confirmedEvents[id])
             .map(id => eventById[id]?.title_fr || id),
@@ -338,6 +339,7 @@ export async function renderGuestsTab() {
           name: g.name,
           email: g.email,
           token: g.id,
+          lang: g.lang || 'fr',
           events: Object.keys(g.rsvp?.confirmedEvents || {})
             .filter(id => g.rsvp.confirmedEvents[id])
             .map(id => eventById[id]?.title_fr || id),
@@ -448,6 +450,13 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
         <input id="guest-email" type="email" value="${escapeHtml(guest?.email || '')}" placeholder="email@exemple.com">
       </label>
       <div class="field">
+        <span>Langue email</span>
+        <div class="btn-group" id="lang-group">
+          <button type="button" class="btn-group-item ${(guest?.lang || 'fr') === 'fr' ? 'active' : ''}" data-lang="fr">FR</button>
+          <button type="button" class="btn-group-item ${(guest?.lang || 'fr') === 'zh' ? 'active' : ''}" data-lang="zh">ZH</button>
+        </div>
+      </div>
+      <div class="field">
         <span>Côté</span>
         <div class="btn-group" id="side-group">
           ${['marie','mariee','deux'].map(s => `
@@ -491,9 +500,17 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
   overlay.addEventListener('click', close);
 
   // Side toggle
-  panelEl.querySelectorAll('.btn-group-item').forEach(btn => {
+  panelEl.querySelectorAll('#side-group .btn-group-item').forEach(btn => {
     btn.addEventListener('click', () => {
-      panelEl.querySelectorAll('.btn-group-item').forEach(b => b.classList.remove('active'));
+      panelEl.querySelectorAll('#side-group .btn-group-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Lang toggle
+  panelEl.querySelectorAll('#lang-group .btn-group-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      panelEl.querySelectorAll('#lang-group .btn-group-item').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     });
   });
@@ -551,7 +568,8 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
     if (!name) { saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer'; return; }
     const email = panelEl.querySelector('#guest-email').value.trim();
 
-    const side = panelEl.querySelector('.btn-group-item.active')?.dataset.side || 'deux';
+    const side = panelEl.querySelector('#side-group .btn-group-item.active')?.dataset.side || 'deux';
+    const lang = panelEl.querySelector('#lang-group .btn-group-item.active')?.dataset.lang || 'fr';
     const assignedEvents = Array.from(
       panelEl.querySelectorAll('.event-card.selected')
     ).map(c => c.dataset.eventId);
@@ -559,12 +577,12 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
     if (maxAdults < 1) { saveBtn.disabled = false; saveBtn.textContent = isNew ? 'Créer' : 'Enregistrer'; return; }
 
     if (id) {
-      await updateDoc(doc(db, 'guests', id), { name, email, side, assignedEvents, expectedGuests, maxAdults, maxChildren });
+      await updateDoc(doc(db, 'guests', id), { name, email, side, lang, assignedEvents, expectedGuests, maxAdults, maxChildren });
       close();
     } else {
       const token = generateToken();
       await setDoc(doc(db, 'guests', token), {
-        name, email, side, assignedEvents, expectedGuests, maxAdults, maxChildren,
+        name, email, side, lang, assignedEvents, expectedGuests, maxAdults, maxChildren,
         createdAt: new Date().toISOString(),
         rsvp: { status: 'pending', name: '', email: '', phone: '', adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: '', confirmedEvents: {}, respondedAt: null },
       });
