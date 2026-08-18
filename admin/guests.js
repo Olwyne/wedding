@@ -6,6 +6,8 @@ import {
 import { loadEvents } from './events.js?v=2';
 import { canWrite } from './permissions.js';
 import { loadChildrenAllowed } from './settings.js?v=1';
+import { sendEmailWithConfirm } from './email.js';
+import { auth } from '../firebase-init.js';
 
 const guestsCol = collection(db, 'guests');
 
@@ -69,7 +71,19 @@ function passesFilters(g) {
   return true;
 }
 
-function renderGuestFilters(events) {
+function renderEmailBulkButton(type, guests) {
+  const eligible = guests.filter(g => guestStatus(g) === (type === 'relance' ? 'pending' : 'confirmed') && g.email);
+  if (eligible.length === 0) return '';
+  const label = type === 'relance'
+    ? `📧 Relancer tous (${eligible.length})`
+    : `📧 Rappel J à tous (${eligible.length})`;
+  return `<button class="btn-secondary" id="bulk-email-btn" data-email-type="${type}">${label}</button>`;
+}
+
+function renderGuestFilters(events, allGuests) {
+  let bulkBtn = '';
+  if (statusFilter === 'pending') bulkBtn = renderEmailBulkButton('relance', allGuests);
+  else if (statusFilter === 'confirmed') bulkBtn = renderEmailBulkButton('rappel', allGuests);
   return `
     <div class="guest-filters">
       <div class="filter-group">
@@ -78,6 +92,7 @@ function renderGuestFilters(events) {
       </div>
       <div class="filter-group">
         ${STATUS_FILTERS.map(([id, label]) => `<button class="filter-pill ${statusFilter === id ? 'filter-pill-active' : ''}" data-status-filter="${id}">${label}</button>`).join('')}
+        ${bulkBtn}
       </div>
     </div>`;
 }
@@ -92,13 +107,21 @@ function ensureMenuCloseListener() {
 }
 
 function renderActionsCell(g, editable) {
+  const status = guestStatus(g);
+  const emailActions = g.email && (status === 'pending' || status === 'confirmed')
+    ? [{ action: 'send-email', label: status === 'pending' ? '✉ Relancer' : '✉ Rappel J' }]
+    : [];
   const items = editable
     ? [
         { action: 'view-rsvp', label: 'Réponse' },
+        ...emailActions,
         { action: 'edit-guest', label: 'Modifier' },
         { action: 'delete-guest', label: 'Supprimer', danger: true },
       ]
-    : [{ action: 'view-rsvp', label: 'Réponse' }];
+    : [
+        { action: 'view-rsvp', label: 'Réponse' },
+        ...emailActions,
+      ];
   return `
     <div class="action-menu-wrap">
       <button type="button" class="btn-icon action-menu-btn" data-id="${escapeHtml(g.id)}" title="Actions" aria-label="Actions">⋮</button>
@@ -232,7 +255,7 @@ export async function renderGuestsTab() {
   const filteredGuests = guests.filter(passesFilters);
 
   panel.innerHTML = `
-    ${renderGuestFilters(events)}
+    ${renderGuestFilters(events, guests)}
     <table class="admin-table">
       <thead>
         <tr>
@@ -283,9 +306,46 @@ export async function renderGuestsTab() {
         if (!confirm('Supprimer cet invité ?')) return;
         await deleteDoc(doc(db, 'guests', guestId));
         renderGuestsTab();
+      } else if (action === 'send-email') {
+        const g = guests.find(g => g.id === guestId);
+        if (!g?.email) return;
+        const status = guestStatus(g);
+        const type = status === 'pending' ? 'relance' : 'rappel';
+        const recipient = {
+          name: g.name,
+          email: g.email,
+          token: g.id,
+          events: Object.keys(g.rsvp?.confirmedEvents || {})
+            .filter(id => g.rsvp.confirmedEvents[id])
+            .map(id => eventById[id]?.title_fr || id),
+        };
+        try {
+          await sendEmailWithConfirm(type, [recipient]);
+        } catch { /* cancelled */ }
       }
     });
   });
+  // Bulk email button
+  const bulkEmailBtn = panel.querySelector('#bulk-email-btn');
+  if (bulkEmailBtn) {
+    bulkEmailBtn.addEventListener('click', async () => {
+      const type = bulkEmailBtn.dataset.emailType;
+      const targetStatus = type === 'relance' ? 'pending' : 'confirmed';
+      const recipients = guests
+        .filter(g => guestStatus(g) === targetStatus && g.email)
+        .map(g => ({
+          name: g.name,
+          email: g.email,
+          token: g.id,
+          events: Object.keys(g.rsvp?.confirmedEvents || {})
+            .filter(id => g.rsvp.confirmedEvents[id])
+            .map(id => eventById[id]?.title_fr || id),
+        }));
+      try {
+        await sendEmailWithConfirm(type, recipients);
+      } catch { /* cancelled */ }
+    });
+  }
   if (editable) {
     document.getElementById('add-guest-btn').addEventListener('click', () =>
       openGuestPanel(null, guests, events, childrenAllowed)
