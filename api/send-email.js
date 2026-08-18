@@ -2,18 +2,27 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function escapeHtml(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function buildSubject(type) {
   if (type === 'relance') return 'Sophie & Sob – Nous attendons votre réponse 💌';
   if (type === 'rappel') return 'Sophie & Sob – On se retrouve bientôt ! 🎉';
   if (type === 'account') return 'Accès admin – Site de mariage Sophie & Sob';
-  throw new Error(`Unknown type: ${type}`);
+  return '';
 }
 
 function buildHtml(type, recipient) {
   if (type === 'relance') return buildRelanceHtml(recipient);
   if (type === 'rappel') return buildRappelHtml(recipient);
   if (type === 'account') return buildAccountHtml(recipient);
-  throw new Error(`Unknown type: ${type}`);
+  return '';
 }
 
 function baseStyle() {
@@ -33,18 +42,18 @@ function baseStyle() {
 }
 
 function buildRelanceHtml({ name, token, origin }) {
-  const link = `${origin}/?invite=${token}`;
+  const link = `${origin}/?invite=${encodeURIComponent(token)}`;
   return `<!DOCTYPE html><html><head>${baseStyle()}</head><body>
     <div class="wrap">
       <div class="header"><h1>Sophie &amp; Sob</h1></div>
       <div class="body">
-        <p>Bonjour ${name},</p>
+        <p>Bonjour ${escapeHtml(name)},</p>
         <p>Nous organisons notre mariage et nous n'avons pas encore reçu votre réponse.
         Nous serions ravis de vous compter parmi nous !</p>
         <p>Merci de confirmer votre présence via le lien ci-dessous :</p>
         <a class="btn" href="${link}">Confirmer ma présence</a>
         <hr class="divider">
-        <p class="zh">亲爱的 ${name}，</p>
+        <p class="zh">亲爱的 ${escapeHtml(name)}，</p>
         <p class="zh">我们正在筹备婚礼，但还未收到您的回复。我们非常期待您的到来！</p>
         <p class="zh">请点击以下链接确认您是否出席：</p>
         <a class="btn" href="${link}">确认出席</a>
@@ -58,18 +67,19 @@ function buildRappelHtml({ name, events }) {
   const eventList = Array.isArray(events) && events.length
     ? `<ul>${events.map(e => `<li>${e}</li>`).join('')}</ul>`
     : '';
+  // Event titles come from admin (French only); no separate ZH titles stored
   const eventListZh = eventList;
   return `<!DOCTYPE html><html><head>${baseStyle()}</head><body>
     <div class="wrap">
       <div class="header"><h1>Sophie &amp; Sob</h1></div>
       <div class="body">
-        <p>Bonjour ${name},</p>
+        <p>Bonjour ${escapeHtml(name)},</p>
         <p>Le grand jour approche ! Nous avons hâte de vous retrouver pour célébrer avec vous.</p>
         <p><strong>Date :</strong> 24 juillet 2027</p>
         ${eventList ? `<p><strong>Vos événements :</strong></p>${eventList}` : ''}
         <p>Pour toute question, répondez directement à cet email.</p>
         <hr class="divider">
-        <p class="zh">亲爱的 ${name}，</p>
+        <p class="zh">亲爱的 ${escapeHtml(name)}，</p>
         <p class="zh">婚礼的日子快到了！我们非常期待与您共同庆祝这一美好时刻。</p>
         <p class="zh"><strong>日期：</strong>2027年7月24日</p>
         ${eventListZh ? `<p class="zh"><strong>您的活动：</strong></p>${eventListZh}` : ''}
@@ -86,10 +96,10 @@ function buildAccountHtml({ email, password, login_url }) {
       <div class="header"><h1>Site de mariage – Accès admin</h1></div>
       <div class="body">
         <p>Un compte administrateur a été créé pour vous.</p>
-        <p><strong>Email :</strong> ${email}<br>
-           <strong>Mot de passe temporaire :</strong> <code>${password}</code></p>
+        <p><strong>Email :</strong> ${escapeHtml(email)}<br>
+           <strong>Mot de passe temporaire :</strong> <code>${escapeHtml(password)}</code></p>
         <p>Connectez-vous via le lien ci-dessous. Changez votre mot de passe après la première connexion.</p>
-        <a class="btn" href="${login_url}">Accéder au site</a>
+        <a class="btn" href="${escapeHtml(login_url)}">Accéder au site</a>
       </div>
       <div class="footer">Sophie &amp; Sob</div>
     </div>
@@ -102,6 +112,11 @@ export default async function handler(req, res) {
   const { type, recipients, origin } = req.body;
   if (!type || !Array.isArray(recipients) || recipients.length === 0) {
     return res.status(400).json({ error: 'Missing type or recipients' });
+  }
+
+  const VALID_TYPES = ['relance', 'rappel', 'account'];
+  if (!VALID_TYPES.includes(type)) {
+    return res.status(400).json({ error: `Unknown type: ${type}` });
   }
 
   const subject = buildSubject(type);
