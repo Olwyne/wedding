@@ -101,6 +101,7 @@ function emailWrap(rows) {
 
 function buildRelanceHtml({ name, token, origin }) {
   const link = escapeHtml(`${origin}/?invite=${encodeURIComponent(token)}`);
+  const linkZh = escapeHtml(`${origin}/?invite=${encodeURIComponent(token)}&lang=zh`);
   const btnStyle = 'display:inline-block;background:#6E1A1A;color:#F4E9CE!important;text-decoration:none;padding:13px 30px;border-radius:6px;font-size:14px;letter-spacing:.05em;margin:20px 0;';
   return emailWrap(`
     <tr><td style="padding:34px 32px 10px;">
@@ -114,7 +115,7 @@ function buildRelanceHtml({ name, token, origin }) {
       <div style="height:1px;background:#eee;margin-bottom:20px;"></div>
       <p style="margin:0 0 8px;font-size:14px;color:#3a1010;">亲爱的 ${escapeHtml(name)}，</p>
       <p style="margin:0 0 20px;font-size:14px;color:#555;line-height:1.7;">我们正在筹备婚礼，但还未收到您的回复。我们非常期待您的到来！</p>
-      <a href="${link}" style="${btnStyle}">确认出席</a>
+      <a href="${linkZh}" style="${btnStyle}">确认出席</a>
     </td></tr>`);
 }
 

@@ -112,7 +112,7 @@ function escapeHtml(str) {
   };
 
   const state = {
-    lang: 'fr',
+    lang: new URLSearchParams(window.location.search).get('lang') === 'zh' ? 'zh' : 'fr',
     access: 'public',
     env: 'sealed',
     menuOpen: false,
