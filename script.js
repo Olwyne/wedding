@@ -432,13 +432,36 @@ function escapeHtml(str) {
     header.className = 'hero';
     header.innerHTML = `
       <div class="hero-xi cal">囍</div>
-      <svg class="hero-rose" viewBox="-45 -45 90 90" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M-3 -1 C-1 -6 5 -6 6 -1 C7 4 1 8 -3 5 C-10 2 -9 -8 -2 -12"/>
-        <path d="M-13 -4 C-16 -15 -5 -23 6 -20 C18 -17 22 -4 16 5 C11 13 0 18 -9 14"/>
-        <path d="M-24 2 C-29 -12 -18 -28 -2 -30"/>
-        <path d="M4 -30 C20 -27 31 -13 29 3"/>
-        <path d="M28 8 C25 23 11 33 -5 30"/>
-        <path d="M-10 31 C-25 27 -33 12 -30 -4"/>
+      <svg class="hero-peony" viewBox="-70 -70 140 140" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+        <!-- outer petals -->
+        <path d="M0 -4 C-6 -22 -4 -44 0 -54 C4 -44 6 -22 0 -4"/>
+        <path d="M0 -4 C16 -18 36 -20 46 -14 C38 -4 18 2 0 -4"/>
+        <path d="M0 -4 C18 8 28 26 22 38 C10 34 -2 18 0 -4"/>
+        <path d="M0 -4 C6 14 2 36 -4 44 C-10 36 -12 14 0 -4"/>
+        <path d="M0 -4 C-16 10 -30 24 -36 36 C-44 22 -36 6 0 -4"/>
+        <path d="M0 -4 C-20 -14 -38 -10 -46 -2 C-40 8 -20 8 0 -4"/>
+        <!-- mid petals -->
+        <path d="M0 -4 C-3 -15 -1 -30 0 -36 C3 -28 4 -14 0 -4"/>
+        <path d="M0 -4 C10 -10 22 -10 28 -6 C22 2 10 4 0 -4"/>
+        <path d="M0 -4 C10 6 12 20 8 28 C0 24 -4 10 0 -4"/>
+        <path d="M0 -4 C-3 8 -6 22 -8 28 C-14 20 -12 8 0 -4"/>
+        <path d="M0 -4 C-14 -4 -24 2 -28 8 C-22 14 -10 8 0 -4"/>
+        <path d="M0 -4 C-12 -14 -22 -18 -26 -14 C-22 -6 -10 -2 0 -4"/>
+        <!-- inner cup -->
+        <path d="M0 -4 C-2 -10 0 -18 2 -18 C4 -14 2 -6 0 -4"/>
+        <path d="M0 -4 C6 -6 10 -2 8 2 C4 4 0 0 0 -4"/>
+        <path d="M0 -4 C4 4 2 12 0 14 C-2 10 -2 4 0 -4"/>
+        <path d="M0 -4 C-4 2 -8 4 -8 0 C-6 -4 -2 -4 0 -4"/>
+        <!-- stamens -->
+        <path d="M0 -4 L0 -14"/><circle cx="0" cy="-15" r="1.2" fill="currentColor"/>
+        <path d="M0 -4 L6 -12"/><circle cx="7" cy="-13" r="1.2" fill="currentColor"/>
+        <path d="M0 -4 L-6 -12"/><circle cx="-7" cy="-13" r="1.2" fill="currentColor"/>
+        <path d="M0 -4 L10 -7"/><circle cx="11" cy="-7.5" r="1.2" fill="currentColor"/>
+        <path d="M0 -4 L-10 -7"/><circle cx="-11" cy="-7.5" r="1.2" fill="currentColor"/>
+        <!-- leaves -->
+        <path d="M8 38 C14 52 6 66 -4 68 C-8 56 -2 44 8 38"/>
+        <path d="M8 38 C22 44 28 58 22 66 C10 64 4 50 8 38"/>
+        <path d="M-34 32 C-46 42 -50 56 -42 62 C-32 58 -28 44 -34 32"/>
       </svg>
       <div class="hero-content">
         <div class="monogram">
