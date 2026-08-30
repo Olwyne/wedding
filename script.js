@@ -470,11 +470,11 @@ function escapeHtml(str) {
         </div>
         <div class="kicker hero-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
         <div class="hero-names">
-          <h1 class="hero-name">Ruiyuan Hu</h1>
-          <span class="cal hero-amp">&amp;</span>
-          <h1 class="hero-name">Sophie Boyer</h1>
+          ${lang === 'zh'
+            ? `<h1 class="hero-name cal">胡瑞原 &amp; 苏菲·博耶</h1>`
+            : `<h1 class="hero-name">Ruiyuan Hu</h1><span class="cal hero-amp">&amp;</span><h1 class="hero-name">Sophie Boyer</h1>`}
         </div>
-        <div class="cal hero-zh">胡瑞原 &amp; 苏菲·博耶</div>
+        <div class="hero-zh${lang === 'zh' ? '' : ' cal'}">${lang === 'zh' ? 'Ruiyuan Hu &amp; Sophie Boyer' : '胡瑞原 &amp; 苏菲·博耶'}</div>
         <div class="hero-date-row">
           <span class="rule"></span>
           <span class="hero-date">24 JUILLET 2027</span>
