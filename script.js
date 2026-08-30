@@ -483,7 +483,6 @@ function escapeHtml(str) {
           </span>
           <span class="rule"></span>
         </div>
-        ${lang === 'zh' ? '<div class="hero-date-sub">24 JUILLET 2027</div>' : ''}
         <p class="hero-place">${escapeHtml(bf(block, 'place', lang))}</p>
         <div class="hero-fusion-row">
           <span class="rule rule-sm"></span>
