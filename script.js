@@ -416,8 +416,8 @@ function escapeHtml(str) {
     const wrap = document.createElement('div');
     wrap.innerHTML = `
       <div class="teaser-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
-      <h1 class="teaser-names">Sophie <span class="amp-italic">&amp;</span> Ruiyuan</h1>
-      <div class="cal teaser-zh">苏菲 &amp; 瑞元</div>
+      <h1 class="teaser-names">Ruiyuan Hu <span class="amp-italic">&amp;</span> Sophie Boyer</h1>
+      <div class="cal teaser-zh">胡瑞元 &amp; 苏菲·博耶</div>
       <div class="teaser-rule"></div>
       <div class="teaser-date">24 · 07 · 2027</div>
       <div class="teaser-msg rich-text">${sanitizeHtml(bf(block, 'message', lang))}</div>
@@ -470,11 +470,11 @@ function escapeHtml(str) {
         </div>
         <div class="kicker hero-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
         <div class="hero-names">
-          <h1 class="hero-name">Sophie</h1>
+          <h1 class="hero-name">Ruiyuan Hu</h1>
           <span class="cal hero-amp">&amp;</span>
-          <h1 class="hero-name">Ruiyuan</h1>
+          <h1 class="hero-name">Sophie Boyer</h1>
         </div>
-        <div class="cal hero-zh">苏菲 &amp; 瑞元</div>
+        <div class="cal hero-zh">胡瑞元 &amp; 苏菲·博耶</div>
         <div class="hero-date-row">
           <span class="rule"></span>
           <span class="hero-date">24 JUILLET 2027</span>
@@ -903,7 +903,7 @@ function escapeHtml(str) {
           ${block.phone && !block.phone.includes('00 00 00') ? `<span class="footer-phone">☎ ${escapeHtml(block.phone)}</span>` : ''}
         </div>
         <div class="footer-rule"></div>
-        <div class="footer-names">${escapeHtml(block.names || 'Sophie & Ruiyuan').replace(/&amp;/g, '<span class="amp">&amp;</span>')}</div>
+        <div class="footer-names">${escapeHtml(block.names || 'Ruiyuan Hu & Sophie Boyer').replace(/&amp;/g, '<span class="amp">&amp;</span>')}</div>
         <div class="footer-date">${escapeHtml(block.dateLocation || '24 · 07 · 2027 — LOGNES')}</div>
       </div>`;
     return footer;
