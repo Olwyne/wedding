@@ -419,7 +419,8 @@ function escapeHtml(str) {
       <h1 class="teaser-names${lang === 'zh' ? ' cal' : ''}">${lang === 'zh' ? '胡瑞原 &amp; 苏菲·博耶' : 'Ruiyuan Hu <span class="amp-italic">&amp;</span> Sophie Boyer'}</h1>
       <div class="teaser-zh${lang === 'zh' ? '' : ' cal'}">${lang === 'zh' ? 'Ruiyuan Hu &amp; Sophie Boyer' : '胡瑞原 &amp; 苏菲·博耶'}</div>
       <div class="teaser-rule"></div>
-      <div class="teaser-date">24 · 07 · 2027</div>
+      <div class="teaser-date${lang === 'zh' ? ' cal' : ''}">${lang === 'zh' ? '2027年7月24日' : '24 · 07 · 2027'}</div>
+      ${lang === 'zh' ? '<div class="teaser-date-sub">24 · 07 · 2027</div>' : ''}
       <div class="teaser-msg rich-text">${sanitizeHtml(bf(block, 'message', lang))}</div>
       <button class="btn-outline" id="lang-btn-teaser">${escapeHtml(L.langBtn)}</button>`;
     wrap.querySelector('#lang-btn-teaser').addEventListener('click', toggleLang);
@@ -477,9 +478,12 @@ function escapeHtml(str) {
         <div class="hero-zh${lang === 'zh' ? '' : ' cal'}">${lang === 'zh' ? 'Ruiyuan Hu &amp; Sophie Boyer' : '胡瑞原 &amp; 苏菲·博耶'}</div>
         <div class="hero-date-row">
           <span class="rule"></span>
-          <span class="hero-date">24 JUILLET 2027</span>
+          <span class="hero-date${lang === 'zh' ? ' cal' : ''}">
+            ${lang === 'zh' ? '2027年7月24日' : '24 JUILLET 2027'}
+          </span>
           <span class="rule"></span>
         </div>
+        ${lang === 'zh' ? '<div class="hero-date-sub">24 JUILLET 2027</div>' : ''}
         <p class="hero-place">${escapeHtml(bf(block, 'place', lang))}</p>
         <div class="hero-fusion-row">
           <span class="rule rule-sm"></span>

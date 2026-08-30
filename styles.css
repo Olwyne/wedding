@@ -100,6 +100,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .teaser-zh{font-size:clamp(22px,5vw,34px);color:var(--parchment);margin-top:8px}
 .teaser-rule{width:64px;height:1px;background:var(--gold);margin:32px auto}
 .teaser-date{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,5vw,40px);letter-spacing:.08em}
+.teaser-date-sub{font-family:'Cormorant Garamond',serif;font-size:clamp(16px,3vw,22px);letter-spacing:.08em;opacity:.7;margin-top:4px}
 .teaser-msg{margin-top:26px;font-size:17px;line-height:1.7;color:var(--parchment2);opacity:.92}
 .btn-outline{margin-top:40px;background:transparent;border:1px solid var(--gold);color:var(--parchment);padding:11px 22px;border-radius:999px;letter-spacing:.15em;font-size:12px;cursor:pointer;text-transform:uppercase}
 
@@ -151,6 +152,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .rule{width:40px;height:1px;background:var(--gold)}
 .rule-sm{width:28px}
 .hero-date{font-family:'Cormorant Garamond',serif;font-size:clamp(20px,4vw,30px);letter-spacing:.16em;color:var(--bordeaux)}
+.hero-date-sub{font-family:'Cormorant Garamond',serif;font-size:clamp(14px,2.5vw,20px);letter-spacing:.12em;color:var(--taupe);margin-top:4px;text-align:center}
 .hero-place{color:var(--taupe);font-size:16px;letter-spacing:.05em}
 .hero-fusion-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px}
 .hero-fusion{font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:var(--red)}
