@@ -416,8 +416,8 @@ function escapeHtml(str) {
     const wrap = document.createElement('div');
     wrap.innerHTML = `
       <div class="teaser-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
-      <h1 class="teaser-names">Ruiyuan Hu <span class="amp-italic">&amp;</span> Sophie Boyer</h1>
-      <div class="cal teaser-zh">胡瑞原 &amp; 苏菲·博耶</div>
+      <h1 class="teaser-names${lang === 'zh' ? ' cal' : ''}">${lang === 'zh' ? '胡瑞原 &amp; 苏菲·博耶' : 'Ruiyuan Hu <span class="amp-italic">&amp;</span> Sophie Boyer'}</h1>
+      <div class="teaser-zh${lang === 'zh' ? '' : ' cal'}">${lang === 'zh' ? 'Ruiyuan Hu &amp; Sophie Boyer' : '胡瑞原 &amp; 苏菲·博耶'}</div>
       <div class="teaser-rule"></div>
       <div class="teaser-date">24 · 07 · 2027</div>
       <div class="teaser-msg rich-text">${sanitizeHtml(bf(block, 'message', lang))}</div>
