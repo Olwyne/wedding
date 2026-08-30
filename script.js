@@ -417,7 +417,7 @@ function escapeHtml(str) {
     wrap.innerHTML = `
       <div class="teaser-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
       <h1 class="teaser-names${lang === 'zh' ? ' cal' : ''}">${lang === 'zh' ? '胡瑞原 <span class="amp-italic">&amp;</span> 苏菲·博耶' : 'Ruiyuan Hu <span class="amp-italic">&amp;</span> Sophie Boyer'}</h1>
-      <div class="teaser-zh${lang === 'zh' ? '' : ' cal'}">${lang === 'zh' ? 'Ruiyuan Hu &amp; Sophie Boyer' : '胡瑞原 <span class="amp-italic">&amp;</span> 苏菲·博耶'}</div>
+      <div class="teaser-zh${lang === 'zh' ? '' : ' cal'}">${lang === 'zh' ? 'Ruiyuan Hu <span class="amp-italic">&amp;</span> Sophie Boyer' : '胡瑞原 <span class="amp-italic">&amp;</span> 苏菲·博耶'}</div>
       <div class="teaser-rule"></div>
       <div class="teaser-date${lang === 'zh' ? ' cal' : ''}">${lang === 'zh' ? '2027年7月24日' : '24 · 07 · 2027'}</div>
       ${lang === 'zh' ? '<div class="teaser-date-sub">24 · 07 · 2027</div>' : ''}
@@ -475,7 +475,7 @@ function escapeHtml(str) {
             ? `<h1 class="hero-name cal">胡瑞原 <span class="hero-amp">&amp;</span> 苏菲·博耶</h1>`
             : `<h1 class="hero-name">Ruiyuan Hu</h1><span class="cal hero-amp">&amp;</span><h1 class="hero-name">Sophie Boyer</h1>`}
         </div>
-        <div class="hero-zh${lang === 'zh' ? '' : ' cal'}">${lang === 'zh' ? 'Ruiyuan Hu &amp; Sophie Boyer' : '胡瑞原 <span class="amp-italic">&amp;</span> 苏菲·博耶'}</div>
+        <div class="hero-zh${lang === 'zh' ? '' : ' cal'}">${lang === 'zh' ? 'Ruiyuan Hu <span class="amp-italic">&amp;</span> Sophie Boyer' : '胡瑞原 <span class="amp-italic">&amp;</span> 苏菲·博耶'}</div>
         <div class="hero-date-row">
           <span class="rule"></span>
           <span class="hero-date${lang === 'zh' ? ' cal' : ''}">
