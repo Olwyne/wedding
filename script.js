@@ -417,7 +417,7 @@ function escapeHtml(str) {
     wrap.innerHTML = `
       <div class="teaser-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
       <h1 class="teaser-names">Ruiyuan Hu <span class="amp-italic">&amp;</span> Sophie Boyer</h1>
-      <div class="cal teaser-zh">胡瑞元 &amp; 苏菲·博耶</div>
+      <div class="cal teaser-zh">胡瑞原 &amp; 苏菲</div>
       <div class="teaser-rule"></div>
       <div class="teaser-date">24 · 07 · 2027</div>
       <div class="teaser-msg rich-text">${sanitizeHtml(bf(block, 'message', lang))}</div>
@@ -474,7 +474,7 @@ function escapeHtml(str) {
           <span class="cal hero-amp">&amp;</span>
           <h1 class="hero-name">Sophie Boyer</h1>
         </div>
-        <div class="cal hero-zh">胡瑞元 &amp; 苏菲·博耶</div>
+        <div class="cal hero-zh">胡瑞原 &amp; 苏菲</div>
         <div class="hero-date-row">
           <span class="rule"></span>
           <span class="hero-date">24 JUILLET 2027</span>
