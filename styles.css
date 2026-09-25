@@ -166,7 +166,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 /* ===================== SECTIONS SHARED ===================== */
 .section{position:relative;padding:clamp(72px,10vw,130px) 24px}
 .section-cream{background:var(--cream)}
-.section-cream+.section-cream,.section-cream-grad+.section-cream,.section-cream-grad2+.section-cream,.section-cream+.section-cream-grad,.section-cream-grad+.section-cream-grad,.section-cream-grad2+.section-cream-grad,.section-cream+.section-cream-grad2,.section-cream-grad+.section-cream-grad2,.section-cream-grad2+.section-cream-grad2{padding-top:40px;border-top:1px solid rgba(193,153,63,.2)}
+.section-cream+.section-cream,.section-cream-grad+.section-cream,.section-cream-grad2+.section-cream,.section-cream+.section-cream-grad,.section-cream-grad+.section-cream-grad,.section-cream-grad2+.section-cream-grad,.section-cream+.section-cream-grad2,.section-cream-grad+.section-cream-grad2,.section-cream-grad2+.section-cream-grad2{padding-top:40px}
 .section-cream:has(+.section-cream),.section-cream-grad:has(+.section-cream),.section-cream-grad2:has(+.section-cream),.section-cream:has(+.section-cream-grad),.section-cream-grad:has(+.section-cream-grad),.section-cream-grad2:has(+.section-cream-grad),.section-cream:has(+.section-cream-grad2),.section-cream-grad:has(+.section-cream-grad2),.section-cream-grad2:has(+.section-cream-grad2){padding-bottom:40px}
 .section-cream-grad{background:linear-gradient(180deg,var(--cream2) 0%,var(--cream) 100%)}
 .section-cream-grad2{background:linear-gradient(180deg,var(--cream2),var(--cream))}
