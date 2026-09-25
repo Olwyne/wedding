@@ -1,4 +1,33 @@
-import { google } from 'googleapis';
+import crypto from 'crypto';
+
+function base64url(buf) {
+  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+async function getAccessToken(credentials) {
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64url(Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })));
+  const payload = base64url(Buffer.from(JSON.stringify({
+    iss: credentials.client_email,
+    scope: 'https://www.googleapis.com/auth/drive.file',
+    aud: 'https://oauth2.googleapis.com/token',
+    exp: now + 3600,
+    iat: now,
+  })));
+  const sign = crypto.createSign('RSA-SHA256');
+  sign.update(`${header}.${payload}`);
+  const sig = base64url(sign.sign(credentials.private_key));
+  const jwt = `${header}.${payload}.${sig}`;
+
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: jwt }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Token error: ${JSON.stringify(data)}`);
+  return data.access_token;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -8,12 +37,7 @@ export default async function handler(req, res) {
 
   try {
     const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-    const auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/drive.file'],
-    });
-    const authClient = await auth.getClient();
-    const { token } = await authClient.getAccessToken();
+    const token = await getAccessToken(credentials);
 
     const initRes = await fetch(
       'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable',
@@ -35,13 +59,13 @@ export default async function handler(req, res) {
     if (!initRes.ok) {
       const err = await initRes.text();
       console.error('Drive initiate error:', err);
-      return res.status(502).json({ error: 'Drive initiate failed' });
+      return res.status(502).json({ error: 'Drive initiate failed', detail: err });
     }
 
     const uploadUrl = initRes.headers.get('location');
     res.json({ uploadUrl });
   } catch (err) {
-    console.error('drive-initiate error:', err);
+    console.error('drive-initiate error:', err.message);
     res.status(500).json({ error: err.message });
   }
 }
