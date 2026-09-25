@@ -645,13 +645,14 @@ function escapeHtml(str) {
     return section;
   }
 
-  async function uploadPhotos(files, guestToken, progressEl, L, guestName) {
+  async function uploadPhotos(files, guestToken, progressEl, L, guestName, onProgress) {
     if (!files.length) return [];
     progressEl.hidden = false;
     const urls = [];
     let done = 0;
     const updateProgress = () => {
       progressEl.textContent = `${L.fPhotosUploading} ${done} ${L.fPhotosOf} ${files.length}…`;
+      if (onProgress) onProgress(done, files.length);
     };
     updateProgress();
 
@@ -896,10 +897,15 @@ function escapeHtml(str) {
       state.submitting = true;
       submitBtn.disabled = true;
       const photoFiles = selectedFiles.slice(0, 30);
-      if (photoFiles.length > 0) submitBtn.textContent = L.fSubmitting;
+      const setSubmitProgress = (done, total) => {
+        submitBtn.innerHTML = `<span class="btn-spinner"></span><span>${done} / ${total}</span>`;
+      };
+      if (photoFiles.length > 0) {
+        submitBtn.innerHTML = `<span class="btn-spinner"></span><span>${L.fSubmitting}</span>`;
+      }
       try {
         const progressEl = section.querySelector('#r-photos-progress');
-        const photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L, state.rsvp.name);
+        const photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L, state.rsvp.name, photoFiles.length > 0 ? setSubmitProgress : null);
 
         const rsvp = state.rsvp.presence === 'no'
           ? { status: 'declined', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: state.rsvp.message, confirmedEvents: {}, photoUrls, respondedAt: new Date().toISOString() }
@@ -916,7 +922,7 @@ function escapeHtml(str) {
       } finally {
         state.submitting = false;
         submitBtn.disabled = false;
-        submitBtn.textContent = L.fSubmit;
+        submitBtn.innerHTML = escapeHtml(L.fSubmit);
       }
     });
     section.querySelector('#rsvp-edit-btn').addEventListener('click', () => {

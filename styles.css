@@ -242,7 +242,10 @@ input:focus,textarea:focus,select:focus{outline:none}
 .rsvp-event-check{width:22px;height:22px;border-radius:4px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--parchment);font-size:13px}
 .rsvp-event-title{font-family:'Cormorant Garamond',serif;font-size:18px}
 .rsvp-event-meta{opacity:.7;font-size:13px}
-.btn-submit{margin-top:6px;background:var(--gold);color:#3a1010;border:none;padding:16px;border-radius:4px;font-size:15px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-weight:600}
+.btn-submit{margin-top:6px;background:var(--gold);color:#3a1010;border:none;padding:16px;border-radius:4px;font-size:15px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-weight:600;transition:background .2s,color .2s;display:flex;align-items:center;justify-content:center;gap:10px;width:100%}
+.btn-submit:disabled{background:rgba(193,153,63,.35);color:rgba(58,16,16,.5);cursor:not-allowed}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-submit .btn-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(58,16,16,.3);border-top-color:rgba(58,16,16,.7);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
 #rsvp-presence-yes,#rsvp-extra-people{display:flex;flex-direction:column;gap:22px}
 .rsvp-toggle{display:flex;gap:12px}
 .rsvp-toggle-btn{flex:1;padding:13px 16px;border-radius:4px;border:1px solid rgba(193,153,63,.5);background:rgba(251,246,236,.06);color:var(--cream);font-size:15px;cursor:pointer;transition:all .2s}
