@@ -668,6 +668,7 @@ function escapeHtml(str) {
           headers: {
             'Content-Type': file.type,
             'x-file-name': driveName,
+            'x-guest-token': guestToken,
           },
           body: file,
         });

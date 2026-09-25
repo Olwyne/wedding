@@ -11,6 +11,7 @@ import { sendEmailWithConfirm } from './email.js';
 const guestsCol = collection(db, 'guests');
 
 let statusFilter = 'all';
+let sideFilter = 'all';
 let eventFilters = new Set();
 
 const STATUS_FILTERS = [['all', 'Tous'], ['confirmed', 'Confirmés'], ['pending', 'En attente'], ['declined', 'Refusés']];
@@ -63,6 +64,7 @@ function guestStatus(g) {
 
 function passesFilters(g) {
   if (statusFilter !== 'all' && guestStatus(g) !== statusFilter) return false;
+  if (sideFilter !== 'all' && (g.side || 'deux') !== sideFilter) return false;
   if (eventFilters.size > 0) {
     const assigned = g.assignedEvents || [];
     if (!assigned.some(id => eventFilters.has(id))) return false;
@@ -80,6 +82,8 @@ function renderEmailBulkButton(type, allGuests) {
   return `<button class="btn-secondary" id="bulk-email-btn" data-email-type="${type}">${label}</button>`;
 }
 
+const SIDE_FILTERS = [['all', 'Tous les côtés'], ['marie', 'Marié'], ['mariee', 'Mariée'], ['deux', 'Les deux']];
+
 function renderGuestFilters(events, allGuests) {
   let bulkBtn = '';
   if (statusFilter === 'pending') bulkBtn = renderEmailBulkButton('relance', allGuests);
@@ -89,6 +93,9 @@ function renderGuestFilters(events, allGuests) {
       <div class="filter-group">
         <button class="filter-pill ${eventFilters.size === 0 ? 'filter-pill-active' : ''}" data-event-filter="__all__">Tous les événements</button>
         ${events.map(e => `<button class="filter-pill ${eventFilters.has(e.id) ? 'filter-pill-active' : ''}" data-event-filter="${escapeHtml(e.id)}">${escapeHtml(e.title_fr)}</button>`).join('')}
+      </div>
+      <div class="filter-group">
+        ${SIDE_FILTERS.map(([id, label]) => `<button class="filter-pill ${sideFilter === id ? 'filter-pill-active' : ''}" data-side-filter="${id}">${label}</button>`).join('')}
       </div>
       <div class="filter-group">
         ${STATUS_FILTERS.map(([id, label]) => `<button class="filter-pill ${statusFilter === id ? 'filter-pill-active' : ''}" data-status-filter="${id}">${label}</button>`).join('')}
@@ -255,7 +262,7 @@ export async function renderGuestsTab() {
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
   const validEventIds = new Set(events.map(e => e.id));
   Array.from(eventFilters).forEach(id => { if (!validEventIds.has(id)) eventFilters.delete(id); });
-  const filteredGuests = guests.filter(passesFilters);
+  const filteredGuests = guests.filter(passesFilters).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr', { sensitivity: 'base' }));
 
   panel.innerHTML = `
     ${renderGuestFilters(events, guests)}
@@ -281,6 +288,9 @@ export async function renderGuestsTab() {
       else eventFilters.add(val);
       renderGuestsTab();
     })
+  );
+  panel.querySelectorAll('[data-side-filter]').forEach(btn =>
+    btn.addEventListener('click', () => { sideFilter = btn.dataset.sideFilter; renderGuestsTab(); })
   );
   panel.querySelectorAll('[data-status-filter]').forEach(btn =>
     btn.addEventListener('click', () => { statusFilter = btn.dataset.statusFilter; renderGuestsTab(); })

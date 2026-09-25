@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { verifyToken } from './lib/auth.js';
 
 function base64url(buf) {
   return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -31,6 +32,9 @@ async function getAccessToken(credentials) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
+
+  try { await verifyToken(req); }
+  catch { return res.status(401).json({ error: 'Unauthorized' }); }
 
   const { name, contentType, size } = req.body;
   if (!name || !contentType || !size) return res.status(400).json({ error: 'Missing fields' });

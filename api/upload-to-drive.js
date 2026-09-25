@@ -1,4 +1,11 @@
+import { admin, verifyToken } from './lib/auth.js';
 export const config = { api: { bodyParser: false } };
+
+async function verifyGuest(token) {
+  if (!token) throw new Error('No guest token');
+  const doc = await admin.firestore().collection('guests').doc(token).get();
+  if (!doc.exists) throw new Error('Unknown guest');
+}
 
 async function getAccessToken() {
   const res = await fetch('https://oauth2.googleapis.com/token', {
@@ -18,6 +25,17 @@ async function getAccessToken() {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
+
+  try {
+    const authHeader = req.headers.authorization || '';
+    if (authHeader.startsWith('Bearer ')) {
+      await verifyToken(req);
+    } else {
+      await verifyGuest(req.headers['x-guest-token']);
+    }
+  } catch {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   const fileName = req.headers['x-file-name'] || 'upload';
   const contentType = req.headers['content-type'] || 'application/octet-stream';

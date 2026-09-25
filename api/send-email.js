@@ -1,5 +1,5 @@
-import admin from 'firebase-admin';
 import crypto from 'crypto';
+import { admin, verifyToken } from './lib/auth.js';
 
 function generatePassword(length = 12) {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
@@ -27,20 +27,6 @@ async function sendViaBrevo(to, toName, subject, html) {
   }
 }
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(
-      JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-    ),
-  });
-}
-
-async function verifyToken(req) {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-  if (!token) throw new Error('No token');
-  return admin.auth().verifyIdToken(token);
-}
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -184,7 +170,16 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const { type, recipients, origin } = req.body;
+  const { type, recipients } = req.body;
+  const rawOrigin = req.body.origin || '';
+  let origin = '';
+  try {
+    const u = new URL(rawOrigin);
+    if (u.protocol !== 'https:') throw new Error('not https');
+    origin = u.origin;
+  } catch {
+    // leave origin empty — links will be relative (no invite link)
+  }
   if (!type || !Array.isArray(recipients) || recipients.length === 0) {
     return res.status(400).json({ error: 'Missing type or recipients' });
   }
