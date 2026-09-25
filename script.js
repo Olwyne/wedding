@@ -13,6 +13,27 @@ function sendRsvpEmails(rsvp) {
   const eventsLabel = Object.keys(rsvp.confirmedEvents || {}).filter(id => rsvp.confirmedEvents[id]).length
     ? visibleEvents().filter(e => rsvp.confirmedEvents[e.id]).map(e => e.title).join(', ')
     : 'Aucun';
+
+  let programme = '';
+  let programmeNote = '';
+  if (rsvp.status === 'confirmed') {
+    const lang = state.lang;
+    const confirmedEvs = (state.rawEvents || [])
+      .filter(e => (state.assignedEventIds || []).includes(e.id) && rsvp.confirmedEvents?.[e.id])
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+    if (confirmedEvs.length) {
+      programme = confirmedEvs.map(e => {
+        const title = lang === 'zh' ? (e.title_zh || e.title_fr) : (e.title_fr || e.title_zh);
+        const time  = lang === 'zh' ? (e.time_zh  || e.time_fr)  : (e.time_fr  || e.time_zh);
+        const place = lang === 'zh' ? (e.place_zh || e.place_fr) : (e.place_fr || e.place_zh);
+        return [title, time, place].filter(Boolean).join(' – ');
+      }).join('\n');
+    }
+    programmeNote = lang === 'zh'
+      ? '请注意：部分地址和时间尚未最终确定。我们将在婚礼前几周通过邮件向您发送最终确认信息。'
+      : 'Note : certaines adresses et certains horaires ne sont pas encore définitifs. Vous recevrez un email quelques semaines avant avec les détails définitifs.';
+  }
+
   const common = {
     guest_name: rsvp.name,
     status: statusLabel,
@@ -23,6 +44,8 @@ function sendRsvpEmails(rsvp) {
     diet: rsvp.diet || '—',
     message: rsvp.message || '—',
     events: eventsLabel,
+    programme,
+    programme_note: programmeNote,
   };
   window.emailjs.send(emailjsConfig.serviceId, emailjsConfig.templateId, { ...common, to_email: emailjsConfig.adminEmail })
     .catch(err => console.error('Admin notif email failed', err));
@@ -395,7 +418,8 @@ function escapeHtml(str) {
   }
 
   function canSeeAddresses() {
-    return !state.hideAddresses || state.isPreview;
+    if (!state.hideAddresses || state.isPreview) return true;
+    return state.submitted && state.rsvp.presence === 'yes';
   }
 
   function renderRsvpFormState() {
