@@ -1,32 +1,18 @@
-import crypto from 'crypto';
-
 export const config = { api: { bodyParser: false } };
 
-function base64url(buf) {
-  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-}
-
-async function getAccessToken(credentials) {
-  const now = Math.floor(Date.now() / 1000);
-  const header = base64url(Buffer.from(JSON.stringify({ alg: 'RS256', typ: 'JWT' })));
-  const payload = base64url(Buffer.from(JSON.stringify({
-    iss: credentials.client_email,
-    scope: 'https://www.googleapis.com/auth/drive.file',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now,
-  })));
-  const sign = crypto.createSign('RSA-SHA256');
-  sign.update(`${header}.${payload}`);
-  const sig = base64url(sign.sign(credentials.private_key));
-  const jwt = `${header}.${payload}.${sig}`;
+async function getAccessToken() {
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: jwt }),
+    body: new URLSearchParams({
+      client_id: process.env.GOOGLE_OAUTH_CLIENT_ID,
+      client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+      refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN,
+      grant_type: 'refresh_token',
+    }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(`Token error: ${JSON.stringify(data)}`);
+  if (!res.ok) throw new Error(`OAuth error: ${JSON.stringify(data)}`);
   return data.access_token;
 }
 
@@ -41,8 +27,7 @@ export default async function handler(req, res) {
     for await (const chunk of req) chunks.push(chunk);
     const fileData = Buffer.concat(chunks);
 
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-    const token = await getAccessToken(credentials);
+    const token = await getAccessToken();
 
     const boundary = 'drive_upload_boundary';
     const metadata = JSON.stringify({ name: fileName, parents: [process.env.GOOGLE_DRIVE_FOLDER_ID] });

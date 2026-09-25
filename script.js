@@ -645,7 +645,7 @@ function escapeHtml(str) {
     return section;
   }
 
-  async function uploadPhotos(files, guestToken, progressEl, L) {
+  async function uploadPhotos(files, guestToken, progressEl, L, guestName) {
     if (!files.length) return [];
     progressEl.hidden = false;
     const urls = [];
@@ -655,17 +655,22 @@ function escapeHtml(str) {
     };
     updateProgress();
 
+    const safePerson = (guestName || guestToken).replace(/[^a-zA-Z0-9À-ɏ一-鿿._-]/g, '_').slice(0, 40);
+    let idx = 1;
+
     for (const file of files) {
       try {
-        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const ext = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : '';
+        const driveName = `${safePerson}-${String(idx).padStart(2, '0')}${ext}`;
         const res = await fetch('/api/upload-to-drive', {
           method: 'POST',
           headers: {
             'Content-Type': file.type,
-            'x-file-name': `${guestToken}-${Date.now()}-${safeName}`,
+            'x-file-name': driveName,
           },
           body: file,
         });
+        idx++;
         if (res.ok) {
           const { url } = await res.json();
           if (url) urls.push(url);
@@ -893,7 +898,7 @@ function escapeHtml(str) {
       try {
         const photoFiles = selectedFiles.slice(0, 30);
         const progressEl = section.querySelector('#r-photos-progress');
-        const photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L);
+        const photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L, state.rsvp.name);
 
         const rsvp = state.rsvp.presence === 'no'
           ? { status: 'declined', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: state.rsvp.message, confirmedEvents: {}, photoUrls, respondedAt: new Date().toISOString() }
