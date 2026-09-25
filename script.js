@@ -69,7 +69,7 @@ function escapeHtml(str) {
       submitError: "Erreur d'envoi, réessayez.",
       presenceRequiredError: 'Merci de préciser si vous serez présent·e.',
       eventsRequiredError: 'Sélectionnez au moins un événement.',
-      deadlineTitle: 'La date limite est passée',
+      deadlineTitle: 'La date limite de réponse est passée',
       deadlineMsg: "Nous sommes tellement désolés que vous n'ayez pas pu venir à notre mariage. La date limite pour répondre est passée et nous n'avons malheureusement pas reçu votre réponse. Nous aurions été si heureux de vous avoir parmi nous, mais les chiffres définitifs ont été transmis — votre présence nous manquera.",
     },
     zh: {
