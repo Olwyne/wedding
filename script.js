@@ -1,6 +1,5 @@
-import { db, storage } from './firebase-init.js';
+import { db } from './firebase-init.js';
 import { doc, getDoc, getDocs, updateDoc, collection, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 import { emailjsConfig } from './emailjs-config.js';
 import { sanitizeHtml } from './admin/richtext.js';
 
@@ -654,29 +653,31 @@ function escapeHtml(str) {
     };
     updateProgress();
 
-    await Promise.all(files.map(file => new Promise(resolve => {
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const storageRef = ref(storage, `photos/${guestToken}/${Date.now()}-${safeName}`);
-      const task = uploadBytesResumable(storageRef, file);
-      task.on('state_changed', null,
-        () => { done++; updateProgress(); resolve(null); },
-        async () => {
-          try {
-            const url = await getDownloadURL(task.snapshot.ref);
-            urls.push(url);
-          } catch (_) {}
-          done++;
-          updateProgress();
-          resolve(null);
-        }
-      );
-    })));
+    for (const file of files) {
+      try {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const { uploadUrl } = await fetch('/api/drive-initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: `${guestToken}-${Date.now()}-${safeName}`, contentType: file.type, size: file.size }),
+        }).then(r => r.json());
 
-    if (urls.length === files.length) {
-      progressEl.textContent = L.fPhotosDone;
-    } else if (urls.length < files.length) {
-      progressEl.textContent = L.fPhotosError;
+        const uploadRes = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': file.type },
+          body: file,
+        });
+
+        if (uploadRes.ok) {
+          const { id } = await uploadRes.json();
+          if (id) urls.push(`https://drive.google.com/file/d/${id}/view`);
+        }
+      } catch (_) {}
+      done++;
+      updateProgress();
     }
+
+    progressEl.textContent = urls.length === files.length ? L.fPhotosDone : L.fPhotosError;
     return urls;
   }
 
