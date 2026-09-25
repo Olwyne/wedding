@@ -59,7 +59,7 @@ function escapeHtml(str) {
       confirmNone: "C'est noté. Nous avons bien reçu votre réponse.",
       confirmDecline: 'Nous sommes tristes de ne pas vous voir, merci de nous avoir prévenus.',
       fPhotos: 'Partagez vos photos & vidéos',
-      fPhotosHint: 'Optionnel · Photos et vidéos de vos moments partagés avec nous — ils seront projetés lors du mariage. Max 10 fichiers.',
+      fPhotosHint: 'Optionnel · Photos et vidéos de vos moments partagés avec nous — ils seront projetés lors du mariage.',
       fPhotosFallback: "Si l'envoi ne fonctionne pas, envoyez vos fichiers à sophbyr@gmail.com ou partagez un lien dans le message.",
       fPhotosUploading: 'Envoi',
       fPhotosOf: 'sur',
@@ -86,7 +86,7 @@ function escapeHtml(str) {
       confirmNone: '已收到您的回复，谢谢！',
       confirmDecline: '很遗憾不能与您相聚，感谢您的告知。',
       fPhotos: '分享您的照片与视频',
-      fPhotosHint: '可选 · 与我们共度的美好时光的照片或视频——将在婚礼上展映。最多10个文件。',
+      fPhotosHint: '可选 · 与我们共度的美好时光的照片或视频——将在婚礼上展映。',
       fPhotosFallback: '如果上传失败，请发送至 sophbyr@gmail.com 或在留言中附上分享链接。',
       fPhotosUploading: '上传中',
       fPhotosOf: '/',
@@ -855,7 +855,7 @@ function escapeHtml(str) {
       state.submitting = true;
       submitBtn.disabled = true;
       try {
-        const photoFiles = Array.from(section.querySelector('#r-photos').files).slice(0, 10);
+        const photoFiles = Array.from(section.querySelector('#r-photos').files);
         const progressEl = section.querySelector('#r-photos-progress');
         const photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L);
 
@@ -890,7 +890,7 @@ function escapeHtml(str) {
     section.innerHTML = `
       <div class="cadeau-grid">
         <div id="cadeau" class="card-cadeau">
-          <div class="cal card-glyph">礼</div>
+          <div class="cal card-glyph">${escapeHtml(block.glyph || '礼')}</div>
           <div class="kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
           <h3 class="card-title">${escapeHtml(bf(block, 'title', lang))}</h3>
           <div class="card-text rich-text">${sanitizeHtml(bf(block, 'text', lang))}</div>
