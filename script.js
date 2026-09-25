@@ -368,7 +368,7 @@ function escapeHtml(str) {
     const el = document.getElementById('rsvp-confirm-line');
     const titleEl = document.getElementById('rsvp-thanks-title');
     if (!el) return;
-    if (state.rsvp.declined) {
+    if (state.rsvp.presence === 'no') {
       el.textContent = L.confirmDecline;
       if (titleEl) titleEl.textContent = L.thankTitleDecline;
       return;
