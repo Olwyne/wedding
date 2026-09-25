@@ -190,6 +190,9 @@ export function computeStats(guests) {
     }
   });
 
+  // +2 for the couple (mariés)
+  totals.confirmed.adults += 2;
+
   const adults = totals.confirmed.adults + totals.pending.adults + totals.declined.adults;
   const children = totals.confirmed.children + totals.pending.children + totals.declined.children;
   const total = adults + children;
