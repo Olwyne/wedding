@@ -50,7 +50,7 @@ function escapeHtml(str) {
       fAdults: "Nombre d'adultes", fChildren: "Nombre d'enfants", fPresence: 'Je serai présent·e à :', maxWord: 'max',
       fExtraAdult: 'Adulte', fChildName: 'Enfant',
       fDiet: 'Allergies / régime', fDietPh: 'Ex : végétarien, sans gluten…', fMsg: 'Un petit mot', fMsgPh: 'Un message pour les mariés…',
-      childrenTolerated: "Idéalement, nous souhaitons que cette soirée soit réservée aux adultes. Nous vous serions très reconnaissants de prévoir une garde pour vos enfants — vous pourrez ainsi profiter pleinement de ce moment avec nous sans vous en préoccuper.",
+      childrenTolerated: "Idéalement, nous souhaitons que cette soirée soit réservée aux adultes. Nous vous serions très reconnaissants de prévoir une garde pour vos enfants — vous pourrez ainsi profiter pleinement de ce moment avec nous sans vous en préoccuper.\n\nSi toutefois vous ne pouvez pas faire garder vos enfants, aucun souci : merci simplement de bien renseigner le formulaire en indiquant le nombre d'enfants présents, afin que nous puissions nous organiser au mieux.",
       fSubmit: 'Envoyer ma réponse', thankTitle: 'Merci du fond du cœur',
       thankTitleDecline: "C'est noté",
       editBtn: 'Modifier ma réponse',
@@ -77,7 +77,7 @@ function escapeHtml(str) {
       fAdults: '成人人数', fChildren: '儿童人数', fPresence: '我将出席：', maxWord: '最多',
       fExtraAdult: '成人', fChildName: '儿童',
       fDiet: '过敏 / 饮食', fDietPh: '如：素食、无麸质…', fMsg: '留言', fMsgPh: '给新人的祝福…',
-      childrenTolerated: '如果可以的话，我们希望您能为孩子们安排看护，以便与我们共享这美好时刻——若有困难，完全没关系！',
+      childrenTolerated: '理想情况下，我们希望这个夜晚能成为一个专属成人的时刻。若您能为孩子们安排看护，我们将不胜感激——这样您便能全心全意地与我们共享这美好时光。\n\n若实在无法安排，完全没问题：请在RSVP表单中填写出席儿童的人数，以便我们提前做好安排。',
       fSubmit: '提交回复', thankTitle: '衷心感谢',
       thankTitleDecline: '已收到',
       editBtn: '修改回复',
@@ -730,7 +730,7 @@ function escapeHtml(str) {
                 <input id="r-children" type="number" min="0" max="${state.maxChildren}" value="${escapeHtml(String(Math.min(Number(state.rsvp.children) || 0, state.maxChildren)))}">
               </label>` : ''}
               ${state.childrenAllowed === 'tolerated' && state.maxChildren > 0 ? `
-              <p id="rsvp-children-notice" class="rsvp-children-notice" ${(state.rsvp.children || 0) > 0 ? '' : 'hidden'}>${escapeHtml(L.childrenTolerated)}</p>` : ''}
+              <div id="rsvp-children-notice" class="rsvp-children-notice" ${(state.rsvp.children || 0) > 0 ? '' : 'hidden'}>${L.childrenTolerated.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}</div>` : ''}
             </div>
             <div id="rsvp-extra-people"></div>
             <div class="field">

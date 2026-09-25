@@ -249,6 +249,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .rsvp-toggle-btn.active{background:rgba(193,153,63,.22);border-color:var(--gold)}
 .rsvp-error{color:var(--pink);font-size:14px;line-height:1.6}
 .rsvp-children-notice{font-size:13px;line-height:1.65;color:var(--parchment2);background:rgba(193,153,63,.12);border:1px solid rgba(193,153,63,.3);border-radius:4px;padding:10px 14px;margin-top:4px}
+.rsvp-children-notice p+p{margin-top:.7em}
 .field-hint{font-size:12px;color:var(--parchment2);line-height:1.5;opacity:.8}
 .field-hint-fallback{font-size:12px;color:var(--parchment2);opacity:.65;line-height:1.5}
 .photos-upload-label input[type="file"]{background:rgba(251,246,236,.06);border:1px dashed rgba(193,153,63,.5);border-radius:4px;padding:13px 15px;color:var(--cream);font-size:15px;width:100%;cursor:pointer}
