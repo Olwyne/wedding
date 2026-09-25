@@ -43,6 +43,7 @@ export async function renderSettingsTab() {
   const settings = await loadSettings();
   const childrenAllowed = settings.childrenAllowed === false ? false : settings.childrenAllowed === 'tolerated' ? 'tolerated' : true;
   const rsvpDeadline = settings.rsvpDeadline || '';
+  const hideAddresses = !!settings.hideAddresses;
 
   // Convert stored ISO string to local datetime-local value (YYYY-MM-DDTHH:MM)
   let deadlineInputVal = '';
@@ -68,6 +69,16 @@ export async function renderSettingsTab() {
     </div>
     <div class="settings-row">
       <div style="flex:1">
+        <div class="settings-row-title">Cacher les adresses</div>
+        <div class="settings-row-sub">Remplace les adresses et liens de carte par un message indiquant que les lieux seront communiqués par mail.</div>
+      </div>
+      <label class="settings-toggle">
+        <input type="checkbox" id="setting-hide-addresses" ${editable ? '' : 'disabled'} ${hideAddresses ? 'checked' : ''}>
+        <span class="settings-toggle-label">${hideAddresses ? 'Activé' : 'Désactivé'}</span>
+      </label>
+    </div>
+    <div class="settings-row">
+      <div style="flex:1">
         <div class="settings-row-title">Date limite RSVP</div>
         <div class="settings-row-sub">Après cette date, le formulaire public affiche un message de clôture. Laisser vide pour désactiver.</div>
       </div>
@@ -83,6 +94,20 @@ export async function renderSettingsTab() {
         await saveChildrenAllowed(val);
       } catch (err) {
         console.error('saveChildrenAllowed failed', err);
+        alert(`Erreur : ${err.message}`);
+      } finally {
+        e.target.disabled = false;
+      }
+    });
+
+    panel.querySelector('#setting-hide-addresses').addEventListener('change', async e => {
+      e.target.disabled = true;
+      const label = e.target.nextElementSibling;
+      try {
+        await setDoc(generalDocRef, { hideAddresses: e.target.checked }, { merge: true });
+        if (label) label.textContent = e.target.checked ? 'Activé' : 'Désactivé';
+      } catch (err) {
+        console.error('saveHideAddresses failed', err);
         alert(`Erreur : ${err.message}`);
       } finally {
         e.target.disabled = false;

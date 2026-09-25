@@ -69,7 +69,7 @@ function escapeHtml(str) {
       submitError: "Erreur d'envoi, réessayez.",
       presenceRequiredError: 'Merci de préciser si vous serez présent·e.',
       eventsRequiredError: 'Sélectionnez au moins un événement.',
-      addrHidden: 'Les détails du lieu vous seront communiqués par email.',
+      addrHidden: 'Les lieux vous seront communiqués par mail ultérieurement.',
       deadlineTitle: 'La date limite de réponse est passée',
       deadlineMsg: "Nous sommes sincèrement désolés de ne pas pouvoir vous compter parmi nous pour cette journée si particulière.\n\nLa date limite de réponse étant désormais passée, nous avons dû transmettre les chiffres définitifs à nos prestataires. Nous aurions été très heureux de partager ce moment avec vous, mais il nous est malheureusement trop tard pour modifier l'organisation.\n\nVotre présence nous manquera et nous penserons à vous en ce jour si précieux.",
     },
@@ -100,7 +100,7 @@ function escapeHtml(str) {
       submitError: '发送失败，请重试。',
       presenceRequiredError: '请告知我们您是否会出席。',
       eventsRequiredError: '请至少选择一个活动。',
-      addrHidden: '详细地址将通过邮件告知。',
+      addrHidden: '地点详情将通过邮件另行告知。',
       deadlineTitle: '回复截止日期已过',
       deadlineMsg: '我们由衷遗憾，无法在这个特别的日子与您相聚。\n\n回复截止日期已过，我们不得不将最终人数提交给各方供应商。我们多么希望能与您共同分享这美好时刻，但遗憾的是，现在已无法再更改安排。\n\n您的缺席将令我们深感遗憾，在这珍贵的一天，我们会想念您。',
     },
@@ -150,6 +150,7 @@ function escapeHtml(str) {
     maxChildren: 0,
     childrenAllowed: true,
     rsvpDeadline: null,
+    hideAddresses: false,
     rsvp: { name: '', email: '', phone: '', adults: 1, children: 0, extraAdults: [], childNames: [], presence: null, events: {}, diet: '', message: '' },
     submitting: false,
     cd: { d: 0, h: 0, m: 0, s: 0, passed: false },
@@ -197,6 +198,7 @@ function escapeHtml(str) {
       state.childrenAllowed = _cval === false ? false : _cval === 'tolerated' ? 'tolerated' : true;
       const _dl = settingsSnap && settingsSnap.exists() ? settingsSnap.data().rsvpDeadline : null;
       state.rsvpDeadline = _dl || null;
+      state.hideAddresses = !!(settingsSnap && settingsSnap.exists() && settingsSnap.data().hideAddresses);
       state.rsvp.email = guest.email || '';
       if (guest.rsvp && (guest.rsvp.status === 'confirmed' || guest.rsvp.status === 'declined')) {
         state.submitted = true;
@@ -393,7 +395,7 @@ function escapeHtml(str) {
   }
 
   function canSeeAddresses() {
-    return state.isPreview || (state.submitted && state.rsvp.presence === 'yes');
+    return !state.hideAddresses || state.isPreview;
   }
 
   function renderRsvpFormState() {
