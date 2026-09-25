@@ -51,7 +51,7 @@ function escapeHtml(str) {
       fExtraAdult: 'Adulte', fChildName: 'Enfant',
       fDiet: 'Allergies / régime', fDietPh: 'Ex : végétarien, sans gluten…', fMsg: 'Un petit mot', fMsgPh: 'Un message pour les mariés…',
       childrenTolerated: "Idéalement, nous souhaitons que cette soirée soit réservée aux adultes. Nous vous serions très reconnaissants de prévoir une garde pour vos enfants — vous pourrez ainsi profiter pleinement de ce moment avec nous sans vous en préoccuper.\n\nSi toutefois vous ne pouvez pas faire garder vos enfants, aucun souci : merci simplement de bien renseigner le formulaire en indiquant le nombre d'enfants présents, afin que nous puissions nous organiser au mieux.",
-      fSubmit: 'Envoyer ma réponse', fSubmitting: 'Envoi des fichiers… Veuillez patienter', thankTitle: 'Merci du fond du cœur',
+      fSubmit: 'Envoyer ma réponse', fSubmitting: 'Envoi en cours, patientez', thankTitle: 'Merci du fond du cœur',
       thankTitleDecline: "C'est noté",
       editBtn: 'Modifier ma réponse',
       langBtn: '中文',
@@ -898,10 +898,10 @@ function escapeHtml(str) {
       submitBtn.disabled = true;
       const photoFiles = selectedFiles.slice(0, 30);
       const setSubmitProgress = (done, total) => {
-        submitBtn.innerHTML = `<span class="btn-spinner"></span><span>${done} / ${total}</span>`;
+        submitBtn.innerHTML = `<span class="btn-spinner"></span><span class="btn-submit-label">${L.fSubmitting}<br><span class="btn-progress-count">${done} ${L.fPhotosOf} ${total}</span></span>`;
       };
       if (photoFiles.length > 0) {
-        submitBtn.innerHTML = `<span class="btn-spinner"></span><span>${L.fSubmitting}</span>`;
+        submitBtn.innerHTML = `<span class="btn-spinner"></span><span class="btn-submit-label">${L.fSubmitting}</span>`;
       }
       try {
         const progressEl = section.querySelector('#r-photos-progress');
