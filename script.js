@@ -629,6 +629,7 @@ function escapeHtml(str) {
   }
 
   function buildInfosBlock(block, lang) {
+    if (!canSeeAddresses()) return null;
     const L = T[lang];
     const section = document.createElement('section');
     section.id = 'infos';
