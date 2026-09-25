@@ -660,8 +660,8 @@ function escapeHtml(str) {
 
     for (const file of files) {
       try {
-        const ext = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')) : '';
-        const driveName = `${safePerson}-${String(idx).padStart(2, '0')}${ext}`;
+        const safeOriginal = file.name.replace(/[^a-zA-Z0-9À-ɏ._-]/g, '_');
+        const driveName = `${safePerson}-${String(idx).padStart(2, '0')}-${safeOriginal}`;
         const res = await fetch('/api/upload-to-drive', {
           method: 'POST',
           headers: {
