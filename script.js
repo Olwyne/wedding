@@ -1,5 +1,6 @@
-import { db } from './firebase-init.js';
+import { db, storage } from './firebase-init.js';
 import { doc, getDoc, getDocs, updateDoc, collection, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 import { emailjsConfig } from './emailjs-config.js';
 import { sanitizeHtml } from './admin/richtext.js';
 
@@ -58,6 +59,13 @@ function escapeHtml(str) {
       confirmPrefix: 'Nous avons hâte de vous retrouver pour : ',
       confirmNone: "C'est noté. Nous avons bien reçu votre réponse.",
       confirmDecline: 'Nous sommes tristes de ne pas vous voir, merci de nous avoir prévenus.',
+      fPhotos: 'Partagez vos photos & vidéos',
+      fPhotosHint: 'Optionnel · Photos et vidéos de vos moments partagés avec nous — ils seront projetés lors du mariage. Max 10 fichiers.',
+      fPhotosFallback: "Si l'envoi ne fonctionne pas, envoyez vos fichiers à sophbyr@gmail.com ou partagez un lien dans le message.",
+      fPhotosUploading: 'Envoi',
+      fPhotosOf: 'sur',
+      fPhotosDone: 'Photos envoyées !',
+      fPhotosError: "Certains fichiers n'ont pas pu être envoyés. Réessayez ou utilisez le lien ci-dessous.",
       submitError: "Erreur d'envoi, réessayez.",
       presenceRequiredError: 'Merci de préciser si vous serez présent·e.',
       eventsRequiredError: 'Sélectionnez au moins un événement.',
@@ -78,6 +86,13 @@ function escapeHtml(str) {
       confirmPrefix: '期待与您相聚于：',
       confirmNone: '已收到您的回复，谢谢！',
       confirmDecline: '很遗憾不能与您相聚，感谢您的告知。',
+      fPhotos: '分享您的照片与视频',
+      fPhotosHint: '可选 · 与我们共度的美好时光的照片或视频——将在婚礼上展映。最多10个文件。',
+      fPhotosFallback: '如果上传失败，请发送至 sophbyr@gmail.com 或在留言中附上分享链接。',
+      fPhotosUploading: '上传中',
+      fPhotosOf: '/',
+      fPhotosDone: '照片已发送！',
+      fPhotosError: '部分文件上传失败，请重试或使用下方链接。',
       submitError: '发送失败，请重试。',
       presenceRequiredError: '请告知我们您是否会出席。',
       eventsRequiredError: '请至少选择一个活动。',
@@ -629,6 +644,42 @@ function escapeHtml(str) {
     return section;
   }
 
+  async function uploadPhotos(files, guestToken, progressEl, L) {
+    if (!files.length) return [];
+    progressEl.hidden = false;
+    const urls = [];
+    let done = 0;
+    const updateProgress = () => {
+      progressEl.textContent = `${L.fPhotosUploading} ${done} ${L.fPhotosOf} ${files.length}…`;
+    };
+    updateProgress();
+
+    await Promise.all(files.map(file => new Promise(resolve => {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storageRef = ref(storage, `photos/${guestToken}/${Date.now()}-${safeName}`);
+      const task = uploadBytesResumable(storageRef, file);
+      task.on('state_changed', null,
+        () => { done++; updateProgress(); resolve(null); },
+        async () => {
+          try {
+            const url = await getDownloadURL(task.snapshot.ref);
+            urls.push(url);
+          } catch (_) {}
+          done++;
+          updateProgress();
+          resolve(null);
+        }
+      );
+    })));
+
+    if (urls.length === files.length) {
+      progressEl.textContent = L.fPhotosDone;
+    } else if (urls.length < files.length) {
+      progressEl.textContent = L.fPhotosError;
+    }
+    return urls;
+  }
+
   function buildRsvpBlock(block, lang) {
     const L = T[lang];
     const section = document.createElement('section');
@@ -695,6 +746,17 @@ function escapeHtml(str) {
             <span class="field-label">${escapeHtml(L.fMsg)} *</span>
             <textarea id="r-msg" rows="3" required placeholder="${escapeHtml(L.fMsgPh)}">${escapeHtml(state.rsvp.message)}</textarea>
           </label>
+
+          <div class="field">
+            <span class="field-label">${escapeHtml(L.fPhotos)}</span>
+            <span class="field-hint">${escapeHtml(L.fPhotosHint)}</span>
+            <label class="photos-upload-label">
+              <input id="r-photos" type="file" accept="image/*,video/*" multiple>
+            </label>
+            <p class="field-hint field-hint-fallback">${escapeHtml(L.fPhotosFallback)}</p>
+            <div id="r-photos-progress" class="photos-progress" hidden></div>
+          </div>
+
           <p id="rsvp-error" class="rsvp-error" hidden></p>
           <button type="submit" class="btn-submit">${escapeHtml(L.fSubmit)}</button>
         </form>
@@ -792,9 +854,13 @@ function escapeHtml(str) {
       state.submitting = true;
       submitBtn.disabled = true;
       try {
+        const photoFiles = Array.from(section.querySelector('#r-photos').files).slice(0, 10);
+        const progressEl = section.querySelector('#r-photos-progress');
+        const photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L);
+
         const rsvp = state.rsvp.presence === 'no'
-          ? { status: 'declined', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: state.rsvp.message, confirmedEvents: {}, respondedAt: new Date().toISOString() }
-          : { status: 'confirmed', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: Number(state.rsvp.adults) || 0, children: Number(state.rsvp.children) || 0, extraAdultNames: [...state.rsvp.extraAdults], childNames: [...state.rsvp.childNames], diet: state.rsvp.diet, message: state.rsvp.message, confirmedEvents: state.rsvp.events, respondedAt: new Date().toISOString() };
+          ? { status: 'declined', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: state.rsvp.message, confirmedEvents: {}, photoUrls, respondedAt: new Date().toISOString() }
+          : { status: 'confirmed', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: Number(state.rsvp.adults) || 0, children: Number(state.rsvp.children) || 0, extraAdultNames: [...state.rsvp.extraAdults], childNames: [...state.rsvp.childNames], diet: state.rsvp.diet, message: state.rsvp.message, confirmedEvents: state.rsvp.events, photoUrls, respondedAt: new Date().toISOString() };
         await updateDoc(doc(db, 'guests', state.guestToken), { rsvp });
         sendRsvpEmails(rsvp);
         state.submitted = true;
