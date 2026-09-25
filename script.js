@@ -51,7 +51,7 @@ function escapeHtml(str) {
       fExtraAdult: 'Adulte', fChildName: 'Enfant',
       fDiet: 'Allergies / régime', fDietPh: 'Ex : végétarien, sans gluten…', fMsg: 'Un petit mot', fMsgPh: 'Un message pour les mariés…',
       childrenTolerated: "Idéalement, nous souhaitons que cette soirée soit réservée aux adultes. Nous vous serions très reconnaissants de prévoir une garde pour vos enfants — vous pourrez ainsi profiter pleinement de ce moment avec nous sans vous en préoccuper.\n\nSi toutefois vous ne pouvez pas faire garder vos enfants, aucun souci : merci simplement de bien renseigner le formulaire en indiquant le nombre d'enfants présents, afin que nous puissions nous organiser au mieux.",
-      fSubmit: 'Envoyer ma réponse', thankTitle: 'Merci du fond du cœur',
+      fSubmit: 'Envoyer ma réponse', fSubmitting: 'Envoi des fichiers… Veuillez patienter', thankTitle: 'Merci du fond du cœur',
       thankTitleDecline: "C'est noté",
       editBtn: 'Modifier ma réponse',
       langBtn: '中文',
@@ -79,7 +79,7 @@ function escapeHtml(str) {
       fExtraAdult: '成人', fChildName: '儿童',
       fDiet: '过敏 / 饮食', fDietPh: '如：素食、无麸质…', fMsg: '留言', fMsgPh: '给新人的祝福…',
       childrenTolerated: '理想情况下，我们希望这个夜晚能成为一个专属成人的时刻。若您能为孩子们安排看护，我们将不胜感激——这样您便能全心全意地与我们共享这美好时光。\n\n若实在无法安排，完全没问题：请在RSVP表单中填写出席儿童的人数，以便我们提前做好安排。',
-      fSubmit: '提交回复', thankTitle: '衷心感谢',
+      fSubmit: '提交回复', fSubmitting: '文件上传中，请稍候', thankTitle: '衷心感谢',
       thankTitleDecline: '已收到',
       editBtn: '修改回复',
       langBtn: 'FR',
@@ -895,8 +895,9 @@ function escapeHtml(str) {
 
       state.submitting = true;
       submitBtn.disabled = true;
+      const photoFiles = selectedFiles.slice(0, 30);
+      if (photoFiles.length > 0) submitBtn.textContent = L.fSubmitting;
       try {
-        const photoFiles = selectedFiles.slice(0, 30);
         const progressEl = section.querySelector('#r-photos-progress');
         const photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L, state.rsvp.name);
 
@@ -915,6 +916,7 @@ function escapeHtml(str) {
       } finally {
         state.submitting = false;
         submitBtn.disabled = false;
+        submitBtn.textContent = L.fSubmit;
       }
     });
     section.querySelector('#rsvp-edit-btn').addEventListener('click', () => {
