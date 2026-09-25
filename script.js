@@ -658,21 +658,17 @@ function escapeHtml(str) {
     for (const file of files) {
       try {
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const { uploadUrl } = await fetch('/api/drive-initiate', {
+        const res = await fetch('/api/upload-to-drive', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: `${guestToken}-${Date.now()}-${safeName}`, contentType: file.type, size: file.size }),
-        }).then(r => r.json());
-
-        const uploadRes = await fetch(uploadUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': file.type },
+          headers: {
+            'Content-Type': file.type,
+            'x-file-name': `${guestToken}-${Date.now()}-${safeName}`,
+          },
           body: file,
         });
-
-        if (uploadRes.ok) {
-          const { id } = await uploadRes.json();
-          if (id) urls.push(`https://drive.google.com/file/d/${id}/view`);
+        if (res.ok) {
+          const { url } = await res.json();
+          if (url) urls.push(url);
         }
       } catch (_) {}
       done++;
