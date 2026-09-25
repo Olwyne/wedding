@@ -509,8 +509,14 @@ async function openBlockPanel(id, allBlocks, audience) {
       card.addEventListener('click', () => {
         panelEl.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
-        panelEl.querySelector('#panel-body').innerHTML =
+        const bodyEl = panelEl.querySelector('#panel-body');
+        bodyEl.innerHTML =
           renderBlockForm({ type: card.dataset.type, visible: true }, eventOptions);
+        const errEl = document.createElement('p');
+        errEl.id = 'block-error';
+        errEl.className = 'login-error';
+        errEl.hidden = true;
+        bodyEl.appendChild(errEl);
         panelEl.querySelector('#panel-save').disabled = false;
         attachListHandlers(panelEl, TYPE_DEFS[card.dataset.type], eventOptions);
         mountRichEditorsForType(panelEl, TYPE_DEFS[card.dataset.type], { visible: true });
