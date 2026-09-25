@@ -729,9 +729,9 @@ function escapeHtml(str) {
                 <span class="field-label">${escapeHtml(L.fChildren)} (${escapeHtml(L.maxWord)} ${state.maxChildren}) *</span>
                 <input id="r-children" type="number" min="0" max="${state.maxChildren}" value="${escapeHtml(String(Math.min(Number(state.rsvp.children) || 0, state.maxChildren)))}">
               </label>` : ''}
-              ${state.childrenAllowed === 'tolerated' && state.maxChildren > 0 ? `
-              <div id="rsvp-children-notice" class="rsvp-children-notice" ${(state.rsvp.children || 0) > 0 ? '' : 'hidden'}>${L.childrenTolerated.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}</div>` : ''}
             </div>
+            ${state.childrenAllowed === 'tolerated' && state.maxChildren > 0 ? `
+            <div id="rsvp-children-notice" class="rsvp-children-notice" ${(state.rsvp.children || 0) > 0 ? '' : 'hidden'}>${L.childrenTolerated.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}</div>` : ''}
             <div id="rsvp-extra-people"></div>
             <div class="field">
               <span class="field-label">${escapeHtml(L.fPresence)} *</span>
