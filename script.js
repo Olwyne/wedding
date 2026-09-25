@@ -69,6 +69,7 @@ function escapeHtml(str) {
       submitError: "Erreur d'envoi, réessayez.",
       presenceRequiredError: 'Merci de préciser si vous serez présent·e.',
       eventsRequiredError: 'Sélectionnez au moins un événement.',
+      addrHidden: 'Les détails du lieu vous seront communiqués par email.',
       deadlineTitle: 'La date limite de réponse est passée',
       deadlineMsg: "Nous sommes sincèrement désolés de ne pas pouvoir vous compter parmi nous pour cette journée si particulière.\n\nLa date limite de réponse étant désormais passée, nous avons dû transmettre les chiffres définitifs à nos prestataires. Nous aurions été très heureux de partager ce moment avec vous, mais il nous est malheureusement trop tard pour modifier l'organisation.\n\nVotre présence nous manquera et nous penserons à vous en ce jour si précieux.",
     },
@@ -99,6 +100,7 @@ function escapeHtml(str) {
       submitError: '发送失败，请重试。',
       presenceRequiredError: '请告知我们您是否会出席。',
       eventsRequiredError: '请至少选择一个活动。',
+      addrHidden: '详细地址将通过邮件告知。',
       deadlineTitle: '回复截止日期已过',
       deadlineMsg: '我们由衷遗憾，无法在这个特别的日子与您相聚。\n\n回复截止日期已过，我们不得不将最终人数提交给各方供应商。我们多么希望能与您共同分享这美好时刻，但遗憾的是，现在已无法再更改安排。\n\n您的缺席将令我们深感遗憾，在这珍贵的一天，我们会想念您。',
     },
@@ -390,6 +392,10 @@ function escapeHtml(str) {
     return new Date() > new Date(state.rsvpDeadline);
   }
 
+  function canSeeAddresses() {
+    return state.isPreview || (state.submitted && state.rsvp.presence === 'yes');
+  }
+
   function renderRsvpFormState() {
     const form = document.getElementById('rsvp-form');
     const thanks = document.getElementById('rsvp-thanks');
@@ -588,7 +594,7 @@ function escapeHtml(str) {
         </div>
         <div class="prog-body">
           <h3 class="prog-title">${ev.title}</h3>
-          <div class="prog-place">${ev.place}</div>
+          ${canSeeAddresses() ? `<div class="prog-place">${ev.place}</div>` : ''}
           <div class="prog-desc rich-text">${sanitizeHtml(ev.desc)}</div>
         </div>`;
       list.appendChild(item);
@@ -597,6 +603,7 @@ function escapeHtml(str) {
   }
 
   function buildInfosBlock(block, lang) {
+    const L = T[lang];
     const section = document.createElement('section');
     section.id = 'infos';
     section.className = 'section section-cream';
@@ -620,9 +627,12 @@ function escapeHtml(str) {
       card.innerHTML = `
         <div class="cal place-zh">${escapeHtml(p.zh || '')}</div>
         <h3 class="place-name">${escapeHtml(name || '')}</h3>
-        <p class="place-addr">${escapeHtml(addr || '')}</p>
+        ${canSeeAddresses()
+          ? `<p class="place-addr">${escapeHtml(addr || '')}</p>
         ${(() => { const note = lang === 'zh' ? (p.note_zh || p.note_fr) : (p.note_fr || p.note_zh); return note ? `<p class="place-note">${escapeHtml(note)}</p>` : ''; })()}
-        <a href="${escapeHtml(p.mapUrl || '#')}" target="_blank" rel="noopener" class="place-map-btn">${mapBtnLabel}</a>`;
+        <a href="${escapeHtml(p.mapUrl || '#')}" target="_blank" rel="noopener" class="place-map-btn">${mapBtnLabel}</a>`
+          : `<p class="place-addr place-addr-hidden">${escapeHtml(L.addrHidden)}</p>`
+        }`;
       grid.appendChild(card);
     });
     return section;

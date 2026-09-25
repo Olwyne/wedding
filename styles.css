@@ -214,6 +214,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .place-zh{font-size:26px;color:var(--red);margin-bottom:10px}
 .place-name{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--bordeaux);margin-bottom:6px}
 .place-addr{color:var(--taupe);line-height:1.6;margin-bottom:8px}
+.place-addr-hidden{font-style:italic;opacity:.7}
 .place-note{color:var(--ink3);font-size:14px;line-height:1.5;margin-bottom:16px}
 .place-map-btn{display:inline-block;border:1px solid var(--red);color:var(--red);text-decoration:none;padding:10px 22px;border-radius:999px;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
 
