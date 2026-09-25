@@ -252,8 +252,13 @@ input:focus,textarea:focus,select:focus{outline:none}
 .rsvp-children-notice p+p{margin-top:.7em}
 .field-hint{font-size:12px;color:var(--parchment2);line-height:1.5;opacity:.8}
 .field-hint-fallback{font-size:12px;color:var(--parchment2);opacity:.65;line-height:1.5}
-.photos-upload-label input[type="file"]{background:rgba(251,246,236,.06);border:1px dashed rgba(193,153,63,.5);border-radius:4px;padding:13px 15px;color:var(--cream);font-size:15px;width:100%;cursor:pointer}
-.photos-upload-label input[type="file"]::file-selector-button{background:rgba(193,153,63,.18);border:1px solid rgba(193,153,63,.5);border-radius:3px;color:var(--cream);padding:6px 14px;font-size:13px;cursor:pointer;margin-right:12px}
+.photos-add-btn{background:rgba(193,153,63,.15);border:1px dashed rgba(193,153,63,.55);border-radius:4px;color:var(--parchment);font-size:14px;padding:10px 18px;cursor:pointer;width:100%;text-align:center;transition:background .2s}
+.photos-add-btn:hover{background:rgba(193,153,63,.25)}
+.photos-list{display:flex;flex-direction:column;gap:6px}
+.photos-file-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(251,246,236,.06);border:1px solid rgba(193,153,63,.25);border-radius:4px;padding:8px 12px}
+.photos-file-name{font-size:13px;color:var(--parchment2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.photos-file-remove{background:none;border:none;color:var(--parchment2);font-size:14px;cursor:pointer;padding:0 4px;opacity:.6;flex-shrink:0}
+.photos-file-remove:hover{opacity:1;color:var(--pink)}
 .photos-progress{font-size:13px;color:var(--parchment2);padding:6px 0}
 
 .rsvp-thanks{text-align:center;background:rgba(251,246,236,.06);border:1px solid rgba(193,153,63,.5);border-radius:6px;padding:44px 30px;animation:fadeUp .6s both}

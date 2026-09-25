@@ -60,6 +60,7 @@ function escapeHtml(str) {
       confirmDecline: 'Nous sommes tristes de ne pas vous voir, merci de nous avoir prévenus.',
       fPhotos: 'Partagez vos photos & vidéos',
       fPhotosHint: 'Optionnel · Photos et vidéos de vos moments partagés avec nous — ils seront projetés lors du mariage. Max 30 fichiers.',
+      fPhotosAdd: '+ Ajouter des fichiers',
       fPhotosFallback: "Si l'envoi ne fonctionne pas ou vous avez beaucoup de fichiers à nous transmettre, envoyez-les à sophbyr@gmail.com ou partagez un lien dans le message.",
       fPhotosUploading: 'Envoi',
       fPhotosOf: 'sur',
@@ -87,6 +88,7 @@ function escapeHtml(str) {
       confirmDecline: '很遗憾不能与您相聚，感谢您的告知。',
       fPhotos: '分享您的照片与视频',
       fPhotosHint: '可选 · 与我们共度的美好时光的照片或视频——将在婚礼上展映。最多30个文件。',
+      fPhotosAdd: '+ 添加文件',
       fPhotosFallback: '如果上传失败，或您有大量文件需要传送，请发送至 sophbyr@gmail.com 或在留言中附上分享链接。',
       fPhotosUploading: '上传中',
       fPhotosOf: '/',
@@ -751,9 +753,9 @@ function escapeHtml(str) {
           <div class="field">
             <span class="field-label">${escapeHtml(L.fPhotos)}</span>
             <span class="field-hint">${escapeHtml(L.fPhotosHint)}</span>
-            <label class="photos-upload-label">
-              <input id="r-photos" type="file" accept="image/*,video/*" multiple>
-            </label>
+            <input id="r-photos" type="file" accept="image/*,video/*" multiple style="display:none">
+            <div id="r-photos-list" class="photos-list"></div>
+            <button type="button" id="r-photos-add" class="photos-add-btn">${escapeHtml(L.fPhotosAdd)}</button>
             <p class="field-hint field-hint-fallback">${escapeHtml(L.fPhotosFallback)}</p>
             <div id="r-photos-progress" class="photos-progress" hidden></div>
           </div>
@@ -843,6 +845,40 @@ function escapeHtml(str) {
     section.querySelector('#r-diet').addEventListener('input', e => state.rsvp.diet = e.target.value);
     section.querySelector('#r-msg').addEventListener('input', e => state.rsvp.message = e.target.value);
 
+    const photosInput = section.querySelector('#r-photos');
+    const photosListEl = section.querySelector('#r-photos-list');
+    let selectedFiles = [];
+
+    function renderPhotosList() {
+      photosListEl.innerHTML = '';
+      selectedFiles.forEach((file, i) => {
+        const item = document.createElement('div');
+        item.className = 'photos-file-item';
+        const name = document.createElement('span');
+        name.className = 'photos-file-name';
+        name.textContent = file.name;
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'photos-file-remove';
+        remove.textContent = '✕';
+        remove.addEventListener('click', () => { selectedFiles.splice(i, 1); renderPhotosList(); });
+        item.appendChild(name);
+        item.appendChild(remove);
+        photosListEl.appendChild(item);
+      });
+    }
+
+    section.querySelector('#r-photos-add').addEventListener('click', () => photosInput.click());
+    photosInput.addEventListener('change', () => {
+      Array.from(photosInput.files).forEach(file => {
+        if (selectedFiles.length < 30 && !selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+          selectedFiles.push(file);
+        }
+      });
+      photosInput.value = '';
+      renderPhotosList();
+    });
+
     form.addEventListener('submit', async e => {
       e.preventDefault();
       if (state.submitting || !state.guestToken || state.isPreview) return;
@@ -859,7 +895,7 @@ function escapeHtml(str) {
       state.submitting = true;
       submitBtn.disabled = true;
       try {
-        const photoFiles = Array.from(section.querySelector('#r-photos').files).slice(0, 30);
+        const photoFiles = selectedFiles.slice(0, 30);
         const progressEl = section.querySelector('#r-photos-progress');
         const photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L);
 
