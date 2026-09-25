@@ -70,7 +70,7 @@ function escapeHtml(str) {
       presenceRequiredError: 'Merci de préciser si vous serez présent·e.',
       eventsRequiredError: 'Sélectionnez au moins un événement.',
       deadlineTitle: 'La date limite de réponse est passée',
-      deadlineMsg: "Nous sommes tellement désolés que vous n'ayez pas pu venir à notre mariage. La date limite pour répondre est passée et nous n'avons malheureusement pas reçu votre réponse. Nous aurions été si heureux de vous avoir parmi nous, mais les chiffres définitifs ont été transmis — votre présence nous manquera.",
+      deadlineMsg: "Nous sommes sincèrement désolés de ne pas pouvoir vous compter parmi nous pour cette journée si particulière.\n\nLa date limite de réponse étant désormais passée, nous avons dû transmettre les chiffres définitifs à nos prestataires. Nous aurions été très heureux de partager ce moment avec vous, mais il nous est malheureusement trop tard pour modifier l'organisation.\n\nVotre présence nous manquera et nous penserons à vous en ce jour si précieux.",
     },
     zh: {
       cdD: '天', cdH: '时', cdM: '分', cdS: '秒', cdPassed: '大喜之日到啦！',
@@ -792,7 +792,7 @@ function escapeHtml(str) {
         <div id="rsvp-deadline-passed" class="rsvp-deadline-passed" hidden>
           <div class="cal rsvp-thanks-glyph">🕊️</div>
           <h3 class="rsvp-thanks-title">${escapeHtml(L.deadlineTitle)}</h3>
-          <p class="rsvp-confirm-line">${escapeHtml(L.deadlineMsg)}</p>
+          <div class="rsvp-confirm-line">${L.deadlineMsg.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}</div>
         </div>
       </div>`;
 
