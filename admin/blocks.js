@@ -92,6 +92,7 @@ const TYPE_DEFS = {
       ] },
     ] },
   gift: { label: 'Cadeaux', audience: 'invite', fields: [
+      { key: 'glyph', label: 'Glyphe décoratif', kind: 'plain' },
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'title', label: 'Titre', kind: 'text' },
       { key: 'text', label: 'Texte', kind: 'textarea' },
