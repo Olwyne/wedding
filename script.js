@@ -69,6 +69,8 @@ function escapeHtml(str) {
       submitError: "Erreur d'envoi, réessayez.",
       presenceRequiredError: 'Merci de préciser si vous serez présent·e.',
       eventsRequiredError: 'Sélectionnez au moins un événement.',
+      deadlineTitle: 'La date limite est passée',
+      deadlineMsg: "Nous sommes tellement désolés que vous n'ayez pas pu venir à notre mariage. La date limite pour répondre est passée et nous n'avons malheureusement pas reçu votre réponse. Nous aurions été si heureux de vous avoir parmi nous, mais les chiffres définitifs ont été transmis — votre présence nous manquera.",
     },
     zh: {
       cdD: '天', cdH: '时', cdM: '分', cdS: '秒', cdPassed: '大喜之日到啦！',
@@ -97,6 +99,8 @@ function escapeHtml(str) {
       submitError: '发送失败，请重试。',
       presenceRequiredError: '请告知我们您是否会出席。',
       eventsRequiredError: '请至少选择一个活动。',
+      deadlineTitle: '回复截止日期已过',
+      deadlineMsg: '非常遗憾您未能参加我们的婚礼。回复截止日期已过，我们未能收到您的回复。我们多么希望您能与我们共度这一时刻，但最终人数已经确定——您的缺席将令我们深感遗憾。',
     },
   };
 
@@ -143,6 +147,7 @@ function escapeHtml(str) {
     maxAdults: 1,
     maxChildren: 0,
     childrenAllowed: true,
+    rsvpDeadline: null,
     rsvp: { name: '', email: '', phone: '', adults: 1, children: 0, extraAdults: [], childNames: [], presence: null, events: {}, diet: '', message: '' },
     submitting: false,
     cd: { d: 0, h: 0, m: 0, s: 0, passed: false },
@@ -188,6 +193,8 @@ function escapeHtml(str) {
       state.maxChildren = guest.maxChildren ?? 0;
       const _cval = settingsSnap && settingsSnap.exists() ? settingsSnap.data().childrenAllowed : true;
       state.childrenAllowed = _cval === false ? false : _cval === 'tolerated' ? 'tolerated' : true;
+      const _dl = settingsSnap && settingsSnap.exists() ? settingsSnap.data().rsvpDeadline : null;
+      state.rsvpDeadline = _dl || null;
       state.rsvp.email = guest.email || '';
       if (guest.rsvp && (guest.rsvp.status === 'confirmed' || guest.rsvp.status === 'declined')) {
         state.submitted = true;
@@ -378,12 +385,20 @@ function escapeHtml(str) {
     el.textContent = chosen.length ? (L.confirmPrefix + chosen.join(' · ')) : L.confirmNone;
   }
 
+  function isDeadlinePassed() {
+    if (!state.rsvpDeadline || state.isPreview) return false;
+    return new Date() > new Date(state.rsvpDeadline);
+  }
+
   function renderRsvpFormState() {
     const form = document.getElementById('rsvp-form');
     const thanks = document.getElementById('rsvp-thanks');
+    const deadlineEl = document.getElementById('rsvp-deadline-passed');
     if (!form || !thanks) return;
-    form.hidden = state.submitted;
+    const deadlinePassed = isDeadlinePassed() && !state.submitted;
+    form.hidden = state.submitted || deadlinePassed;
     thanks.hidden = !state.submitted;
+    if (deadlineEl) deadlineEl.hidden = !deadlinePassed;
   }
 
   // ==================== Block type builders ====================
@@ -772,6 +787,12 @@ function escapeHtml(str) {
           <h3 id="rsvp-thanks-title" class="rsvp-thanks-title">${escapeHtml(L.thankTitle)}</h3>
           <p id="rsvp-confirm-line" class="rsvp-confirm-line"></p>
           <button id="rsvp-edit-btn" class="btn-outline">${escapeHtml(L.editBtn)}</button>
+        </div>
+
+        <div id="rsvp-deadline-passed" class="rsvp-deadline-passed" hidden>
+          <div class="cal rsvp-thanks-glyph">🕊️</div>
+          <h3 class="rsvp-thanks-title">${escapeHtml(L.deadlineTitle)}</h3>
+          <p class="rsvp-confirm-line">${escapeHtml(L.deadlineMsg)}</p>
         </div>
       </div>`;
 

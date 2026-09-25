@@ -23,13 +23,36 @@ async function saveChildrenAllowed(value) {
   await setDoc(generalDocRef, { childrenAllowed: value }, { merge: true });
 }
 
+async function loadSettings() {
+  try {
+    const snap = await getDoc(generalDocRef);
+    if (!snap.exists()) return {};
+    return snap.data();
+  } catch (err) {
+    console.error('loadSettings failed', err);
+    return {};
+  }
+}
+
 export async function renderSettingsTab() {
   const panel = document.getElementById('tab-settings');
   panel.innerHTML = '<p style="padding:20px;color:var(--muted)">Chargement…</p>';
   document.getElementById('section-action').innerHTML = '';
 
   const editable = canWrite('settings');
-  const childrenAllowed = await loadChildrenAllowed();
+  const settings = await loadSettings();
+  const childrenAllowed = settings.childrenAllowed === false ? false : settings.childrenAllowed === 'tolerated' ? 'tolerated' : true;
+  const rsvpDeadline = settings.rsvpDeadline || '';
+
+  // Convert stored ISO string to local datetime-local value (YYYY-MM-DDTHH:MM)
+  let deadlineInputVal = '';
+  if (rsvpDeadline) {
+    try {
+      const d = new Date(rsvpDeadline);
+      const pad = n => String(n).padStart(2, '0');
+      deadlineInputVal = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    } catch (_) {}
+  }
 
   panel.innerHTML = `
     <div class="settings-row">
@@ -42,6 +65,13 @@ export async function renderSettingsTab() {
         <option value="tolerated" ${childrenAllowed === 'tolerated' ? 'selected' : ''}>Tolérés (suggestion de garde)</option>
         <option value="false" ${childrenAllowed === false ? 'selected' : ''}>Non autorisés</option>
       </select>
+    </div>
+    <div class="settings-row">
+      <div style="flex:1">
+        <div class="settings-row-title">Date limite RSVP</div>
+        <div class="settings-row-sub">Après cette date, le formulaire public affiche un message de clôture. Laisser vide pour désactiver.</div>
+      </div>
+      <input type="datetime-local" id="setting-rsvp-deadline" ${editable ? '' : 'disabled'} style="min-width:220px" value="${deadlineInputVal}">
     </div>`;
 
   if (editable) {
@@ -53,6 +83,19 @@ export async function renderSettingsTab() {
         await saveChildrenAllowed(val);
       } catch (err) {
         console.error('saveChildrenAllowed failed', err);
+        alert(`Erreur : ${err.message}`);
+      } finally {
+        e.target.disabled = false;
+      }
+    });
+
+    panel.querySelector('#setting-rsvp-deadline').addEventListener('change', async e => {
+      e.target.disabled = true;
+      try {
+        const val = e.target.value ? new Date(e.target.value).toISOString() : null;
+        await setDoc(generalDocRef, { rsvpDeadline: val }, { merge: true });
+      } catch (err) {
+        console.error('saveRsvpDeadline failed', err);
         alert(`Erreur : ${err.message}`);
       } finally {
         e.target.disabled = false;

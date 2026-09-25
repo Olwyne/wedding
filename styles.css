@@ -271,6 +271,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .rsvp-thanks-title{font-family:'Cormorant Garamond',serif;font-size:32px;margin:12px 0 10px}
 .rsvp-confirm-line{color:var(--parchment2);line-height:1.7;margin-bottom:8px}
 #rsvp-edit-btn{margin-top:22px}
+.rsvp-deadline-passed{text-align:center;background:rgba(251,246,236,.06);border:1px solid rgba(193,153,63,.3);border-radius:6px;padding:44px 30px;animation:fadeUp .6s both}
 
 /* ===================== CADEAU / DRESS CODE ===================== */
 .cadeau-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px}
