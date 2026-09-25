@@ -229,7 +229,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .shuttle-box p{line-height:1.7}
 
 /* ===================== RSVP FORM ===================== */
-.rsvp-form{display:flex;flex-direction:column;gap:22px}
+.rsvp-form{display:flex;flex-direction:column;gap:22px;overflow-anchor:none}
 .field{display:flex;flex-direction:column;gap:8px;text-align:left}
 .field-row{flex-direction:row;gap:16px}
 .field-row .field{flex:1}
@@ -239,7 +239,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .rsvp-events{display:flex;flex-direction:column;gap:12px}
 .rsvp-event-btn{display:flex;align-items:center;gap:14px;text-align:left;border-radius:4px;padding:14px 16px;cursor:pointer;color:var(--cream);transition:all .2s;background:rgba(251,246,236,.05);border:1px solid rgba(193,153,63,.4);width:100%}
 .rsvp-event-btn.selected{background:rgba(193,153,63,.22);border-color:var(--gold)}
-.rsvp-event-check{width:22px;height:22px;border-radius:50%;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--parchment);font-size:13px}
+.rsvp-event-check{width:22px;height:22px;border-radius:4px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--parchment);font-size:13px}
 .rsvp-event-title{font-family:'Cormorant Garamond',serif;font-size:18px}
 .rsvp-event-meta{opacity:.7;font-size:13px}
 .btn-submit{margin-top:6px;background:var(--gold);color:#3a1010;border:none;padding:16px;border-radius:4px;font-size:15px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;font-weight:600}

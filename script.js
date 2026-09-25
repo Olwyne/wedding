@@ -810,7 +810,10 @@ function escapeHtml(str) {
       state.rsvp.presence = val;
       toggleBtns.forEach(b => b.classList.toggle('active', b.dataset.val === val));
       presenceYesEl.hidden = val !== 'yes';
-      if (val === 'yes') renderExtraPeople();
+      if (val === 'yes') {
+        renderExtraPeople();
+        requestAnimationFrame(() => presenceYesEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+      }
     }
 
     toggleBtns.forEach(b => b.addEventListener('click', () => setPresence(b.dataset.val)));
