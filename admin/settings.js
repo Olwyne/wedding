@@ -8,7 +8,11 @@ const generalDocRef = doc(db, 'settings', 'general');
 export async function loadChildrenAllowed() {
   try {
     const snap = await getDoc(generalDocRef);
-    return snap.exists() && snap.data().childrenAllowed === false ? false : true;
+    if (!snap.exists()) return true;
+    const val = snap.data().childrenAllowed;
+    if (val === false) return false;
+    if (val === 'tolerated') return 'tolerated';
+    return true;
   } catch (err) {
     console.error('loadChildrenAllowed failed', err);
     return true;
@@ -29,24 +33,26 @@ export async function renderSettingsTab() {
 
   panel.innerHTML = `
     <div class="settings-row">
-      <label class="toggle">
-        <input type="checkbox" id="setting-children-allowed" ${childrenAllowed ? 'checked' : ''} ${editable ? '' : 'disabled'}>
-        <span class="toggle-track"></span>
-      </label>
-      <div>
-        <div class="settings-row-title">Enfants autorisés</div>
-        <div class="settings-row-sub">Si désactivé, les champs enfants disparaissent du formulaire public et de la fiche invité.</div>
+      <div style="flex:1">
+        <div class="settings-row-title">Enfants</div>
+        <div class="settings-row-sub">Détermine comment les enfants apparaissent sur le formulaire public.</div>
       </div>
+      <select id="setting-children-mode" ${editable ? '' : 'disabled'} style="min-width:220px">
+        <option value="true" ${childrenAllowed === true ? 'selected' : ''}>Autorisés</option>
+        <option value="tolerated" ${childrenAllowed === 'tolerated' ? 'selected' : ''}>Tolérés (suggestion de garde)</option>
+        <option value="false" ${childrenAllowed === false ? 'selected' : ''}>Non autorisés</option>
+      </select>
     </div>`;
 
   if (editable) {
-    panel.querySelector('#setting-children-allowed').addEventListener('change', async e => {
+    panel.querySelector('#setting-children-mode').addEventListener('change', async e => {
       e.target.disabled = true;
       try {
-        await saveChildrenAllowed(e.target.checked);
+        const raw = e.target.value;
+        const val = raw === 'false' ? false : raw === 'tolerated' ? 'tolerated' : true;
+        await saveChildrenAllowed(val);
       } catch (err) {
         console.error('saveChildrenAllowed failed', err);
-        e.target.checked = !e.target.checked;
         alert(`Erreur : ${err.message}`);
       } finally {
         e.target.disabled = false;

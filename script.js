@@ -50,6 +50,7 @@ function escapeHtml(str) {
       fAdults: "Nombre d'adultes", fChildren: "Nombre d'enfants", fPresence: 'Je serai présent·e à :', maxWord: 'max',
       fExtraAdult: 'Adulte', fChildName: 'Enfant',
       fDiet: 'Allergies / régime', fDietPh: 'Ex : végétarien, sans gluten…', fMsg: 'Un petit mot', fMsgPh: 'Un message pour les mariés…',
+      childrenTolerated: "Idéalement, nous souhaitons que cette soirée soit réservée aux adultes. Nous vous serions très reconnaissants de prévoir une garde pour vos enfants — vous pourrez ainsi profiter pleinement de ce moment avec nous sans vous en préoccuper.",
       fSubmit: 'Envoyer ma réponse', thankTitle: 'Merci du fond du cœur',
       thankTitleDecline: "C'est noté",
       editBtn: 'Modifier ma réponse',
@@ -69,6 +70,7 @@ function escapeHtml(str) {
       fAdults: '成人人数', fChildren: '儿童人数', fPresence: '我将出席：', maxWord: '最多',
       fExtraAdult: '成人', fChildName: '儿童',
       fDiet: '过敏 / 饮食', fDietPh: '如：素食、无麸质…', fMsg: '留言', fMsgPh: '给新人的祝福…',
+      childrenTolerated: '如果可以的话，我们希望您能为孩子们安排看护，以便与我们共享这美好时刻——若有困难，完全没关系！',
       fSubmit: '提交回复', thankTitle: '衷心感谢',
       thankTitleDecline: '已收到',
       editBtn: '修改回复',
@@ -168,7 +170,8 @@ function escapeHtml(str) {
       state.rawEvents = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       state.maxAdults = guest.maxAdults ?? 1;
       state.maxChildren = guest.maxChildren ?? 0;
-      state.childrenAllowed = settingsSnap && settingsSnap.exists() && settingsSnap.data().childrenAllowed === false ? false : true;
+      const _cval = settingsSnap && settingsSnap.exists() ? settingsSnap.data().childrenAllowed : true;
+      state.childrenAllowed = _cval === false ? false : _cval === 'tolerated' ? 'tolerated' : true;
       state.rsvp.email = guest.email || '';
       if (guest.rsvp && (guest.rsvp.status === 'confirmed' || guest.rsvp.status === 'declined')) {
         state.submitted = true;
@@ -669,11 +672,13 @@ function escapeHtml(str) {
                 <span class="field-label">${escapeHtml(L.fAdults)} (${escapeHtml(L.maxWord)} ${state.maxAdults}) *</span>
                 <input id="r-adults" type="number" min="1" max="${state.maxAdults}" value="${escapeHtml(String(Math.min(Number(state.rsvp.adults) || 1, state.maxAdults)))}">
               </label>
-              ${state.childrenAllowed && state.maxChildren > 0 ? `
+              ${state.childrenAllowed !== false && state.maxChildren > 0 ? `
               <label class="field">
                 <span class="field-label">${escapeHtml(L.fChildren)} (${escapeHtml(L.maxWord)} ${state.maxChildren}) *</span>
                 <input id="r-children" type="number" min="0" max="${state.maxChildren}" value="${escapeHtml(String(Math.min(Number(state.rsvp.children) || 0, state.maxChildren)))}">
               </label>` : ''}
+              ${state.childrenAllowed === 'tolerated' && state.maxChildren > 0 ? `
+              <p id="rsvp-children-notice" class="rsvp-children-notice" ${(state.rsvp.children || 0) > 0 ? '' : 'hidden'}>${escapeHtml(L.childrenTolerated)}</p>` : ''}
             </div>
             <div id="rsvp-extra-people"></div>
             <div class="field">
@@ -709,7 +714,7 @@ function escapeHtml(str) {
 
     function renderExtraPeople() {
       const adults = Math.max(1, Math.min(Number(state.rsvp.adults) || 1, state.maxAdults));
-      const children = state.childrenAllowed ? Math.max(0, Math.min(Number(state.rsvp.children) || 0, state.maxChildren)) : 0;
+      const children = state.childrenAllowed !== false ? Math.max(0, Math.min(Number(state.rsvp.children) || 0, state.maxChildren)) : 0;
       state.rsvp.adults = adults;
       state.rsvp.children = children;
       const extraAdultsCount = Math.max(0, adults - 1);
@@ -727,7 +732,7 @@ function escapeHtml(str) {
         label.querySelector('input').addEventListener('input', e => state.rsvp.extraAdults[i] = e.target.value);
         extraPeopleEl.appendChild(label);
       });
-      if (state.childrenAllowed) {
+      if (state.childrenAllowed !== false) {
         state.rsvp.childNames.forEach((val, i) => {
           const label = document.createElement('label');
           label.className = 'field';
@@ -764,6 +769,8 @@ function escapeHtml(str) {
         e.target.value = v;
         state.rsvp.children = v;
         renderExtraPeople();
+        const notice = section.querySelector('#rsvp-children-notice');
+        if (notice) notice.hidden = v === 0;
       });
     }
     section.querySelector('#r-diet').addEventListener('input', e => state.rsvp.diet = e.target.value);
