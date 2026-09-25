@@ -809,10 +809,11 @@ function escapeHtml(str) {
     function setPresence(val) {
       state.rsvp.presence = val;
       toggleBtns.forEach(b => b.classList.toggle('active', b.dataset.val === val));
+      const savedScrollY = window.scrollY;
       presenceYesEl.hidden = val !== 'yes';
       if (val === 'yes') {
         renderExtraPeople();
-        requestAnimationFrame(() => presenceYesEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+        window.scrollTo({ top: savedScrollY, behavior: 'instant' });
       }
     }
 
