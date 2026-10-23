@@ -1,18 +1,18 @@
 // admin/script.js
 import { initAuth } from './auth.js?v=1';
-import { renderDashboardTab } from './dashboard.js?v=6';
-import { renderBlocksTab } from './blocks.js?v=8';
-import { renderGuestsTab } from './guests.js?v=10';
-import { renderTablesTab } from './tables.js?v=3';
-import { renderVendorsTab } from './vendors.js?v=8';
-import { renderBudgetTab } from './budget.js?v=8';
-import { renderEventsTab } from './events.js?v=5';
-import { renderDayOfTab } from './dayof.js?v=6';
-import { renderTodoTab } from './todo.js?v=4';
-import { renderCalendarTab } from './calendar.js?v=3';
-import { renderUsersTab, ensurePreviewToken } from './users.js?v=2';
-import { renderSettingsTab } from './settings.js?v=1';
-import { renderWitnessesTab } from './witnesses.js?v=5';
+import { renderDashboardTab } from './dashboard.js?v=7';
+import { renderBlocksTab } from './blocks.js?v=9';
+import { renderGuestsTab } from './guests.js?v=11';
+import { renderTablesTab } from './tables.js?v=4';
+import { renderVendorsTab } from './vendors.js?v=9';
+import { renderBudgetTab } from './budget.js?v=9';
+import { renderEventsTab } from './events.js?v=6';
+import { renderDayOfTab } from './dayof.js?v=7';
+import { renderTodoTab } from './todo.js?v=5';
+import { renderCalendarTab } from './calendar.js?v=4';
+import { renderUsersTab, ensurePreviewToken } from './users.js?v=3';
+import { renderSettingsTab } from './settings.js?v=2';
+import { renderWitnessesTab } from './witnesses.js?v=6';
 import { openAccountPanel } from './account.js';
 import { canRead } from './permissions.js';
 import { SECTIONS as PERM_SECTIONS } from './sections-registry.js?v=2';
@@ -51,6 +51,18 @@ function updateNavVisibility() {
   PERM_SECTIONS.forEach(s => {
     const btn = document.querySelector(`.nav-item[data-section="${s.id}"]`);
     if (btn) btn.hidden = !canRead(s.id);
+  });
+  // Hide a group label when every nav-item that follows it (up to the next
+  // label) is hidden, so a reduced-permission user never sees an empty
+  // section heading with nothing underneath it.
+  document.querySelectorAll('.nav-group-label').forEach(label => {
+    let sibling = label.nextElementSibling;
+    let hasVisible = false;
+    while (sibling && !sibling.classList.contains('nav-group-label')) {
+      if (sibling.classList.contains('nav-item') && !sibling.hidden) { hasVisible = true; break; }
+      sibling = sibling.nextElementSibling;
+    }
+    label.hidden = !hasVisible;
   });
 }
 

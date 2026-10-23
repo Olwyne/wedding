@@ -1,4 +1,6 @@
 // admin/users.js
+import { confirmDialog } from './ui-confirm.js?v=1';
+import { showToast } from './ui-toast.js?v=1';
 import { db, auth } from '../firebase-init.js';
 import {
   collection, getDocs, doc, getDoc, setDoc, updateDoc
@@ -125,12 +127,12 @@ export async function renderUsersTab() {
       btn.addEventListener('click', async () => {
         const uid = btn.dataset.id;
         const email = btn.dataset.email;
-        if (!confirm(`Réinitialiser le mot de passe et renvoyer les accès à ${email} ?`)) return;
+        if (!(await confirmDialog({ title: 'Réinitialiser les accès ?', message: `Un nouveau mot de passe sera envoyé à ${email}.`, confirmLabel: 'Réinitialiser' }))) return;
         btn.disabled = true;
         btn.textContent = 'Envoi…';
         try {
           if (!auth.currentUser) {
-            alert('Session expirée, rechargez la page.');
+            showToast({ message: 'Session expirée, rechargez la page.', tone: 'error' });
             btn.textContent = 'Renvoyer les accès';
             btn.disabled = false;
             return;
@@ -156,7 +158,7 @@ export async function renderUsersTab() {
             btn.disabled = false;
           }, 3000);
         } catch (err) {
-          alert(`Erreur : ${err.message}`);
+          showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
           btn.textContent = 'Renvoyer les accès';
           btn.disabled = false;
         }

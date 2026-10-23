@@ -1,11 +1,13 @@
 // admin/guests.js
+import { confirmDialog } from './ui-confirm.js?v=1';
+import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, setDoc, updateDoc, deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadEvents } from './events.js?v=5';
+import { loadEvents } from './events.js?v=6';
 import { canWrite } from './permissions.js';
-import { loadChildrenAllowed } from './settings.js?v=1';
+import { loadChildrenAllowed } from './settings.js?v=2';
 import { sendEmailWithConfirm } from './email.js';
 
 const guestsCol = collection(db, 'guests');
@@ -76,10 +78,11 @@ function renderEmailBulkButton(type, allGuests) {
   const targetStatus = type === 'relance' ? 'pending' : 'confirmed';
   const eligible = allGuests.filter(g => passesFilters(g) && guestStatus(g) === targetStatus && g.email);
   if (eligible.length === 0) return '';
+  const mailIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="13" height="13" style="vertical-align:-2px;margin-right:5px"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>';
   const label = type === 'relance'
-    ? `📧 Relancer tous (${eligible.length})`
-    : `📧 Rappel J à tous (${eligible.length})`;
-  return `<button class="btn-secondary" id="bulk-email-btn" data-email-type="${type}">${label}</button>`;
+    ? `Relancer tous (${eligible.length})`
+    : `Rappel J à tous (${eligible.length})`;
+  return `<button class="btn-secondary" id="bulk-email-btn" data-email-type="${type}">${mailIcon}${label}</button>`;
 }
 
 const SIDE_FILTERS = [['all', 'Tous les côtés'], ['marie', 'Marié'], ['mariee', 'Mariée'], ['deux', 'Les deux']];
@@ -115,8 +118,9 @@ function ensureMenuCloseListener() {
 
 function renderActionsCell(g, editable) {
   const status = guestStatus(g);
+  const mailIconSm = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" style="vertical-align:-1px;margin-right:5px"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>';
   const emailActions = g.email && (status === 'pending' || status === 'confirmed')
-    ? [{ action: 'send-email', label: status === 'pending' ? '✉ Relancer' : '✉ Rappel J' }]
+    ? [{ action: 'send-email', label: `${mailIconSm}${status === 'pending' ? 'Relancer' : 'Rappel J'}` }]
     : [];
   const items = editable
     ? [
@@ -258,7 +262,13 @@ export async function renderGuestsTab() {
     ? '<button id="add-guest-btn" class="btn-primary">+ Ajouter un invité</button>'
     : '';
 
-  const [guests, events, childrenAllowed] = await Promise.all([loadGuests(), loadEvents(), loadChildrenAllowed()]);
+  let guests, events, childrenAllowed;
+  try {
+    [guests, events, childrenAllowed] = await Promise.all([loadGuests(), loadEvents(), loadChildrenAllowed()]);
+  } catch (err) {
+    panel.innerHTML = `<p style="padding:20px;color:var(--danger)">Erreur : ${escapeHtml(err.message)}</p>`;
+    return;
+  }
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
   const validEventIds = new Set(events.map(e => e.id));
   Array.from(eventFilters).forEach(id => { if (!validEventIds.has(id)) eventFilters.delete(id); });
@@ -316,9 +326,25 @@ export async function renderGuestsTab() {
       } else if (action === 'edit-guest') {
         openGuestPanel(guestId, guests, events, childrenAllowed);
       } else if (action === 'delete-guest') {
-        if (!confirm('Supprimer cet invité ?')) return;
-        await deleteDoc(doc(db, 'guests', guestId));
-        renderGuestsTab();
+        const g = guests.find(g => g.id === guestId);
+        const ok = await confirmDialog({
+          title: 'Supprimer cet invité ?',
+          message: g ? `${g.name} sera retiré(e) de la liste. Vous aurez quelques secondes pour annuler.` : 'Cette action est définitive.',
+          confirmLabel: 'Supprimer',
+          danger: true,
+        });
+        if (!ok) return;
+        const row = btn.closest('tr');
+        if (row) row.style.display = 'none';
+        showToast({
+          message: g ? `${g.name} supprimé(e).` : 'Invité supprimé.',
+          tone: 'default',
+          onUndo: () => { if (row) row.style.display = ''; },
+          commit: async () => {
+            await deleteDoc(doc(db, 'guests', guestId));
+            renderGuestsTab();
+          },
+        });
       } else if (action === 'send-email') {
         const g = guests.find(g => g.id === guestId);
         if (!g?.email) return;

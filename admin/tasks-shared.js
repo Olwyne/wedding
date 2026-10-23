@@ -4,9 +4,9 @@ import {
   collection, getDocs, doc, addDoc, updateDoc,
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests } from './guests.js?v=10';
-import { loadVendors } from './vendors.js?v=8';
-import { loadUsers } from './users.js?v=2';
+import { loadGuests } from './guests.js?v=11';
+import { loadVendors } from './vendors.js?v=9';
+import { loadUsers } from './users.js?v=3';
 
 const tasksCol = collection(db, 'tasks');
 

@@ -1,4 +1,5 @@
 // admin/timeline-lanes.js
+import { confirmDialog } from './ui-confirm.js?v=1';
 import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, writeBatch,
@@ -130,7 +131,7 @@ export function openLaneManagerPanel(lanes, onChange) {
         render(await loadLanes());
       });
       row.querySelector('.lane-delete').addEventListener('click', async () => {
-        if (!confirm('Supprimer cette lane ? Les lignes qui y sont rattachées repasseront sur "Général".')) return;
+        if (!(await confirmDialog({ title: 'Supprimer cette lane ?', message: 'Les lignes qui y sont rattachées repasseront sur \'Général\'.', confirmLabel: 'Supprimer', danger: true }))) return;
         await deleteLane(id);
         onChange();
         render(await loadLanes());

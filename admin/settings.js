@@ -1,4 +1,5 @@
 // admin/settings.js
+import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
@@ -40,7 +41,13 @@ export async function renderSettingsTab() {
   document.getElementById('section-action').innerHTML = '';
 
   const editable = canWrite('settings');
-  const settings = await loadSettings();
+  let settings;
+  try {
+    settings = await loadSettings();
+  } catch (err) {
+    panel.innerHTML = `<p style="padding:20px;color:var(--danger)">Erreur : ${err.message}</p>`;
+    return;
+  }
   const childrenAllowed = settings.childrenAllowed === false ? false : settings.childrenAllowed === 'tolerated' ? 'tolerated' : true;
   const rsvpDeadline = settings.rsvpDeadline || '';
   const hideAddresses = !!settings.hideAddresses;
@@ -94,7 +101,7 @@ export async function renderSettingsTab() {
         await saveChildrenAllowed(val);
       } catch (err) {
         console.error('saveChildrenAllowed failed', err);
-        alert(`Erreur : ${err.message}`);
+        showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
       } finally {
         e.target.disabled = false;
       }
@@ -108,7 +115,7 @@ export async function renderSettingsTab() {
         if (label) label.textContent = e.target.checked ? 'Activé' : 'Désactivé';
       } catch (err) {
         console.error('saveHideAddresses failed', err);
-        alert(`Erreur : ${err.message}`);
+        showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
       } finally {
         e.target.disabled = false;
       }
@@ -121,7 +128,7 @@ export async function renderSettingsTab() {
         await setDoc(generalDocRef, { rsvpDeadline: val }, { merge: true });
       } catch (err) {
         console.error('saveRsvpDeadline failed', err);
-        alert(`Erreur : ${err.message}`);
+        showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
       } finally {
         e.target.disabled = false;
       }

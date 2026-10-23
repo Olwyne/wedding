@@ -1,11 +1,12 @@
 // admin/todo.js
+import { confirmDialog } from './ui-confirm.js?v=1';
 import { db } from '../firebase-init.js';
 import { collection, doc, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
-import { loadGuests } from './guests.js?v=10';
-import { loadVendors } from './vendors.js?v=8';
-import { loadUsers } from './users.js?v=2';
-import { loadTasks, escapeHtml, STATUS_LABELS, MILESTONES, openTaskPanel } from './tasks-shared.js?v=4';
+import { loadGuests } from './guests.js?v=11';
+import { loadVendors } from './vendors.js?v=9';
+import { loadUsers } from './users.js?v=3';
+import { loadTasks, escapeHtml, STATUS_LABELS, MILESTONES, openTaskPanel } from './tasks-shared.js?v=5';
 
 const tasksCol = collection(db, 'tasks');
 
@@ -168,7 +169,7 @@ function attachSharedHandlers(panel, tasks, editable, rerender) {
   );
   panel.querySelectorAll('.btn-delete-task').forEach(btn =>
     btn.addEventListener('click', async () => {
-      if (!confirm('Supprimer cette tâche ?')) return;
+      if (!(await confirmDialog({ title: 'Supprimer cette tâche ?', message: 'Cette action est définitive.', confirmLabel: 'Supprimer', danger: true }))) return;
       await deleteDoc(doc(db, 'tasks', btn.dataset.id));
       rerender();
     })
@@ -190,9 +191,15 @@ export async function renderTodoTab() {
     ? '<button id="add-task-btn" class="btn-primary">+ Ajouter une tâche</button>'
     : '';
 
-  const [tasks, guests, vendors, admins] = await Promise.all([
-    loadTasks(), loadGuests(), loadVendors(), loadUsers()
-  ]);
+  let tasks, guests, vendors, admins;
+  try {
+    [tasks, guests, vendors, admins] = await Promise.all([
+      loadTasks(), loadGuests(), loadVendors(), loadUsers()
+    ]);
+  } catch (err) {
+    panel.innerHTML = `<p style="padding:20px;color:var(--danger)">Erreur : ${escapeHtml(err.message)}</p>`;
+    return;
+  }
   const guestsById = new Map(guests.map(g => [g.id, g]));
   const vendorsById = new Map(vendors.map(v => [v.id, v]));
   const adminsById = new Map(admins.map(a => [a.id, a]));

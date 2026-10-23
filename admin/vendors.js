@@ -1,4 +1,6 @@
 // admin/vendors.js
+import { confirmDialog } from './ui-confirm.js?v=1';
+import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc
@@ -128,13 +130,28 @@ export async function renderVendorsTab() {
     );
     panel.querySelectorAll('.btn-delete-vendor').forEach(btn =>
       btn.addEventListener('click', async () => {
-        if (!confirm('Supprimer cette prestation ?')) return;
-        try {
-          await deleteDoc(doc(db, 'vendors', btn.dataset.id));
-          renderVendorsTab();
-        } catch (err) {
-          alert(`Erreur : ${err.message}`);
-        }
+        const v = vendors.find(v => v.id === btn.dataset.id);
+        const ok = await confirmDialog({
+          title: 'Supprimer cette prestation ?',
+          message: v ? `${v.name} sera retiré(e). Vous aurez quelques secondes pour annuler.` : 'Cette action est définitive.',
+          confirmLabel: 'Supprimer',
+          danger: true,
+        });
+        if (!ok) return;
+        const row = btn.closest('tr');
+        if (row) row.style.display = 'none';
+        showToast({
+          message: v ? `${v.name} supprimé(e).` : 'Prestation supprimée.',
+          onUndo: () => { if (row) row.style.display = ''; },
+          commit: async () => {
+            try {
+              await deleteDoc(doc(db, 'vendors', btn.dataset.id));
+              renderVendorsTab();
+            } catch (err) {
+              showToast({ message: `Erreur : ${err.message}`, tone: 'error', duration: 6000 });
+            }
+          },
+        });
       })
     );
     panel.querySelectorAll('.btn-mark-preferred').forEach(btn =>
@@ -144,7 +161,7 @@ export async function renderVendorsTab() {
           await markPreferred(btn.dataset.id, category, vendors);
           renderVendorsTab();
         } catch (err) {
-          alert(`Erreur : ${err.message}`);
+          showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
         }
       })
     );

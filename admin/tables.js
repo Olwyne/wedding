@@ -1,9 +1,11 @@
 // admin/tables.js
+import { confirmDialog } from './ui-confirm.js?v=1';
+import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests } from './guests.js?v=10';
+import { loadGuests } from './guests.js?v=11';
 import { canWrite } from './permissions.js';
 
 const tablesCol = collection(db, 'tables');
@@ -88,7 +90,8 @@ function renderTableCircle(table, editable) {
   const over = count > (Number(table.capacity) || 0);
   return `
     <div class="table-circle${over ? ' over-capacity' : ''}" data-id="${escapeHtml(table.id)}"
-         style="left:${table.x}px;top:${table.y}px" draggable="${editable}">
+         style="left:${table.x}px;top:${table.y}px" draggable="${editable}"
+         role="button" tabindex="0" aria-label="${escapeHtml(table.name)}, ${count} sur ${table.capacity}">
       <div class="table-circle-name">${escapeHtml(table.name)}</div>
       <div class="table-circle-count">${count}/${table.capacity}${over ? ' ⚠' : ''}</div>
     </div>`;
@@ -137,7 +140,7 @@ function openAddTablePanel(onCreated) {
       close();
       onCreated();
     } catch (err) {
-      alert(`Erreur : ${err.message}`);
+      showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
     }
   });
 }
@@ -147,7 +150,9 @@ function renderPersonCard(guest, personIdx, person, editable) {
   const typeLabel = person.type === 'child' ? 'E' : 'A';
   const key = seatKey(guest.id, personIdx);
   return `
-    <div class="guest-card" draggable="${editable}" data-seat-key="${escapeHtml(key)}">
+    <div class="guest-card" draggable="${editable}" data-seat-key="${escapeHtml(key)}"
+         role="button" tabindex="${editable ? '0' : '-1'}" aria-pressed="false"
+         aria-label="${escapeHtml(personName(guest, personIdx, person))}, non placé(e)">
       <span>${escapeHtml(personName(guest, personIdx, person))} <span style="font-size:9px;opacity:.6">${typeLabel}</span> <span class="badge ${STATUS_BADGE[status]}" style="font-size:9px">${STATUS_LABELS[status]}</span></span>
     </div>`;
 }
@@ -236,34 +241,74 @@ function openTableDetailPanel(table, guests, onChange, editable) {
         close();
         onChange();
       } catch (err) {
-        alert(`Erreur : ${err.message}`);
+        showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
       }
     });
   });
 
   panelEl.querySelector('#panel-delete-table').addEventListener('click', async () => {
-    if (!confirm('Supprimer cette table ? Les personnes qu\'elle contient redeviendront non placées.')) return;
+    if (!(await confirmDialog({ title: 'Supprimer cette table ?', message: "Les personnes qu'elle contient redeviendront non placées.", confirmLabel: 'Supprimer', danger: true }))) return;
     try {
       await deleteTable(table.id);
       close();
       onChange();
     } catch (err) {
-      alert(`Erreur : ${err.message}`);
+      showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
     }
   });
 }
 
 function wireDragAndDrop(panel, tables, guests, statusFilter, editable) {
+  // Click/keyboard fallback for drag-and-drop: click (or Enter/Space) a guest
+  // card to "pick it up", then click (or Enter/Space) a table to "place" it.
+  // Mirrors the drag-drop assignment exactly, for anyone who cannot drag.
+  let pickedCard = null;
+
+  function setPicked(card) {
+    if (pickedCard) {
+      pickedCard.classList.remove('picked');
+      pickedCard.setAttribute('aria-pressed', 'false');
+    }
+    pickedCard = card === pickedCard ? null : card;
+    if (pickedCard) {
+      pickedCard.classList.add('picked');
+      pickedCard.setAttribute('aria-pressed', 'true');
+    }
+  }
+
+  async function placeOnTable(tableId) {
+    if (!pickedCard) return false;
+    const key = pickedCard.dataset.seatKey;
+    const card = pickedCard;
+    setPicked(card); // clears selection
+    try {
+      const { guestId, personIdx } = parseSeatKey(key);
+      await assignPersonToTable(tables, guestId, personIdx, tableId);
+      renderTablesTab(statusFilter);
+    } catch (err) {
+      showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
+    }
+    return true;
+  }
+
   panel.querySelectorAll('.table-circle').forEach(circle => {
-    circle.addEventListener('click', () => {
+    circle.addEventListener('click', async () => {
+      if (pickedCard) { await placeOnTable(circle.dataset.id); return; }
       const table = tables.find(t => t.id === circle.dataset.id);
       if (table) openTableDetailPanel(table, guests, () => renderTablesTab(statusFilter), editable);
+    });
+    circle.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); circle.click(); }
     });
   });
 
   if (!editable) return;
 
   panel.querySelectorAll('.guest-card').forEach(card => {
+    card.addEventListener('click', () => setPicked(card));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPicked(card); }
+    });
     card.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/seat-key', card.dataset.seatKey);
       e.dataTransfer.effectAllowed = 'move';
@@ -292,7 +337,7 @@ function wireDragAndDrop(panel, tables, guests, statusFilter, editable) {
         await assignPersonToTable(tables, guestId, personIdx, circle.dataset.id);
         renderTablesTab(statusFilter);
       } catch (err) {
-        alert(`Erreur : ${err.message}`);
+        showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
       }
     });
   });
@@ -312,7 +357,7 @@ function wireDragAndDrop(panel, tables, guests, statusFilter, editable) {
       await updateTablePosition(tableId, x, y);
       renderTablesTab(statusFilter);
     } catch (err) {
-      alert(`Erreur : ${err.message}`);
+      showToast({ message: `Erreur : ${err.message}`, tone: 'error' });
     }
   });
 }

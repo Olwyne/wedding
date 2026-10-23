@@ -1,14 +1,16 @@
 // admin/dayof.js
+import { confirmDialog } from './ui-confirm.js?v=1';
+import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc,
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
-import { loadGuests } from './guests.js?v=10';
-import { loadVendors } from './vendors.js?v=8';
-import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=3';
-import { renderTimelineGrid } from './dayof-timeline.js?v=3';
+import { loadGuests } from './guests.js?v=11';
+import { loadVendors } from './vendors.js?v=9';
+import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=4';
+import { renderTimelineGrid } from './dayof-timeline.js?v=4';
 
 const dayOfCol = collection(db, 'runOfShow');
 let currentView = 'table';
@@ -34,13 +36,19 @@ export async function renderDayOfTab() {
     ? '<button id="add-dayof-btn" class="btn-primary">+ Ajouter une ligne</button>'
     : '';
 
-  const [items, guests, vendors, lanes] = await Promise.all([
-    loadRunOfShow(), loadGuests(), loadVendors(),
-    loadLanes().catch(err => {
-      console.error('loadLanes failed', err);
-      return [GENERAL_LANE];
-    }),
-  ]);
+  let items, guests, vendors, lanes;
+  try {
+    [items, guests, vendors, lanes] = await Promise.all([
+      loadRunOfShow(), loadGuests(), loadVendors(),
+      loadLanes().catch(err => {
+        console.error('loadLanes failed', err);
+        return [GENERAL_LANE];
+      }),
+    ]);
+  } catch (err) {
+    panel.innerHTML = `<p style="padding:20px;color:var(--danger)">Erreur : ${err.message}</p>`;
+    return;
+  }
   const guestsById = new Map(guests.map(g => [g.id, g]));
   const vendorsById = new Map(vendors.map(v => [v.id, v]));
   const lanesById = new Map(lanes.map(l => [l.id, l]));
@@ -127,12 +135,12 @@ export async function renderDayOfTab() {
     );
     panel.querySelectorAll('.btn-delete-dayof').forEach(btn =>
       btn.addEventListener('click', async () => {
-        if (!confirm('Supprimer cette ligne ?')) return;
+        if (!(await confirmDialog({ title: 'Supprimer cette ligne ?', message: 'Cette action est définitive.', confirmLabel: 'Supprimer', danger: true }))) return;
         try {
           await deleteDoc(doc(db, 'runOfShow', btn.dataset.id));
         } catch (err) {
           console.error('deleteDoc failed', err);
-          alert('Une erreur est survenue, réessayez.');
+          showToast({ message: 'Une erreur est survenue, réessayez.', tone: 'error' });
         }
         renderDayOfTab();
       })
@@ -146,7 +154,7 @@ export async function renderDayOfTab() {
         } catch (err) {
           console.error('updateDoc failed', err);
           cb.checked = previous;
-          alert('Une erreur est survenue, réessayez.');
+          showToast({ message: 'Une erreur est survenue, réessayez.', tone: 'error' });
         }
       })
     );
@@ -236,7 +244,7 @@ function openDayOfPanel(id, items, guests, vendors, lanes) {
     if (!title || !time) return;
     const endTimeVal = get('#dayof-end-time');
     if (endTimeVal && endTimeVal <= time) {
-      alert('L\'heure de fin doit être après l\'heure de début.');
+      showToast({ message: 'L\'heure de fin doit être après l\'heure de début.', tone: 'error' });
       return;
     }
     const responsibleTypeVal = get('#dayof-responsible-type');
@@ -261,7 +269,7 @@ function openDayOfPanel(id, items, guests, vendors, lanes) {
       }
     } catch (err) {
       console.error('save failed', err);
-      alert('Une erreur est survenue, réessayez.');
+      showToast({ message: 'Une erreur est survenue, réessayez.', tone: 'error' });
       return;
     }
     close();

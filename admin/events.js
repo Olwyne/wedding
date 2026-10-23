@@ -1,4 +1,5 @@
 // admin/events.js
+import { confirmDialog } from './ui-confirm.js?v=1';
 import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc,
@@ -30,7 +31,13 @@ export async function renderEventsTab() {
     ? '<button id="add-event-btn" class="btn-primary">+ Ajouter un événement</button>'
     : '';
 
-  const events = await loadEvents();
+  let events;
+  try {
+    events = await loadEvents();
+  } catch (err) {
+    panel.innerHTML = `<p style="padding:20px;color:var(--danger)">Erreur : ${escapeHtml(err.message)}</p>`;
+    return;
+  }
 
   panel.innerHTML = `
     <table class="admin-table">
@@ -64,7 +71,7 @@ export async function renderEventsTab() {
     );
     panel.querySelectorAll('.btn-delete-event').forEach(btn =>
       btn.addEventListener('click', async () => {
-        if (!confirm('Supprimer cet événement ?')) return;
+        if (!(await confirmDialog({ title: 'Supprimer cet événement ?', message: 'Cette action est définitive.', confirmLabel: 'Supprimer', danger: true }))) return;
         await deleteDoc(doc(db, 'events', btn.dataset.id));
         renderEventsTab();
       })

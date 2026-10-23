@@ -1,7 +1,8 @@
 // admin/witnesses.js
+import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import { doc, updateDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=10';
+import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=11';
 import { canWrite } from './permissions.js';
 
 const SIDES = [
@@ -85,7 +86,8 @@ function renderPersonCard(guest, personIdx, person, { removable }) {
     ? `<button class="btn-icon witness-remove" data-key="${escapeHtml(key)}" title="Retirer" aria-label="Retirer">✕</button>`
     : '';
   return `
-    <div class="witness-card" draggable="${editableGlobal}" data-key="${escapeHtml(key)}">
+    <div class="witness-card" draggable="${editableGlobal}" data-key="${escapeHtml(key)}"
+         ${editableGlobal ? `role="button" tabindex="0" aria-pressed="false" aria-label="${escapeHtml(name)}"` : ''}>
       <span class="witness-card-name">${escapeHtml(name)}</span>
       <span class="badge ${SIDE_BADGE[side]}">${SIDE_LABELS[side]}</span>
       ${removeBtn}
@@ -113,14 +115,16 @@ function renderColumn(sideDef, persons) {
       : '<div class="witness-slot-empty">Aucun</div>';
     return `
       <div class="witness-section-label">${typeDef.label}</div>
-      <div class="witness-honneur-list" data-side="${sideDef.id}" data-role="honneur" data-honneur-type="${typeDef.id}">${honneurCards}</div>`;
+      <div class="witness-honneur-list" data-side="${sideDef.id}" data-role="honneur" data-honneur-type="${typeDef.id}"
+           ${editableGlobal ? `role="button" tabindex="0" aria-label="Déposer ici : ${escapeHtml(typeDef.label)}, ${escapeHtml(sideDef.label)}"` : ''}>${honneurCards}</div>`;
   }).join('');
 
   return `
     <div class="witness-column" data-side="${sideDef.id}">
       <h3>${sideDef.label}</h3>
       <div class="witness-section-label">Témoins (max 2)</div>
-      <div class="witness-slots" data-side="${sideDef.id}" data-role="temoin">${slots}</div>
+      <div class="witness-slots" data-side="${sideDef.id}" data-role="temoin"
+           ${editableGlobal ? `role="button" tabindex="0" aria-label="Déposer ici : Témoins, ${escapeHtml(sideDef.label)}"` : ''}>${slots}</div>
       ${honneurSections}
     </div>`;
 }
@@ -184,13 +188,45 @@ function flashReject(el) {
   el.classList.add('witness-shake');
 }
 
+async function placeWitness(target, key) {
+  const side = target.dataset.side;
+  const role = target.dataset.role;
+  const honneurType = target.dataset.honneurType;
+  const result = await assignWitness(key, side, role, honneurType);
+  if (result === 'cap') { flashReject(target); return; }
+  if (result === 'error') {
+    flashReject(target);
+    showToast({ message: 'Une erreur est survenue, réessayez.', tone: 'error' });
+    return;
+  }
+  renderWitnessesTab();
+}
+
 function attachDragEvents(panel) {
   if (!editableGlobal) return;
+
+  // Click/keyboard fallback: click (or Enter/Space) a card to pick it up,
+  // then click (or Enter/Space) a slot/honneur list to place it there —
+  // mirrors the drag-and-drop assignment for anyone who cannot drag.
+  let pickedCard = null;
+  function setPicked(card) {
+    if (pickedCard) { pickedCard.classList.remove('picked'); pickedCard.setAttribute('aria-pressed', 'false'); }
+    pickedCard = card === pickedCard ? null : card;
+    if (pickedCard) { pickedCard.classList.add('picked'); pickedCard.setAttribute('aria-pressed', 'true'); }
+  }
 
   panel.querySelectorAll('.witness-card[draggable="true"]').forEach(card => {
     card.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', card.dataset.key);
       e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('click', e => {
+      if (e.target.closest('.witness-remove')) return; // let the remove button handle its own click
+      setPicked(card);
+    });
+    card.addEventListener('keydown', e => {
+      if (e.target.closest('.witness-remove')) return;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPicked(card); }
     });
   });
 
@@ -208,20 +244,21 @@ function attachDragEvents(panel) {
       target.classList.remove('witness-drag-over');
       const key = e.dataTransfer.getData('text/plain');
       if (!key) return;
-      const side = target.dataset.side;
-      const role = target.dataset.role;
-      const honneurType = target.dataset.honneurType;
-      const result = await assignWitness(key, side, role, honneurType);
-      if (result === 'cap') {
-        flashReject(target);
-        return;
-      }
-      if (result === 'error') {
-        flashReject(target);
-        alert('Une erreur est survenue, réessayez.');
-        return;
-      }
-      renderWitnessesTab();
+      await placeWitness(target, key);
+    });
+    target.addEventListener('click', async () => {
+      if (!pickedCard) return;
+      const key = pickedCard.dataset.key;
+      setPicked(pickedCard); // clears selection
+      await placeWitness(target, key);
+    });
+    target.addEventListener('keydown', async e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      if (!pickedCard) return;
+      const key = pickedCard.dataset.key;
+      setPicked(pickedCard);
+      await placeWitness(target, key);
     });
   });
 
@@ -230,7 +267,7 @@ function attachDragEvents(panel) {
       const result = await unassignWitness(btn.dataset.key);
       if (result === 'error') {
         flashReject(btn);
-        alert('Une erreur est survenue, réessayez.');
+        showToast({ message: 'Une erreur est survenue, réessayez.', tone: 'error' });
         return;
       }
       renderWitnessesTab();

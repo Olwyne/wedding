@@ -1,4 +1,5 @@
 // admin/blocks.js
+import { confirmDialog } from './ui-confirm.js?v=1';
 import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc,
@@ -251,7 +252,7 @@ export async function renderBlocksTab() {
     );
     panel.querySelectorAll('.btn-delete').forEach(btn =>
       btn.addEventListener('click', async () => {
-        if (!confirm('Supprimer ce bloc ?')) return;
+        if (!(await confirmDialog({ title: 'Supprimer ce bloc ?', message: 'Cette action est définitive.', confirmLabel: 'Supprimer', danger: true }))) return;
         await deleteDoc(doc(db, 'blocks', btn.dataset.id));
         renderBlocksTab();
       })
