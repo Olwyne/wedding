@@ -76,6 +76,7 @@ function escapeHtml(str) {
       childrenTolerated: "Idéalement, nous souhaitons que cette soirée soit réservée aux adultes. Nous vous serions très reconnaissants de prévoir une garde pour vos enfants — vous pourrez ainsi profiter pleinement de ce moment avec nous sans vous en préoccuper.\n\nSi toutefois vous ne pouvez pas faire garder vos enfants, aucun souci : merci simplement de bien renseigner le formulaire en indiquant le nombre d'enfants présents, afin que nous puissions nous organiser au mieux.",
       fSubmit: 'Envoyer ma réponse', fSubmitting: 'Envoi en cours, patientez', thankTitle: 'Merci du fond du cœur',
       thankTitleDecline: "C'est noté",
+thankAddresses: 'Merci ! Les adresses des lieux sont maintenant visibles dans Programme et Infos pratiques.',
       editBtn: 'Modifier ma réponse',
       langBtn: '中文',
       confirmPrefix: 'Nous avons hâte de vous retrouver pour : ',
@@ -107,6 +108,7 @@ function escapeHtml(str) {
       childrenTolerated: '理想情况下，我们希望这个夜晚能成为一个专属成人的时刻。若您能为孩子们安排看护，我们将不胜感激——这样您便能全心全意地与我们共享这美好时光。\n\n若实在无法安排，完全没问题：请在RSVP表单中填写出席儿童的人数，以便我们提前做好安排。',
       fSubmit: '提交回复', fSubmitting: '文件上传中，请稍候', thankTitle: '衷心感谢',
       thankTitleDecline: '已收到',
+thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“实用信息”中。',
       editBtn: '修改回复',
       langBtn: 'FR',
       confirmPrefix: '期待与您相聚于：',
@@ -402,6 +404,11 @@ function escapeHtml(str) {
     const el = document.getElementById('rsvp-confirm-line');
     const titleEl = document.getElementById('rsvp-thanks-title');
     if (!el) return;
+    const addrEl = document.getElementById('rsvp-addresses-line');
+    if (addrEl) {
+      addrEl.textContent = L.thankAddresses;
+      addrEl.hidden = !(state.hideAddresses && state.rsvp.presence === 'yes');
+    }
     if (state.rsvp.presence === 'no') {
       el.textContent = L.confirmDecline;
       if (titleEl) titleEl.textContent = L.thankTitleDecline;
@@ -823,6 +830,7 @@ function escapeHtml(str) {
           <div class="cal rsvp-thanks-glyph">囍</div>
           <h3 id="rsvp-thanks-title" class="rsvp-thanks-title">${escapeHtml(L.thankTitle)}</h3>
           <p id="rsvp-confirm-line" class="rsvp-confirm-line"></p>
+          <p id="rsvp-addresses-line" class="rsvp-confirm-line" hidden></p>
           <button id="rsvp-edit-btn" class="btn-outline">${escapeHtml(L.editBtn)}</button>
         </div>
 
@@ -972,8 +980,7 @@ function escapeHtml(str) {
         await updateDoc(doc(db, 'guests', state.guestToken), { rsvp });
         sendRsvpEmails(rsvp);
         state.submitted = true;
-        renderConfirmLine();
-        renderRsvpFormState();
+        fullRender();
       } catch (err) {
         console.error('RSVP submit failed', err);
         errEl.textContent = T[state.lang].submitError;
