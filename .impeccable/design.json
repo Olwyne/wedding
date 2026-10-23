@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-23T00:00:00Z",
+  "title": "Design System: Ruiyuan & Sophie — Mariage 2027",
+  "extensions": {
+    "colorMeta": {
+      "bordeaux": { "role": "primary", "displayName": "Bordeaux Profond", "canonical": "#6E1A1A", "tonalRamp": ["#2a0d0d", "#3f1010", "#561414", "#6E1A1A", "#841f1f", "#a3372f", "#c66a5c", "#e4a99a"] },
+      "gold": { "role": "primary", "displayName": "Or Cérémoniel", "canonical": "#C1993F", "tonalRamp": ["#3d2e10", "#5c461a", "#8a6a28", "#C1993F", "#d4b268", "#e2c891", "#eeddbb", "#f8f0e0"] },
+      "chinese-red": { "role": "secondary", "displayName": "Rouge Chinois", "canonical": "#B03A2E", "tonalRamp": ["#3a120e", "#571b15", "#832a20", "#B03A2E", "#c75d4f", "#da8779", "#ebb5aa", "#f6dcd6"] },
+      "navy": { "role": "secondary", "displayName": "Navy de Section", "canonical": "#2F5FB0", "tonalRamp": ["#101f38", "#172e60", "#1f3e80", "#2F5FB0", "#4a78c9", "#7ba0dc", "#aec6eb", "#dbe6f6"] },
+      "cream": { "role": "neutral", "displayName": "Crème", "canonical": "#FBF6EC", "tonalRamp": ["#4a443a", "#6b6254", "#9c8f78", "#c9bba0", "#e2d6bf", "#f0e8d6", "#FBF6EC", "#fffdf8"] },
+      "ink": { "role": "neutral", "displayName": "Encre", "canonical": "#2A211C", "tonalRamp": ["#140f0c", "#1c1613", "#2A211C", "#3a2b23", "#4b3a30", "#5a463c", "#7a6252", "#a68f7a"] },
+      "admin-blue": { "role": "primary", "displayName": "Bleu Admin", "canonical": "#2563eb", "tonalRamp": ["#0e1f4d", "#15316f", "#1d4499", "#2563eb", "#5885f0", "#8babf5", "#bccff9", "#dde8fc"] },
+      "admin-bg": { "role": "neutral", "displayName": "Fond Admin", "canonical": "#f5f6f8", "tonalRamp": ["#1f2024", "#3a3c42", "#55585f", "#73767e", "#9b9ea4", "#c3c5c9", "#e6e7e9", "#f5f6f8"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (noms des mariés)", "purpose": "Hero names, italic Cormorant Garamond, emotional peak of the page." },
+      "headline": { "displayName": "Headline (titres de section)", "purpose": "Section titles, roman Cormorant Garamond." },
+      "body": { "displayName": "Corps (français)", "purpose": "Running text in EB Garamond, generous 1.9 line-height for an epistolary tone." },
+      "label": { "displayName": "Label (kickers/boutons)", "purpose": "Uppercase wide-tracked labels — the system's signature treatment, 0.12–0.5em tracking." },
+      "chinese-accent": { "displayName": "Calligraphie (囍)", "purpose": "Ma Shan Zheng — reserved for the 囍 glyph and decorative flourishes only, never body text." },
+      "chinese-body": { "displayName": "Corps (chinois)", "purpose": "Noto Serif SC, always in chinese-red, never bordeaux." },
+      "admin-body": { "displayName": "Corps Admin", "purpose": "System sans-serif stack, neutral back-office reading." }
+    },
+    "shadows": [
+      { "name": "admin-surface", "value": "0 1px 3px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04)", "purpose": "Standard elevation for every admin card, table and panel at rest." },
+      { "name": "envelope-letter", "value": "0 24px 46px -22px rgba(0,0,0,.5)", "purpose": "The one dramatic shadow on the public site — reserved for the envelope-opening ritual." },
+      { "name": "public-focus-ring", "value": "0 0 0 2px var(--cream), 0 0 0 4px var(--bordeaux)", "purpose": "Cream+bordeaux double ring for visible keyboard focus on the public site, added in the accessibility audit." }
+    ],
+    "motion": [
+      { "name": "reveal", "value": "fadeUp 0.9s cubic-bezier(0.2,0.7,0.2,1) both", "purpose": "Default entrance for sections scrolling into view." },
+      { "name": "envelope-flap", "value": "transform 0.9s cubic-bezier(0.6,0,0.3,1)", "purpose": "Envelope flap opening rotation." }
+    ],
+    "breakpoints": [
+      { "name": "public-nav", "value": "860px" },
+      { "name": "admin-sidebar", "value": "880px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Public Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "RSVP submit button — solid gold, dark bordeaux text, tracked uppercase.",
+      "html": "<button class=\"ds-btn-primary\">Confirmer ma présence</button>",
+      "css": ".ds-btn-primary { background: #C1993F; color: #3a1010; border: none; padding: 16px; border-radius: 4px; font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: background 0.2s, color 0.2s; } .ds-btn-primary:hover { background: #d4b268; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #FBF6EC, 0 0 0 4px #6E1A1A; }"
+    },
+    {
+      "name": "Public Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Teaser CTA — transparent, gold border, full pill.",
+      "html": "<button class=\"ds-btn-outline\">中文</button>",
+      "css": ".ds-btn-outline { background: transparent; border: 1px solid #C1993F; color: #E7D6AE; padding: 11px 22px; border-radius: 999px; letter-spacing: 0.15em; font-size: 12px; text-transform: uppercase; cursor: pointer; } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 2px #FBF6EC, 0 0 0 4px #6E1A1A; }"
+    },
+    {
+      "name": "Public Field",
+      "kind": "input",
+      "refersTo": "public-field",
+      "description": "RSVP form field — translucent cream fill, gold border, implicit label wrap.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Nom complet *</span><input type=\"text\" placeholder=\"Votre nom\"></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 8px; } .ds-field-label { font-size: 16px; letter-spacing: 0.05em; color: #E7D6AE; font-family: 'EB Garamond', serif; } .ds-field input { background: rgba(251,246,236,.06); border: 1px solid rgba(193,153,63,.5); border-radius: 4px; padding: 13px 15px; color: #FBF6EC; font-size: 16px; } .ds-field input:focus-visible { outline: none; box-shadow: 0 0 0 2px #FBF6EC, 0 0 0 4px #6E1A1A; }"
+    },
+    {
+      "name": "Admin Primary Button",
+      "kind": "button",
+      "refersTo": "admin-button-primary",
+      "description": "Admin brand action (login submit) — the one place bordeaux appears in the admin system.",
+      "html": "<button class=\"ds-admin-btn\">Se connecter</button>",
+      "css": ".ds-admin-btn { background: #6E1A1A; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; } .ds-admin-btn:hover { background: #5a1515; }"
+    },
+    {
+      "name": "Admin Card",
+      "kind": "card",
+      "refersTo": "admin-card",
+      "description": "Stat card / table container — flat white surface with the standard two-layer shadow.",
+      "html": "<div class=\"ds-admin-card\"><div class=\"ds-admin-card-value\">42</div><div class=\"ds-admin-card-label\">Invités confirmés</div></div>",
+      "css": ".ds-admin-card { background: #ffffff; border-radius: 8px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04); } .ds-admin-card-value { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; color: #111827; } .ds-admin-card-label { font-size: 12px; color: #6b7280; margin-top: 2px; }"
+    },
+    {
+      "name": "Admin Icon Button",
+      "kind": "button",
+      "refersTo": "admin-icon-button",
+      "description": "Close/remove action — icon-only, always labeled via aria-label.",
+      "html": "<button class=\"ds-icon-btn\" aria-label=\"Fermer\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M18 6 6 18M6 6l12 12\"/></svg></button>",
+      "css": ".ds-icon-btn { background: none; border: none; cursor: pointer; color: #6b7280; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; } .ds-icon-btn:hover { background: #f3f4f6; color: #111827; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La Lettre Scellée (The Sealed Letter)",
+    "overview": "Le site public est une enveloppe de mariage chinoise traditionnelle réinterprétée en interface web : un rituel d'ouverture (enveloppe → sceau → lettre), puis un contenu qui alterne délibérément entre deux voix — le français en Cormorant Garamond/EB Garamond, italique et éditorial, et le chinois en Noto Serif SC avec des touches calligraphiques (Ma Shan Zheng) pour le caractère 囍. Le bordeaux profond et l'or forment la base formelle occidentale ; le rouge chinois est réservé aux éléments culturellement chinois, jamais interchangé avec le bordeaux. Le backoffice est volontairement un système visuel différent : mode Operate pur, sobre, neutre, qui ne cite jamais l'esthétique cérémonielle du site public.",
+    "keyCharacteristics": [
+      "Rituel d'entrée obligatoire (enveloppe → sceau → lettre) avant tout contenu, jamais court-circuité",
+      "Bordeaux + or = voix occidentale/formelle ; rouge chinois = voix culturelle chinoise, jamais confondus",
+      "Labels et kickers en majuscules à tracking très large (0.2em à 0.5em) — signature constante du système",
+      "Display italique en Cormorant Garamond pour tout nom propre ou date",
+      "Admin = système neutre séparé, sans emprunt à l'esthétique du site public"
+    ],
+    "rules": [
+      { "name": "La Règle des Deux Rouges", "body": "Le bordeaux et le rouge chinois ne sont jamais interchangeables : le bordeaux porte la structure, le rouge porte le culturel.", "section": "colors" },
+      { "name": "La Règle du Tracking Large", "body": "Tout label, kicker ou bouton en majuscules porte un letter-spacing d'au moins 0.12em.", "section": "typography" },
+      { "name": "La Règle de l'Admin Plat", "body": "L'admin n'emprunte jamais les dégradés atmosphériques du site public ; sa profondeur vient uniquement de la paire d'ombres standard.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do garder le rouge chinois exclusivement pour le registre culturel chinois et le bordeaux pour la structure/marque.",
+      "Do tracker large (0.12em–0.5em) tout label ou bouton en majuscules.",
+      "Do garder l'admin visuellement neutre et séparé de l'esthétique cérémonielle du site public.",
+      "Do fournir un style de focus visible et cohérent avec la palette — jamais outline:none sans remplacement.",
+      "Do utiliser max-width + auto-fit/minmax plutôt que des breakpoints multiples pour la fluidité du site public."
+    ],
+    "donts": [
+      "Don't utiliser le bordeaux et le rouge chinois comme s'ils étaient interchangeables.",
+      "Don't répliquer le rituel d'enveloppe comme patron générique pour d'autres composants.",
+      "Don't emprunter les dégradés atmosphériques bordeaux du site public dans l'admin, ni l'inverse.",
+      "Don't introduire de dépendance de build — le projet reste en JS vanilla / modules ES natifs.",
+      "Don't supprimer un outline/focus sans fournir un remplacement visible dans la même règle."
+    ]
+  }
+}
