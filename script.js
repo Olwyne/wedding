@@ -71,6 +71,7 @@ function escapeHtml(str) {
       fPhone: 'Téléphone', fPhonePh: '06 12 34 56 78',
       fPresenceQ: 'Serez-vous présent·e ?', yesLabel: 'Oui', noLabel: 'Non',
       fAdults: "Nombre d'adultes", fChildren: "Nombre d'enfants", fPresence: 'Je serai présent·e à :', maxWord: 'max',
+      fSectionWho: 'Qui vient', fSectionWhen: 'Quand', fSectionDetails: 'Détails',
       fExtraAdult: 'Adulte', fChildName: 'Enfant',
       fDiet: 'Allergies / régime', fDietPh: 'Ex : végétarien, sans gluten…', fMsg: 'Un petit mot', fMsgPh: 'Un message pour les mariés…',
       childrenTolerated: "Idéalement, nous souhaitons que cette soirée soit réservée aux adultes. Nous vous serions très reconnaissants de prévoir une garde pour vos enfants — vous pourrez ainsi profiter pleinement de ce moment avec nous sans vous en préoccuper.\n\nSi toutefois vous ne pouvez pas faire garder vos enfants, aucun souci : merci simplement de bien renseigner le formulaire en indiquant le nombre d'enfants présents, afin que nous puissions nous organiser au mieux.",
@@ -91,6 +92,8 @@ thankAddresses: 'Merci ! Les adresses des lieux sont maintenant visibles dans Pr
       fPhotosDone: 'Photos envoyées !',
       fPhotosError: "Certains fichiers n'ont pas pu être envoyés. Réessayez ou utilisez le lien ci-dessous.",
       submitError: "Erreur d'envoi, réessayez.",
+      submitErrorPhotos: "L'envoi de vos photos a échoué. Vérifiez votre connexion et réessayez — rien n'a encore été enregistré.",
+      submitErrorSave: "Vos photos ont bien été reçues, mais l'enregistrement de votre réponse a échoué. Réessayez — vos photos ne seront pas renvoyées.",
       presenceRequiredError: 'Merci de préciser si vous serez présent·e.',
       eventsRequiredError: 'Sélectionnez au moins un événement.',
       addrHidden: 'Les lieux vous seront communiqués par mail ultérieurement.',
@@ -103,6 +106,7 @@ thankAddresses: 'Merci ! Les adresses des lieux sont maintenant visibles dans Pr
       fPhone: '电话', fPhonePh: '06 12 34 56 78',
       fPresenceQ: '您是否出席？', yesLabel: '是', noLabel: '否',
       fAdults: '成人人数', fChildren: '儿童人数', fPresence: '我将出席：', maxWord: '最多',
+      fSectionWho: '出席人数', fSectionWhen: '时间', fSectionDetails: '详情',
       fExtraAdult: '成人', fChildName: '儿童',
       fDiet: '过敏 / 饮食', fDietPh: '如：素食、无麸质…', fMsg: '留言', fMsgPh: '给新人的祝福…',
       childrenTolerated: '理想情况下，我们希望这个夜晚能成为一个专属成人的时刻。若您能为孩子们安排看护，我们将不胜感激——这样您便能全心全意地与我们共享这美好时光。\n\n若实在无法安排，完全没问题：请在RSVP表单中填写出席儿童的人数，以便我们提前做好安排。',
@@ -123,6 +127,8 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       fPhotosDone: '照片已发送！',
       fPhotosError: '部分文件上传失败，请重试或使用下方链接。',
       submitError: '发送失败，请重试。',
+      submitErrorPhotos: '照片上传失败，请检查网络连接后重试 —— 您的回复尚未保存。',
+      submitErrorSave: '您的照片已收到，但回复保存失败，请重试 —— 照片无需重新上传。',
       presenceRequiredError: '请告知我们您是否会出席。',
       eventsRequiredError: '请至少选择一个活动。',
       addrHidden: '地点详情将通过邮件另行告知。',
@@ -249,7 +255,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
 
   // ---- Envelope ----
   const envOverlay = document.getElementById('envelope-overlay');
-  envOverlay.addEventListener('click', () => {
+  function openEnvelope() {
     if (!state.dataReady || state.env !== 'sealed') return;
     state.env = 'opening';
     renderEnvelope();
@@ -259,6 +265,13 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       renderEnvelope();
       syncScroll();
     }, 2300);
+  }
+  envOverlay.addEventListener('click', openEnvelope);
+  envOverlay.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault();
+      openEnvelope();
+    }
   });
 
   function renderEnvelope() {
@@ -388,8 +401,9 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'rsvp-event-btn' + (sel ? ' selected' : '');
+      btn.setAttribute('aria-pressed', String(sel));
       btn.innerHTML = `
-        <span class="rsvp-event-check">${sel ? '✓' : ''}</span>
+        <span class="rsvp-event-check" aria-hidden="true">${sel ? '✓' : ''}</span>
         <span><span class="rsvp-event-title">${ev.title}</span> <span class="rsvp-event-meta">· ${ev.time} · ${ev.place}</span></span>`;
       btn.addEventListener('click', () => {
         state.rsvp.events[ev.id] = !state.rsvp.events[ev.id];
@@ -505,7 +519,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
     header.id = 'top';
     header.className = 'hero';
     header.innerHTML = `
-      <div class="hero-xi cal">囍</div>
+      <div class="hero-xi cal" aria-hidden="true">囍</div>
       <svg class="hero-peony" viewBox="-90 -90 180 180" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
         <path d="M0 0 C-18 -8 -22 -44 0 -64 C22 -44 18 -8 0 0" transform="rotate(0)"/>
         <path d="M0 0 C-18 -8 -22 -44 0 -64 C22 -44 18 -8 0 0" transform="rotate(60)"/>
@@ -540,7 +554,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
           <div class="monogram-dot dot-left"></div>
           <div class="monogram-dot dot-right"></div>
           <div class="monogram-letters">S<span class="amp-sm">&amp;</span>R</div>
-          <div class="cal monogram-xi">囍</div>
+          <div class="cal monogram-xi" aria-hidden="true">囍</div>
         </div>
         <div class="kicker hero-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
         <div class="hero-names">
@@ -608,7 +622,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
     section.id = 'programme';
     section.className = block.bgColor === 'blue' ? 'section section-navy' : 'section section-bordeaux';
     section.innerHTML = `
-      <div class="prog-xi cal">囍</div>
+      <div class="prog-xi cal" aria-hidden="true">囍</div>
       <div class="section-inner section-narrow" style="margin-bottom:56px">
         <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
         <h2 class="section-title section-title-light">${escapeHtml(bf(block, 'title', lang))}</h2>
@@ -751,7 +765,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
     section.id = 'rsvp';
     section.className = block.bgColor === 'blue' ? 'section section-navy-radial' : 'section section-bordeaux-radial';
     section.innerHTML = `
-      <div class="rsvp-xi cal">囍</div>
+      <div class="rsvp-xi cal" aria-hidden="true">囍</div>
       <div class="section-inner section-form">
         <div class="section-inner section-narrow" style="margin-bottom:40px">
           <div class="kicker kicker-light">${escapeHtml(bf(block, 'kicker', lang))}</div>
@@ -762,27 +776,28 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
         <form id="rsvp-form" class="rsvp-form" novalidate>
           <label class="field">
             <span class="field-label">${escapeHtml(L.fName)} *</span>
-            <input id="r-name" type="text" required placeholder="${escapeHtml(L.fNamePh)}" value="${escapeHtml(state.rsvp.name)}">
+            <input id="r-name" type="text" required autocomplete="name" placeholder="${escapeHtml(L.fNamePh)}" value="${escapeHtml(state.rsvp.name)}">
           </label>
           <label class="field">
             <span class="field-label">${escapeHtml(L.fEmail)} *</span>
-            <input id="r-email" type="email" required placeholder="${escapeHtml(L.fEmailPh)}" value="${escapeHtml(state.rsvp.email)}">
+            <input id="r-email" type="email" required autocomplete="email" placeholder="${escapeHtml(L.fEmailPh)}" value="${escapeHtml(state.rsvp.email)}">
           </label>
           <label class="field">
             <span class="field-label">${escapeHtml(L.fPhone)} *</span>
-            <input id="r-phone" type="tel" required placeholder="${escapeHtml(L.fPhonePh)}" value="${escapeHtml(state.rsvp.phone)}">
+            <input id="r-phone" type="tel" required autocomplete="tel" placeholder="${escapeHtml(L.fPhonePh)}" value="${escapeHtml(state.rsvp.phone)}">
           </label>
 
           <div class="field">
             <span class="field-label">${escapeHtml(L.fPresenceQ)} *</span>
             <div class="rsvp-toggle">
-              <button type="button" class="rsvp-toggle-btn" data-val="yes">${escapeHtml(L.yesLabel)}</button>
-              <button type="button" class="rsvp-toggle-btn" data-val="no">${escapeHtml(L.noLabel)}</button>
+              <button type="button" class="rsvp-toggle-btn" data-val="yes" aria-pressed="false">${escapeHtml(L.yesLabel)}</button>
+              <button type="button" class="rsvp-toggle-btn" data-val="no" aria-pressed="false">${escapeHtml(L.noLabel)}</button>
             </div>
           </div>
 
           <div id="rsvp-presence-yes" hidden>
             <p class="rsvp-invite-intro">${escapeHtml(buildInviteIntro(lang, state.maxAdults, state.maxChildren, state.childrenAllowed))}</p>
+            <h4 class="rsvp-section-heading">${escapeHtml(L.fSectionWho)}</h4>
             <div class="field field-row">
               <label class="field">
                 <span class="field-label">${escapeHtml(L.fAdults)} (${escapeHtml(L.maxWord)} ${state.maxAdults}) *</span>
@@ -796,11 +811,14 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
             </div>
             ${state.childrenAllowed === 'tolerated' && state.maxChildren > 0 ? `
             <div id="rsvp-children-notice" class="rsvp-children-notice" ${(state.rsvp.children || 0) > 0 ? '' : 'hidden'}>${L.childrenTolerated.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}</div>` : ''}
+            <p id="rsvp-extra-cap-reminder" class="field-hint" hidden></p>
             <div id="rsvp-extra-people"></div>
+            <h4 class="rsvp-section-heading">${escapeHtml(L.fSectionWhen)}</h4>
             <div class="field">
               <span class="field-label">${escapeHtml(L.fPresence)} *</span>
               <div id="rsvp-events" class="rsvp-events"></div>
             </div>
+            <h4 class="rsvp-section-heading">${escapeHtml(L.fSectionDetails)}</h4>
             <label class="field">
               <span class="field-label">${escapeHtml(L.fDiet)}</span>
               <input id="r-diet" type="text" placeholder="${escapeHtml(L.fDietPh)}" value="${escapeHtml(state.rsvp.diet)}">
@@ -808,8 +826,8 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
           </div>
 
           <label class="field">
-            <span class="field-label">${escapeHtml(L.fMsg)} *</span>
-            <textarea id="r-msg" rows="3" required placeholder="${escapeHtml(L.fMsgPh)}">${escapeHtml(state.rsvp.message)}</textarea>
+            <span class="field-label">${escapeHtml(L.fMsg)}${state.rsvp.presence === 'no' ? '' : ' *'}</span>
+            <textarea id="r-msg" rows="3" ${state.rsvp.presence === 'no' ? '' : 'required'} placeholder="${escapeHtml(L.fMsgPh)}">${escapeHtml(state.rsvp.message)}</textarea>
           </label>
 
           <div class="field">
@@ -822,12 +840,12 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
             <div id="r-photos-progress" class="photos-progress" hidden></div>
           </div>
 
-          <p id="rsvp-error" class="rsvp-error" hidden></p>
+          <p id="rsvp-error" class="rsvp-error" role="alert" aria-live="assertive" hidden></p>
           <button type="submit" class="btn-submit">${escapeHtml(L.fSubmit)}</button>
         </form>
 
-        <div id="rsvp-thanks" class="rsvp-thanks" hidden>
-          <div class="cal rsvp-thanks-glyph">囍</div>
+        <div id="rsvp-thanks" class="rsvp-thanks" role="status" aria-live="polite" hidden>
+          <div class="cal rsvp-thanks-glyph" aria-hidden="true">囍</div>
           <h3 id="rsvp-thanks-title" class="rsvp-thanks-title">${escapeHtml(L.thankTitle)}</h3>
           <p id="rsvp-confirm-line" class="rsvp-confirm-line"></p>
           <p id="rsvp-addresses-line" class="rsvp-confirm-line" hidden></p>
@@ -835,7 +853,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
         </div>
 
         <div id="rsvp-deadline-passed" class="rsvp-deadline-passed" hidden>
-          <div class="cal rsvp-thanks-glyph">🕊️</div>
+          <div class="cal rsvp-thanks-glyph" aria-hidden="true">🕊️</div>
           <h3 class="rsvp-thanks-title">${escapeHtml(L.deadlineTitle)}</h3>
           <div class="rsvp-confirm-line">${L.deadlineMsg.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}</div>
         </div>
@@ -858,6 +876,13 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       while (state.rsvp.childNames.length < children) state.rsvp.childNames.push('');
       state.rsvp.childNames.length = children;
 
+      const capReminder = section.querySelector('#rsvp-extra-cap-reminder');
+      if (capReminder) {
+        const hasExtra = extraAdultsCount > 0 || children > 0;
+        capReminder.hidden = !hasExtra;
+        if (hasExtra) capReminder.textContent = buildInviteIntro(state.lang, state.maxAdults, state.maxChildren, state.childrenAllowed);
+      }
+
       extraPeopleEl.innerHTML = '';
       state.rsvp.extraAdults.forEach((val, i) => {
         const label = document.createElement('label');
@@ -879,9 +904,17 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
 
     function setPresence(val) {
       state.rsvp.presence = val;
-      toggleBtns.forEach(b => b.classList.toggle('active', b.dataset.val === val));
+      toggleBtns.forEach(b => {
+        const active = b.dataset.val === val;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-pressed', String(active));
+      });
       const savedScrollY = window.scrollY;
       presenceYesEl.hidden = val !== 'yes';
+      const msgInput = section.querySelector('#r-msg');
+      const msgLabel = section.querySelector('#r-msg')?.closest('.field')?.querySelector('.field-label');
+      if (msgInput) msgInput.required = val !== 'no';
+      if (msgLabel) msgLabel.textContent = L.fMsg + (val === 'no' ? '' : ' *');
       if (val === 'yes') {
         renderExtraPeople();
         window.scrollTo({ top: savedScrollY, behavior: 'instant' });
@@ -970,10 +1003,20 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       if (photoFiles.length > 0) {
         submitBtn.innerHTML = `<span class="btn-spinner"></span><span class="btn-submit-label">${L.fSubmitting}</span>`;
       }
+      let photoUrls;
       try {
         const progressEl = section.querySelector('#r-photos-progress');
-        const photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L, state.rsvp.name, photoFiles.length > 0 ? setSubmitProgress : null);
-
+        photoUrls = await uploadPhotos(photoFiles, state.guestToken, progressEl, L, state.rsvp.name, photoFiles.length > 0 ? setSubmitProgress : null);
+      } catch (err) {
+        console.error('RSVP photo upload failed', err);
+        errEl.textContent = L.submitErrorPhotos;
+        errEl.hidden = false;
+        state.submitting = false;
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = escapeHtml(L.fSubmit);
+        return;
+      }
+      try {
         const rsvp = state.rsvp.presence === 'no'
           ? { status: 'declined', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: 0, children: 0, extraAdultNames: [], childNames: [], diet: '', message: state.rsvp.message, confirmedEvents: {}, photoUrls, respondedAt: new Date().toISOString() }
           : { status: 'confirmed', name: state.rsvp.name, email: state.rsvp.email, phone: state.rsvp.phone, adults: Number(state.rsvp.adults) || 0, children: Number(state.rsvp.children) || 0, extraAdultNames: [...state.rsvp.extraAdults], childNames: [...state.rsvp.childNames], diet: state.rsvp.diet, message: state.rsvp.message, confirmedEvents: state.rsvp.events, photoUrls, respondedAt: new Date().toISOString() };
@@ -982,8 +1025,8 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
         state.submitted = true;
         fullRender();
       } catch (err) {
-        console.error('RSVP submit failed', err);
-        errEl.textContent = T[state.lang].submitError;
+        console.error('RSVP save failed', err);
+        errEl.textContent = photoFiles.length > 0 ? L.submitErrorSave : T[state.lang].submitError;
         errEl.hidden = false;
       } finally {
         state.submitting = false;
@@ -1080,13 +1123,13 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
     footer.id = 'contact';
     footer.className = 'footer';
     footer.innerHTML = `
-      <div class="footer-xi cal">囍</div>
+      <div class="footer-xi cal" aria-hidden="true">囍</div>
       <div class="footer-inner">
         <div class="footer-monogram">
           <div class="footer-monogram-ring footer-monogram-ring-1"></div>
           <div class="footer-monogram-ring footer-monogram-ring-2"></div>
           <div class="footer-monogram-letters">S<span class="amp-sm">&amp;</span>R</div>
-          <div class="cal footer-monogram-xi">囍</div>
+          <div class="cal footer-monogram-xi" aria-hidden="true">囍</div>
         </div>
         <h2 class="footer-title">${escapeHtml(bf(block, 'title', lang))}</h2>
         <div class="footer-text rich-text">${sanitizeHtml(bf(block, 'text', lang))}</div>
@@ -1145,6 +1188,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
     const envHint = document.querySelector('.envelope-hint-text');
     if (envKicker) envKicker.textContent = heroBlock ? bf(heroBlock, 'envInvite', lang) : '';
     if (envHint) envHint.textContent = heroBlock ? bf(heroBlock, 'envHint', lang) : '';
+    if (envHint && envHint.textContent) envOverlay.setAttribute('aria-label', envHint.textContent);
   }
 
   function fullRender() {
