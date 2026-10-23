@@ -1192,6 +1192,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
   }
 
   function fullRender() {
+    document.documentElement.lang = state.lang === 'zh' ? 'zh' : 'fr';
     applyText();
     renderDynamicBlocks();
     renderNav();

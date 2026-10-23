@@ -7,6 +7,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
 import { sanitizeHtml, mountRichEditor } from './richtext.js?v=1';
+import { mountPanel } from './ui-panel.js';
 
 const blocksCol = collection(db, 'blocks');
 let activeAudience = 'invite';
@@ -349,8 +350,8 @@ function buildListItemHtml(listDef, item, idx, eventOptions) {
   return `
     <div class="section-list-item" data-idx="${idx}">
       <div style="display:flex;gap:4px;margin-bottom:6px">
-        <button type="button" class="btn-icon btn-list-up" title="Monter">↑</button>
-        <button type="button" class="btn-icon btn-list-down" title="Descendre">↓</button>
+        <button type="button" class="btn-icon btn-list-up" title="Monter" aria-label="Monter">↑</button>
+        <button type="button" class="btn-icon btn-list-down" title="Descendre" aria-label="Descendre">↓</button>
         <button type="button" class="btn-icon btn-remove-item" style="margin-left:auto" aria-label="Retirer">✕</button>
       </div>
       ${fields}
@@ -497,14 +498,13 @@ async function openBlockPanel(id, allBlocks, audience) {
       <button class="btn-secondary" id="panel-cancel">Annuler</button>
     </div>`;
 
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
-
   function isSaving() { return !!panelEl.querySelector('#panel-save')?.disabled; }
-  function close() { overlay.remove(); panelEl.remove(); renderBlocksTab(); }
-  panelEl.querySelector('#panel-close').addEventListener('click', () => { if (!isSaving()) close(); });
-  panelEl.querySelector('#panel-cancel').addEventListener('click', () => { if (!isSaving()) close(); });
-  overlay.addEventListener('click', () => { if (!isSaving()) close(); });
+  function close() { teardown(); overlay.remove(); panelEl.remove(); renderBlocksTab(); }
+  function closeUnlessSaving() { if (!isSaving()) close(); }
+  const teardown = mountPanel(overlay, panelEl, closeUnlessSaving);
+  panelEl.querySelector('#panel-close').addEventListener('click', closeUnlessSaving);
+  panelEl.querySelector('#panel-cancel').addEventListener('click', closeUnlessSaving);
+  overlay.addEventListener('click', closeUnlessSaving);
 
   if (isNew) {
     panelEl.querySelectorAll('.type-card').forEach(card => {

@@ -7,9 +7,10 @@ import {
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
-import { loadGuests } from './guests.js?v=11';
-import { loadVendors } from './vendors.js?v=9';
-import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=4';
+import { loadGuests } from './guests.js?v=13';
+import { mountPanel } from './ui-panel.js';
+import { loadVendors } from './vendors.js?v=10';
+import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=6';
 import { renderTimelineGrid } from './dayof-timeline.js?v=4';
 
 const dayOfCol = collection(db, 'runOfShow');
@@ -222,10 +223,8 @@ function openDayOfPanel(id, items, guests, vendors, lanes) {
       <button class="btn-secondary" id="panel-cancel">Annuler</button>
     </div>`;
 
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
-
-  function close() { overlay.remove(); panelEl.remove(); }
+  function close() { teardown(); overlay.remove(); panelEl.remove(); }
+  const teardown = mountPanel(overlay, panelEl, close);
   panelEl.querySelector('#panel-close').addEventListener('click', close);
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);

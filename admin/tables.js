@@ -5,8 +5,9 @@ import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests } from './guests.js?v=11';
+import { loadGuests } from './guests.js?v=13';
 import { canWrite } from './permissions.js';
+import { mountPanel } from './ui-panel.js';
 
 const tablesCol = collection(db, 'tables');
 
@@ -121,10 +122,9 @@ function openAddTablePanel(onCreated) {
       <button class="btn-primary" id="panel-save">Créer</button>
       <button class="btn-secondary" id="panel-cancel">Annuler</button>
     </div>`;
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
 
-  function close() { overlay.remove(); panelEl.remove(); }
+  function close() { teardown(); overlay.remove(); panelEl.remove(); }
+  const teardown = mountPanel(overlay, panelEl, close);
   panelEl.querySelector('#panel-close').addEventListener('click', close);
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);
@@ -224,10 +224,8 @@ function openTableDetailPanel(table, guests, onChange, editable) {
       <button class="btn-secondary" id="panel-cancel">Fermer</button>
     </div>`;
 
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
-
-  function close() { overlay.remove(); panelEl.remove(); }
+  function close() { teardown(); overlay.remove(); panelEl.remove(); }
+  const teardown = mountPanel(overlay, panelEl, close);
   panelEl.querySelector('#panel-close').addEventListener('click', close);
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);

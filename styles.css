@@ -24,6 +24,8 @@
   --parchment2:#EAD9BC;
   --pink:#E4B4AC;
   --gold-accent:#b58f5a;
+  --gold-deep:#876b2c;
+  --cream-on-dark:#F4E9CE;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -127,7 +129,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .mobile-menu{position:fixed;inset:0;z-index:55;background:rgba(97,19,17,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;animation:fadeIn .3s both}
 .mobile-menu-close{position:absolute;top:22px;right:24px;background:transparent;border:none;color:var(--parchment);font-size:28px;cursor:pointer}
 .mobile-menu-links{display:flex;flex-direction:column;align-items:center;gap:26px}
-.mobile-menu-links a{color:#F4E9CE;font-family:'Cormorant Garamond',serif;font-size:28px}
+.mobile-menu-links a{color:var(--cream-on-dark);font-family:'Cormorant Garamond',serif;font-size:28px}
 
 /* ===================== HERO ===================== */
 .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 70px;background:linear-gradient(180deg,var(--cream) 0%,var(--cream2) 100%);color:var(--ink2);overflow:hidden}
@@ -175,10 +177,10 @@ input:focus,textarea:focus,select:focus{outline:none}
 .section-cream:has(+.section-cream),.section-cream-grad:has(+.section-cream),.section-cream-grad2:has(+.section-cream),.section-cream:has(+.section-cream-grad),.section-cream-grad:has(+.section-cream-grad),.section-cream-grad2:has(+.section-cream-grad),.section-cream:has(+.section-cream-grad2),.section-cream-grad:has(+.section-cream-grad2),.section-cream-grad2:has(+.section-cream-grad2){padding-bottom:40px}
 .section-cream-grad{background:linear-gradient(180deg,var(--cream2) 0%,var(--cream) 100%)}
 .section-cream-grad2{background:linear-gradient(180deg,var(--cream2),var(--cream))}
-.section-bordeaux{background:linear-gradient(180deg,var(--bordeaux) 0%,var(--bordeaux-deep4) 100%);color:#F4E9CE;overflow:hidden}
-.section-bordeaux-radial{background:radial-gradient(120% 90% at 50% 0%, var(--bordeaux-deep2), var(--bordeaux-deep4));color:#F4E9CE;overflow:hidden}
-.section-navy{background:linear-gradient(180deg,var(--navy) 0%,var(--navy-deep4) 100%);color:#F4E9CE;overflow:hidden}
-.section-navy-radial{background:radial-gradient(120% 90% at 50% 0%, var(--navy-deep), var(--navy-deep4));color:#F4E9CE;overflow:hidden}
+.section-bordeaux{background:linear-gradient(180deg,var(--bordeaux) 0%,var(--bordeaux-deep4) 100%);color:var(--cream-on-dark);overflow:hidden}
+.section-bordeaux-radial{background:radial-gradient(120% 90% at 50% 0%, var(--bordeaux-deep2), var(--bordeaux-deep4));color:var(--cream-on-dark);overflow:hidden}
+.section-navy{background:linear-gradient(180deg,var(--navy) 0%,var(--navy-deep4) 100%);color:var(--cream-on-dark);overflow:hidden}
+.section-navy-radial{background:radial-gradient(120% 90% at 50% 0%, var(--navy-deep), var(--navy-deep4));color:var(--cream-on-dark);overflow:hidden}
 .section-toile{overflow:hidden}
 .section-inner{position:relative;z-index:1;margin:0 auto;text-align:center}
 .section-narrow{max-width:820px}
@@ -186,7 +188,7 @@ input:focus,textarea:focus,select:focus{outline:none}
 .section-form{max-width:640px}
 .section-glyph{font-size:30px;color:var(--gold);margin-bottom:6px}
 .section-title{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(34px,6vw,58px);color:var(--bordeaux)}
-.section-title-light{color:#F4E9CE}
+.section-title-light{color:var(--cream-on-dark)}
 .section-sub{color:var(--parchment2);opacity:.85;margin-top:14px;font-size:16px}
 .section-text{font-size:clamp(17px,2.4vw,20px);line-height:1.9;color:var(--ink3);margin-bottom:22px}
 .section-text:last-child{margin-bottom:0}
@@ -226,10 +228,10 @@ input:focus,textarea:focus,select:focus{outline:none}
 /* ===================== HEBERGEMENT ===================== */
 .hotels-grid{max-width:1000px;margin:44px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
 .hotel-card{background:#fff;border:1px solid rgba(193,153,63,.3);border-radius:4px;padding:26px 24px}
-.hotel-tag{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.hotel-tag{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:8px}
 .hotel-name{font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--bordeaux);margin-bottom:6px}
 .hotel-desc{color:var(--taupe);line-height:1.6;font-size:15px}
-.shuttle-box{max-width:760px;margin:34px auto 0;text-align:center;background:var(--bordeaux);color:#F4E9CE;border-radius:4px;padding:26px 28px}
+.shuttle-box{max-width:760px;margin:34px auto 0;text-align:center;background:var(--bordeaux);color:var(--cream-on-dark);border-radius:4px;padding:26px 28px}
 .shuttle-box.shuttle-box-navy{background:var(--navy)}
 .shuttle-glyph{font-size:22px;color:var(--gold);margin-bottom:6px}
 .shuttle-box p{line-height:1.7}
@@ -284,12 +286,12 @@ input:focus,textarea:focus,select:focus{outline:none}
 /* ===================== CADEAU / DRESS CODE ===================== */
 .cadeau-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px}
 .card-cadeau{background:linear-gradient(160deg,#fff,#FBF3E4);border:1px solid rgba(193,153,63,.35);border-radius:6px;padding:44px 36px;text-align:center}
-.card-dresscode{background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux4));color:#F4E9CE;border-radius:6px;padding:44px 36px;text-align:center}
+.card-dresscode{background:linear-gradient(160deg,var(--bordeaux),var(--bordeaux4));color:var(--cream-on-dark);border-radius:6px;padding:44px 36px;text-align:center}
 .card-dresscode.card-dresscode-navy{background:linear-gradient(160deg,var(--navy),var(--navy-deep4))}
 .card-glyph{font-size:34px;color:var(--red);margin-bottom:8px}
 .card-glyph-gold{color:var(--gold)}
 .card-title{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--bordeaux);margin-bottom:16px}
-.card-title-light{color:#F4E9CE}
+.card-title-light{color:var(--cream-on-dark)}
 .card-text{color:var(--ink4);line-height:1.8;font-size:16px}
 .card-text-light{color:var(--parchment2);margin-bottom:18px}
 .avoid-label{text-align:center;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#dc2626;margin:14px 0 10px}
@@ -310,15 +312,15 @@ input:focus,textarea:focus,select:focus{outline:none}
 .footer-monogram{position:relative;width:82px;height:82px;margin:0 auto 22px}
 .footer-monogram-ring-1{position:absolute;inset:0;border-radius:50%;border:1px solid var(--gold)}
 .footer-monogram-ring-2{position:absolute;inset:5px;border-radius:50%;border:1px solid rgba(193,153,63,.5)}
-.footer-monogram-letters{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:36px;color:#F4E9CE;letter-spacing:-.08em}
+.footer-monogram-letters{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:36px;color:var(--cream-on-dark);letter-spacing:-.08em}
 .footer-monogram-xi{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--gold)}
-.footer-title{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(30px,5vw,48px);color:#F4E9CE}
+.footer-title{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:clamp(30px,5vw,48px);color:var(--cream-on-dark)}
 .footer-text{line-height:1.8;margin:18px 0 24px}
 .footer-contacts{display:flex;flex-direction:column;gap:8px;font-size:16px}
 .footer-email{color:var(--parchment);text-decoration:none}
 .footer-phone{color:var(--pink)}
 .footer-rule{width:56px;height:1px;background:var(--gold);margin:40px auto 20px}
-.footer-names{font-family:'Cormorant Garamond',serif;font-size:24px;color:#F4E9CE}
+.footer-names{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--cream-on-dark)}
 .footer-date{font-size:13px;letter-spacing:.2em;color:var(--gold-accent);margin-top:8px}
 
 /* ── Dynamic blocks ── */

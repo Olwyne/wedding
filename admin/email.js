@@ -1,5 +1,6 @@
 // admin/email.js
 import { auth } from '../firebase-init.js';
+import { mountPanel } from './ui-panel.js';
 
 const TYPE_LABELS = {
   relance: 'relance',
@@ -82,15 +83,14 @@ export function sendEmailWithConfirm(type, recipients, eventById) {
         <button class="btn-secondary" id="email-modal-cancel">Annuler</button>
       </div>`;
 
-    document.body.appendChild(overlay);
-    document.body.appendChild(modal);
-
     function close(result) {
+      teardown();
       overlay.remove();
       modal.remove();
       if (result !== undefined) resolve(result);
       else reject(new Error('cancelled'));
     }
+    const teardown = mountPanel(overlay, modal, () => close());
 
     modal.querySelector('#email-modal-close').addEventListener('click', () => close());
     modal.querySelector('#email-modal-cancel').addEventListener('click', () => close());

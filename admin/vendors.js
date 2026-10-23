@@ -6,6 +6,7 @@ import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
+import { mountPanel } from './ui-panel.js';
 
 const vendorsCol = collection(db, 'vendors');
 
@@ -238,10 +239,8 @@ function openVendorPanel(id, vendors) {
       <button class="btn-secondary" id="panel-cancel">Annuler</button>
     </div>`;
 
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
-
-  function close() { overlay.remove(); panelEl.remove(); renderVendorsTab(); }
+  function close() { teardown(); overlay.remove(); panelEl.remove(); renderVendorsTab(); }
+  const teardown = mountPanel(overlay, panelEl, close);
   panelEl.querySelector('#panel-close').addEventListener('click', close);
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);

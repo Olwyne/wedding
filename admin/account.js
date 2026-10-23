@@ -2,6 +2,7 @@ import { auth } from '../firebase-init.js';
 import {
   EmailAuthProvider, reauthenticateWithCredential, updatePassword
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { mountPanel } from './ui-panel.js';
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return '';
@@ -45,10 +46,8 @@ export function openAccountPanel() {
       <button class="btn-secondary" id="panel-cancel">Fermer</button>
     </div>`;
 
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
-
-  function close() { overlay.remove(); panelEl.remove(); }
+  function close() { teardown(); overlay.remove(); panelEl.remove(); }
+  const teardown = mountPanel(overlay, panelEl, close);
   panelEl.querySelector('#panel-close').addEventListener('click', close);
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);

@@ -1,6 +1,7 @@
 // admin/timeline-lanes.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { db } from '../firebase-init.js';
+import { mountPanel } from './ui-panel.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, writeBatch,
   query, orderBy
@@ -70,8 +71,8 @@ export function openLaneManagerPanel(lanes, onChange) {
         <div class="lane-row" data-id="${lane.id}">
           <input type="color" class="lane-color" value="${lane.color}" ${isGeneral ? 'disabled' : ''}>
           <input type="text" class="lane-label" value="${escapeHtml(lane.label)}" ${isGeneral ? 'disabled' : ''}>
-          <button class="btn-icon lane-up" title="Monter" ${isGeneral || mIdx <= 0 ? 'disabled' : ''}>↑</button>
-          <button class="btn-icon lane-down" title="Descendre" ${isGeneral || mIdx >= movable.length - 1 ? 'disabled' : ''}>↓</button>
+          <button class="btn-icon lane-up" title="Monter" aria-label="Monter" ${isGeneral || mIdx <= 0 ? 'disabled' : ''}>↑</button>
+          <button class="btn-icon lane-down" title="Descendre" aria-label="Descendre" ${isGeneral || mIdx >= movable.length - 1 ? 'disabled' : ''}>↓</button>
           <button class="btn-danger lane-delete" ${isGeneral ? 'disabled' : ''}>Supprimer</button>
         </div>`;
     }).join('');
@@ -80,7 +81,7 @@ export function openLaneManagerPanel(lanes, onChange) {
   function render(currentLanes) {
     panelEl.innerHTML = `
       <div class="panel-header">
-        <h3>Gérer les lanes</h3>
+        <h3 id="lane-panel-heading">Gérer les lanes</h3>
         <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
       </div>
       <div class="panel-body">
@@ -137,12 +138,14 @@ export function openLaneManagerPanel(lanes, onChange) {
         render(await loadLanes());
       });
     });
+
+    if (!panelEl.contains(document.activeElement)) {
+      panelEl.querySelector('#panel-close')?.focus();
+    }
   }
 
-  function close() { overlay.remove(); panelEl.remove(); }
-  overlay.addEventListener('click', close);
-
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
+  function close() { teardown(); overlay.remove(); panelEl.remove(); }
   render(lanes);
+  const teardown = mountPanel(overlay, panelEl, close);
+  overlay.addEventListener('click', close);
 }

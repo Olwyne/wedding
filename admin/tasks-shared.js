@@ -4,9 +4,10 @@ import {
   collection, getDocs, doc, addDoc, updateDoc,
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests } from './guests.js?v=11';
-import { loadVendors } from './vendors.js?v=9';
-import { loadUsers } from './users.js?v=3';
+import { loadGuests } from './guests.js?v=13';
+import { loadVendors } from './vendors.js?v=10';
+import { loadUsers } from './users.js?v=4';
+import { mountPanel } from './ui-panel.js';
 
 const tasksCol = collection(db, 'tasks');
 
@@ -99,10 +100,8 @@ export function openTaskPanel(id, tasks, { onSaved, defaults = {}, readOnly = fa
              <button class="btn-secondary" id="panel-cancel">Annuler</button>`}
       </div>`;
 
-    document.body.appendChild(overlay);
-    document.body.appendChild(panelEl);
-
-    function close() { overlay.remove(); panelEl.remove(); }
+    function close() { teardown(); overlay.remove(); panelEl.remove(); }
+    const teardown = mountPanel(overlay, panelEl, close);
     panelEl.querySelector('#panel-close').addEventListener('click', close);
     panelEl.querySelector('#panel-cancel').addEventListener('click', close);
     overlay.addEventListener('click', close);

@@ -15,12 +15,15 @@ colors:
   ink: "#2A211C"
   taupe: "#7a6252"
   pink: "#E4B4AC"
+  gold-deep: "#876b2c"
+  cream-on-dark: "#F4E9CE"
   admin-accent: "#6E1A1A"
   admin-blue: "#2563eb"
   admin-text: "#111827"
-  admin-muted: "#6b7280"
+  admin-muted: "#5f6673"
   admin-bg: "#f5f6f8"
   admin-border: "#e5e7eb"
+  admin-border-hover: "#d1d5db"
 typography:
   display:
     fontFamily: "'Cormorant Garamond', serif"
@@ -115,7 +118,8 @@ Palette à deux registres : une base bordeaux/or/crème côté site public (chau
 
 ### Primary (site public)
 - **Bordeaux Profond** (`#6E1A1A`, `--bordeaux`) : couleur de marque principale — fond de l'enveloppe/teaser, noms en hero, titres de section, boutons de navigation. Quatre tons plus profonds (`#611315`, `#4a0f11`, `#561414`, `#841f1f`…) servent exclusivement aux dégradés de fond (jamais comme couleur de texte à part entière).
-- **Or** (`#C1993F`, `--gold`) : accent cérémoniel — anneaux de monogramme, séparateurs, bordures de champs de formulaire, sceau, bouton CTA principal (`.btn-submit`). Utilisé avec parcimonie, jamais en fond de grande surface.
+- **Or** (`#C1993F`, `--gold`) : accent cérémoniel — anneaux de monogramme, séparateurs, bordures de champs de formulaire, sceau, bouton CTA principal (`.btn-submit`). Utilisé avec parcimonie, jamais en fond de grande surface. **Ne jamais l'utiliser comme couleur de texte sur fond clair/blanc** (contraste 2.66:1, sous le seuil AA) : réserver `--gold` aux fonds sombres (bordeaux, dégradés), aux traits/bordures et aux éléments décoratifs non textuels.
+- **Or Profond** (`#876b2c`, `--gold-deep`) : variante assombrie de l'or, réservée au texte doré sur fond clair/blanc (ex. `.hotel-tag` sur `.hotel-card`). Contraste 5.04:1 sur blanc — passe AA avec marge. C'est le seul ton d'or autorisé pour du texte lisible sur fond clair.
 
 ### Secondary (site public)
 - **Rouge Chinois** (`#B03A2E`, `--red`) : réservé au registre culturel chinois — caractère 囍, sous-titres en chinois, kickers ("SAVE THE DATE"), sélection de texte (`::selection`). **Ne jamais l'utiliser comme substitut du bordeaux** : ce sont deux voix distinctes, pas deux nuances d'une même couleur.
@@ -123,18 +127,22 @@ Palette à deux registres : une base bordeaux/or/crème côté site public (chau
 
 ### Neutral (site public)
 - **Crème** (`#FBF6EC`, `--cream`) : fond de page par défaut.
+- **Crème sur Fond Sombre** (`#F4E9CE`, `--cream-on-dark`) : variante crème dédiée au texte sur fonds bordeaux/navy profonds (menu plein écran, bandeau navette, cartes à fond sombre, pied de page). Distincte de `--cream` (fond de page) et `--parchment` (texte secondaire sur fond sombre) — c'est le ton de texte principal sur surface sombre.
 - **Parchemin** (`#E7D6AE` / `#EAD9BC`) : labels de formulaire, texte secondaire sur fond sombre.
 - **Encre** (`#2A211C`, `--ink`) : texte de corps sur fond clair (quatre tons `ink`→`ink4` pour la hiérarchie de gris chauds).
 - **Taupe** (`#7a6252`) : texte tertiaire, sous-titres de date.
 
 ### Neutral (admin)
-- **Texte** (`#111827`) / **Atténué** (`#6b7280`) / **Fond** (`#f5f6f8`) / **Bordure** (`#e5e7eb`) : palette neutre standard d'outil de gestion. **Bleu** (`#2563eb`) sert à l'état actif de la navigation, aux liens et aux états d'interaction temporaires (survol de dépôt, focus) ; **bordeaux** (`#6E1A1A`, le même token que le site public) n'apparaît que sur les actions de marque (logo, bouton de connexion) — un rappel d'identité délibéré, pas une fusion des deux systèmes.
+- **Texte** (`#111827`) / **Atténué** (`#5f6673`) / **Fond** (`#f5f6f8`) / **Bordure** (`#e5e7eb`) / **Bordure au survol** (`#d1d5db`, `--border-hover`) : palette neutre standard d'outil de gestion. **Bleu** (`#2563eb`) sert à l'état actif de la navigation, aux liens et aux états d'interaction temporaires (survol de dépôt, focus) ; **bordeaux** (`#6E1A1A`, le même token que le site public) n'apparaît que sur les actions de marque (logo, bouton de connexion) — un rappel d'identité délibéré, pas une fusion des deux systèmes.
+  - `--muted` est fixé à `#5f6673` (et non `#6b7280`) pour garantir ≥4.5:1 sur `--admin-bg` et sur blanc — toute nouvelle teinte de texte atténué doit repasser ce test de contraste avant d'être adoptée.
 
 ### Badges de statut (admin, exception documentée)
 Les badges de statut (RSVP, prestataires) forment une mini-palette qualitative à part, distincte du chrome bleu/bordeaux ci-dessus — un indicateur de statut a besoin de plus de deux teintes pour rester lisible, et ce n'est pas une dérive : **ambre** (`#fef3c7`/`#92400e`) = en attente, **vert** (`#dcfce7`/`#15803d`) = confirmé, **rouge** (`#fee2e2`/`#b91c1c`) = refusé/rejeté, **jaune** (`#fef9c3`/`#854d0e`) = préféré, **violet** (`#ede9fe`/`#6d28d9`) = candidat. Toute nouvelle couleur de badge doit rester dans ce registre qualitatif (fond pastel + texte foncé de la même teinte) et ne jamais migrer vers le chrome de navigation/boutons.
 
 ### Named Rules
 **La Règle des Deux Rouges.** Le bordeaux (`--bordeaux`) et le rouge chinois (`--red`) ne sont jamais interchangeables : le bordeaux porte la structure (titres, nav, CTA), le rouge porte le culturel (chinois, 囍, kickers). Un nouvel élément doit choisir son registre, jamais les deux à la fois.
+
+**La Règle des Deux Ors.** `--gold` est pour fond sombre, bordures et décor ; `--gold-deep` est pour texte lisible sur fond clair. Un texte en or sur un fond blanc ou crème qui utilise `--gold` au lieu de `--gold-deep` est un bug de contraste, pas une variation de style.
 
 ## Typography
 
@@ -193,7 +201,7 @@ Site public : coins doux et constants à 4px (`border-radius:4px`) sur à peu pr
 ### Buttons (admin)
 - **Primaire (`.btn-primary`):** fond bordeaux de marque, texte blanc, 6px de rayon — seul endroit où le bordeaux du site public apparaît dans l'admin.
 - **Secondaire (`.sidebar-logout` etc.):** fond transparent, bordure neutre 1px, texte atténué.
-- **Icône (`.btn-icon`):** bouton carré sans fond, icône SVG 14–16px au trait fin (`stroke-width:1.8`) — toujours accompagné d'un `aria-label` explicite (fermeture, suppression, actions).
+- **Icône (`.btn-icon`):** bouton carré sans fond, icône SVG 14–16px au trait fin (`stroke-width:1.8`) — toujours accompagné d'un `aria-label` explicite (fermeture, suppression, actions). Cible tactile 44×44px sous `@media (pointer: coarse)` (densité desktop inchangée à la souris) — voir La Règle du Pouce dans Do's and Don'ts.
 
 ### Cards / Containers (admin)
 - **Corner Style:** 8px.
@@ -217,6 +225,9 @@ Site public : coins doux et constants à 4px (`border-radius:4px`) sur à peu pr
 ### L'Enveloppe (composant signature)
 Composant central et unique du site : enveloppe 3D en CSS pur (perspective, pochettes en triangles `border`), sceau circulaire avec dégradé radial imitant la cire, lettre qui glisse verticalement au clic. Seul élément du système à porter des animations en boucle (float, pulse) — désormais neutralisées sous `prefers-reduced-motion`. Ne pas répliquer cette mécanique ailleurs : elle est le rituel d'entrée, pas un patron réutilisable.
 
+### Panneaux latéraux (admin)
+Patron partagé (`admin/ui-panel.js`, fonction `mountPanel`) utilisé par les 12 panneaux `.panel-overlay`/`.panel` de l'admin (invités, blocs, événements, prestataires, utilisateurs, etc.) : `role="dialog"`, `aria-modal="true"`, `aria-labelledby` pointant automatiquement sur le `<h3>` du `.panel-header`, focus initial sur le premier élément interactif, piège à focus (Tab/Shift+Tab bouclent à l'intérieur du panneau), fermeture au clavier via Échap, et restitution du focus à l'élément déclencheur à la fermeture — même contrat clavier que `confirmDialog` (`ui-confirm.js`). Tout nouveau panneau latéral doit passer par `mountPanel` plutôt que ré-implémenter `appendChild`/`close()` à la main.
+
 ## Do's and Don'ts
 
 ### Do:
@@ -225,6 +236,9 @@ Composant central et unique du site : enveloppe 3D en CSS pur (perspective, poch
 - **Do** garder l'admin visuellement neutre et séparé de l'esthétique cérémonielle du site public — le bordeaux n'y apparaît que sur les actions de marque.
 - **Do** fournir un style de focus visible et cohérent avec la palette (crème+bordeaux côté site public, halo accent côté admin) — jamais `outline:none` sans remplacement.
 - **Do** utiliser `max-width` + `auto-fit`/`minmax` plutôt que des breakpoints multiples pour la fluidité du site public.
+- **Do** mettre à jour `document.documentElement.lang` à chaque changement de langue sur le site public (`fullRender()` le fait déjà) — le site est bilingue à parité stricte, un `lang` figé casse la lecture par synthèse vocale de la moitié du contenu.
+- **Do** passer par `mountPanel` (`admin/ui-panel.js`) pour tout nouveau panneau latéral admin plutôt que de réimplémenter `appendChild`/`close()` — voir Composants.
+- **Do** bump le paramètre `?v=N` de chaque module/feuille de style modifié, et de tous ses importeurs, à chaque édition — les assets JS/CSS sont servis avec `Cache-Control: public, max-age=31536000` (voir `nginx.conf`), donc un fichier modifié sans bump de version ne sera jamais revu par un visiteur déjà passé sur le site.
 
 ### Don't:
 - **Don't** utiliser le bordeaux et le rouge chinois comme s'ils étaient interchangeables.
@@ -232,3 +246,5 @@ Composant central et unique du site : enveloppe 3D en CSS pur (perspective, poch
 - **Don't** emprunter les dégradés atmosphériques bordeaux du site public dans l'admin, ni l'inverse (les ombres structurelles de l'admin) sur le site public.
 - **Don't** introduire de dépendance de build (bundler, framework) — le projet reste en JS vanilla / modules ES natifs (voir PRODUCT.md).
 - **Don't** supprimer un `outline`/focus sans fournir un remplacement visible dans la même règle.
+- **Don't** utiliser `--gold` comme couleur de texte sur fond clair — utiliser `--gold-deep` (voir La Règle des Deux Ors).
+- **Don't** laisser un bouton icône (`.btn-icon`) sans cible tactile 44×44px effective sous pointeur grossier (`@media (pointer: coarse)`) — l'admin anticipe un usage tactile (voir le repli de la sidebar sous 880px).

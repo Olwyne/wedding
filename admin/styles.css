@@ -10,8 +10,9 @@
   --accent-light: rgba(110,26,26,.12);
   --accent-hover: #5a1515;
   --text: #111827;
-  --muted: #6b7280;
+  --muted: #5f6673;
   --border: #e5e7eb;
+  --border-hover: #d1d5db;
   --danger: #dc2626;
   --success: #16a34a;
 }
@@ -37,7 +38,7 @@ button{cursor:pointer;font-family:inherit}
 .field textarea{resize:vertical;min-height:80px}
 .rich-editor-toolbar{display:flex;gap:4px;margin-bottom:6px}
 .rich-editor-btn{background:#fff;border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:13px;font-weight:600;color:var(--text)}
-.rich-editor-btn:hover{background:#f9fafb;border-color:#d1d5db}
+.rich-editor-btn:hover{background:#f9fafb;border-color:var(--border-hover)}
 .rich-editor-content{padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;color:var(--text);min-height:80px;transition:border-color .15s,box-shadow .15s}
 .rich-editor-content:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(110,26,26,.1)}
 .rich-editor-content p{margin-bottom:8px}
@@ -51,13 +52,16 @@ button{cursor:pointer;font-family:inherit}
 .btn-primary:hover{background:var(--accent-hover);box-shadow:0 2px 5px rgba(110,26,26,.35)}
 .btn-primary:active{transform:translateY(1px)}
 .btn-secondary{background:#fff;border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:6px;font-size:13.5px;font-weight:500;transition:background .15s,border-color .15s}
-.btn-secondary:hover{background:#f9fafb;border-color:#d1d5db}
+.btn-secondary:hover{background:#f9fafb;border-color:var(--border-hover)}
 .btn-danger{background:var(--danger);color:#fff;border:none;padding:7px 13px;border-radius:6px;font-size:13px;font-weight:500;transition:background .15s}
 .btn-danger:hover{background:#b91c1c}
-.btn-icon{background:transparent;border:none;padding:5px 8px;color:var(--muted);font-size:14px;border-radius:5px;line-height:1;transition:background .1s,color .1s}
+.btn-icon{background:transparent;border:none;padding:5px 8px;color:var(--muted);font-size:14px;border-radius:5px;line-height:1;transition:background .1s,color .1s;display:inline-flex;align-items:center;justify-content:center}
 .btn-icon:hover{background:#f3f4f6;color:var(--text)}
 .btn-icon:disabled{opacity:.3;cursor:not-allowed}
 .btn-icon svg{width:14px;height:14px;display:block}
+@media (pointer: coarse) {
+  .btn-icon{min-width:44px;min-height:44px}
+}
 .table-actions{display:flex;gap:4px;align-items:center}
 
 /* ── Sidebar ── */
@@ -80,7 +84,7 @@ button{cursor:pointer;font-family:inherit}
 .sidebar-site-link:hover{background:var(--sidebar-blue-light);color:var(--sidebar-blue)}
 .sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
 .sidebar-logout{width:100%;font-size:13px;padding:8px 12px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:6px}
-.sidebar-logout:hover{color:var(--text);background:#f3f4f6;border-color:#d1d5db}
+.sidebar-logout:hover{color:var(--text);background:#f3f4f6;border-color:var(--border-hover)}
 
 /* ── Content area ── */
 .content-area{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column}
@@ -164,7 +168,7 @@ button{cursor:pointer;font-family:inherit}
 /* ── Toggle switch ── */
 .toggle{position:relative;display:inline-flex;width:36px;height:20px;flex-shrink:0}
 .toggle input{opacity:0;width:0;height:0;position:absolute}
-.toggle-track{position:absolute;cursor:pointer;inset:0;background:#d1d5db;border-radius:999px;transition:background .18s}
+.toggle-track{position:absolute;cursor:pointer;inset:0;background:var(--border-hover);border-radius:999px;transition:background .18s}
 .toggle-track::before{content:'';position:absolute;height:14px;width:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .18s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .toggle input:checked+.toggle-track{background:var(--success)}
 .toggle input:checked+.toggle-track::before{transform:translateX(16px)}
@@ -204,7 +208,7 @@ button{cursor:pointer;font-family:inherit}
 /* ── Event cards (guest form) ── */
 .event-cards{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
 .event-card{display:flex;align-items:center;gap:12px;padding:10px 13px;border:1.5px solid var(--border);border-radius:7px;cursor:pointer;transition:border-color .12s,background .12s}
-.event-card:hover{border-color:#d1d5db}
+.event-card:hover{border-color:var(--border-hover)}
 .event-card.selected{border-color:var(--accent);background:#fef2f2}
 .event-card-info{flex:1}
 .event-card-title{font-size:13.5px;font-weight:500}

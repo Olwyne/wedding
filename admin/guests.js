@@ -5,10 +5,11 @@ import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, setDoc, updateDoc, deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadEvents } from './events.js?v=6';
+import { loadEvents } from './events.js?v=7';
 import { canWrite } from './permissions.js';
 import { loadChildrenAllowed } from './settings.js?v=2';
-import { sendEmailWithConfirm } from './email.js';
+import { sendEmailWithConfirm } from './email.js?v=1';
+import { mountPanel } from './ui-panel.js';
 
 const guestsCol = collection(db, 'guests');
 
@@ -159,7 +160,7 @@ function renderGuestRow(g, editable) {
       <td>${rsvp.adults ?? ''}</td>
       <td>${rsvp.children ?? ''}</td>
       <td>
-        <button class="btn-icon btn-copy-link" data-token="${escapeHtml(g.id)}" title="Copier le lien">${LINK_ICON}</button>
+        <button class="btn-icon btn-copy-link" data-token="${escapeHtml(g.id)}" title="Copier le lien" aria-label="Copier le lien">${LINK_ICON}</button>
       </td>
       <td>${renderActionsCell(g, editable)}</td>
     </tr>`;
@@ -440,9 +441,8 @@ function openRsvpDetail(guest, eventById) {
       <button class="btn-secondary" id="panel-cancel">Fermer</button>
     </div>`;
 
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
-  function close() { overlay.remove(); panelEl.remove(); }
+  function close() { teardown(); overlay.remove(); panelEl.remove(); }
+  const teardown = mountPanel(overlay, panelEl, close);
   panelEl.querySelector('#panel-close').addEventListener('click', close);
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);
@@ -530,10 +530,8 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
       <button class="btn-secondary" id="panel-cancel">Annuler</button>
     </div>`;
 
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
-
-  function close() { overlay.remove(); panelEl.remove(); renderGuestsTab(); }
+  function close() { teardown(); overlay.remove(); panelEl.remove(); renderGuestsTab(); }
+  const teardown = mountPanel(overlay, panelEl, close);
   panelEl.querySelector('#panel-close').addEventListener('click', close);
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);

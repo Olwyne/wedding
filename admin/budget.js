@@ -2,7 +2,7 @@
 import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadVendors, paidAmount, CATEGORIES } from './vendors.js?v=9';
+import { loadVendors, paidAmount, CATEGORIES } from './vendors.js?v=10';
 import { canWrite } from './permissions.js';
 
 const budgetDocRef = doc(db, 'settings', 'budget');
@@ -73,7 +73,7 @@ function renderTargetCell(key, value, editable, editingKeys) {
     return `
       <div class="budget-target-view">
         <strong>${fmtMoney(value)}</strong>
-        <button type="button" class="btn-icon target-edit-btn" data-key="${escapeHtml(key)}">${PENCIL_ICON}</button>
+        <button type="button" class="btn-icon target-edit-btn" data-key="${escapeHtml(key)}" aria-label="Modifier l'objectif">${PENCIL_ICON}</button>
       </div>`;
   }
   return `

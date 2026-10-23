@@ -7,6 +7,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
 import { sanitizeHtml, mountRichEditor } from './richtext.js?v=1';
+import { mountPanel } from './ui-panel.js';
 
 const eventsCol = collection(db, 'events');
 
@@ -114,13 +115,12 @@ function openEventPanel(id, events) {
       <button class="btn-secondary" id="panel-cancel">Annuler</button>
     </div>`;
 
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
+  function close() { teardown(); overlay.remove(); panelEl.remove(); renderEventsTab(); }
+  const teardown = mountPanel(overlay, panelEl, close);
 
   const descFrEditor = mountRichEditor(panelEl.querySelector('#ev-desc-fr-mount'), ev?.desc_fr || '');
   const descZhEditor = mountRichEditor(panelEl.querySelector('#ev-desc-zh-mount'), ev?.desc_zh || '');
 
-  function close() { overlay.remove(); panelEl.remove(); renderEventsTab(); }
   panelEl.querySelector('#panel-close').addEventListener('click', close);
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);

@@ -8,6 +8,7 @@ import {
 import {
   initializeApp, deleteApp
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { mountPanel } from './ui-panel.js';
 import {
   getAuth, createUserWithEmailAndPassword, signOut
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -234,14 +235,13 @@ function openUserPanel(id, users) {
       <button class="btn-secondary" id="panel-cancel">Annuler</button>
     </div>`;
 
-  document.body.appendChild(overlay);
-  document.body.appendChild(panelEl);
-
   function isSaving() { return !!panelEl.querySelector('#panel-save')?.disabled; }
-  function close() { overlay.remove(); panelEl.remove(); renderUsersTab(); }
-  panelEl.querySelector('#panel-close').addEventListener('click', () => { if (!isSaving()) close(); });
-  panelEl.querySelector('#panel-cancel').addEventListener('click', () => { if (!isSaving()) close(); });
-  overlay.addEventListener('click', () => { if (!isSaving()) close(); });
+  function close() { teardown(); overlay.remove(); panelEl.remove(); renderUsersTab(); }
+  function closeUnlessSaving() { if (!isSaving()) close(); }
+  const teardown = mountPanel(overlay, panelEl, closeUnlessSaving);
+  panelEl.querySelector('#panel-close').addEventListener('click', closeUnlessSaving);
+  panelEl.querySelector('#panel-cancel').addEventListener('click', closeUnlessSaving);
+  overlay.addEventListener('click', closeUnlessSaving);
 
   if (isNew) {
     panelEl.querySelector('#copy-password').addEventListener('click', async () => {

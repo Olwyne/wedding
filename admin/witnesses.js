@@ -2,7 +2,7 @@
 import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import { doc, updateDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=11';
+import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=13';
 import { canWrite } from './permissions.js';
 
 const SIDES = [
