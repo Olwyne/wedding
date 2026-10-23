@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "admin/styles.css"
+        ],
+        "createdAt": "2026-10-23T07:14:14.594Z",
+        "reason": "Agent: .timeline-block's border-left-color is set per-item from lane.color in dayof-timeline.js — a functional lane legend on a Gantt-style day-of timeline, not a decorative accent border. Documented in DESIGN.md Elevation & Depth."
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-23T07:14:14.615Z",
+        "reason": "Agent: --cream is the deliberate ceremonial Chinese-wedding-envelope background, part of the committed 'La Lettre Scellée' visual world documented in DESIGN.md Colors, not a generic AI default."
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "admin/index.html"
+        ],
+        "createdAt": "2026-10-23T07:14:14.635Z",
+        "reason": "Agent: remaining purple is .badge-candidat, a qualitative status-badge color documented as an intentional exception in DESIGN.md's 'Badges de statut'; the other purple (witness-drag-over) was retinted to the admin blue token this session."
+      }
+    ]
+  }
+}

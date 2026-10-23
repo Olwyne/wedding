@@ -128,7 +128,10 @@ Palette à deux registres : une base bordeaux/or/crème côté site public (chau
 - **Taupe** (`#7a6252`) : texte tertiaire, sous-titres de date.
 
 ### Neutral (admin)
-- **Texte** (`#111827`) / **Atténué** (`#6b7280`) / **Fond** (`#f5f6f8`) / **Bordure** (`#e5e7eb`) : palette neutre standard d'outil de gestion. **Bleu** (`#2563eb`) sert à l'état actif de la navigation et aux liens ; **bordeaux** (`#6E1A1A`, le même token que le site public) n'apparaît que sur les actions de marque (logo, bouton de connexion) — un rappel d'identité délibéré, pas une fusion des deux systèmes.
+- **Texte** (`#111827`) / **Atténué** (`#6b7280`) / **Fond** (`#f5f6f8`) / **Bordure** (`#e5e7eb`) : palette neutre standard d'outil de gestion. **Bleu** (`#2563eb`) sert à l'état actif de la navigation, aux liens et aux états d'interaction temporaires (survol de dépôt, focus) ; **bordeaux** (`#6E1A1A`, le même token que le site public) n'apparaît que sur les actions de marque (logo, bouton de connexion) — un rappel d'identité délibéré, pas une fusion des deux systèmes.
+
+### Badges de statut (admin, exception documentée)
+Les badges de statut (RSVP, prestataires) forment une mini-palette qualitative à part, distincte du chrome bleu/bordeaux ci-dessus — un indicateur de statut a besoin de plus de deux teintes pour rester lisible, et ce n'est pas une dérive : **ambre** (`#fef3c7`/`#92400e`) = en attente, **vert** (`#dcfce7`/`#15803d`) = confirmé, **rouge** (`#fee2e2`/`#b91c1c`) = refusé/rejeté, **jaune** (`#fef9c3`/`#854d0e`) = préféré, **violet** (`#ede9fe`/`#6d28d9`) = candidat. Toute nouvelle couleur de badge doit rester dans ce registre qualitatif (fond pastel + texte foncé de la même teinte) et ne jamais migrer vers le chrome de navigation/boutons.
 
 ### Named Rules
 **La Règle des Deux Rouges.** Le bordeaux (`--bordeaux`) et le rouge chinois (`--red`) ne sont jamais interchangeables : le bordeaux porte la structure (titres, nav, CTA), le rouge porte le culturel (chinois, 囍, kickers). Un nouvel élément doit choisir son registre, jamais les deux à la fois.

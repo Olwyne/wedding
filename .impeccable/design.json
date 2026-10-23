@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-23T00:00:00Z",
+  "generatedAt": "2026-10-23T07:00:00Z",
   "title": "Design System: Ruiyuan & Sophie — Mariage 2027",
   "extensions": {
     "colorMeta": {
@@ -11,7 +11,12 @@
       "cream": { "role": "neutral", "displayName": "Crème", "canonical": "#FBF6EC", "tonalRamp": ["#4a443a", "#6b6254", "#9c8f78", "#c9bba0", "#e2d6bf", "#f0e8d6", "#FBF6EC", "#fffdf8"] },
       "ink": { "role": "neutral", "displayName": "Encre", "canonical": "#2A211C", "tonalRamp": ["#140f0c", "#1c1613", "#2A211C", "#3a2b23", "#4b3a30", "#5a463c", "#7a6252", "#a68f7a"] },
       "admin-blue": { "role": "primary", "displayName": "Bleu Admin", "canonical": "#2563eb", "tonalRamp": ["#0e1f4d", "#15316f", "#1d4499", "#2563eb", "#5885f0", "#8babf5", "#bccff9", "#dde8fc"] },
-      "admin-bg": { "role": "neutral", "displayName": "Fond Admin", "canonical": "#f5f6f8", "tonalRamp": ["#1f2024", "#3a3c42", "#55585f", "#73767e", "#9b9ea4", "#c3c5c9", "#e6e7e9", "#f5f6f8"] }
+      "admin-bg": { "role": "neutral", "displayName": "Fond Admin", "canonical": "#f5f6f8", "tonalRamp": ["#1f2024", "#3a3c42", "#55585f", "#73767e", "#9b9ea4", "#c3c5c9", "#e6e7e9", "#f5f6f8"] },
+      "badge-pending": { "role": "neutral", "displayName": "Badge Ambre (en attente)", "canonical": "#92400e", "tonalRamp": ["#92400e"] },
+      "badge-confirmed": { "role": "neutral", "displayName": "Badge Vert (confirmé)", "canonical": "#15803d", "tonalRamp": ["#15803d"] },
+      "badge-declined": { "role": "neutral", "displayName": "Badge Rouge (refusé/rejeté)", "canonical": "#b91c1c", "tonalRamp": ["#b91c1c"] },
+      "badge-preferred": { "role": "neutral", "displayName": "Badge Jaune (préféré)", "canonical": "#854d0e", "tonalRamp": ["#854d0e"] },
+      "badge-candidat": { "role": "neutral", "displayName": "Badge Violet (candidat)", "canonical": "#6d28d9", "tonalRamp": ["#6d28d9"] }
     },
     "typographyMeta": {
       "display": { "displayName": "Display (noms des mariés)", "purpose": "Hero names, italic Cormorant Garamond, emotional peak of the page." },
