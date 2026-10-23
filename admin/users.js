@@ -105,7 +105,7 @@ export async function renderUsersTab() {
   }
 
   panel.innerHTML = `
-    <table class="admin-table">
+    <div class="table-scroll"><table class="admin-table">
       <thead>
         <tr><th>Email</th><th>Permissions</th><th>Actions</th></tr>
       </thead>
@@ -114,7 +114,7 @@ export async function renderUsersTab() {
           ? users.map(u => renderUserRow(u, editable)).join('')
           : '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:40px">Aucun utilisateur.</td></tr>'}
       </tbody>
-    </table>`;
+    </table></div>`;
 
   if (editable) {
     document.getElementById('add-user-btn').addEventListener('click', () => openUserPanel(null, users));
@@ -208,7 +208,7 @@ function openUserPanel(id, users) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>${isNew ? 'Inviter un utilisateur' : 'Modifier les permissions'}</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body">
       ${isNew ? `

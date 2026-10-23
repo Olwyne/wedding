@@ -1,7 +1,7 @@
 // admin/witnesses.js
 import { db } from '../firebase-init.js';
 import { doc, updateDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=9';
+import { loadGuests, SIDE_LABELS, SIDE_BADGE } from './guests.js?v=10';
 import { canWrite } from './permissions.js';
 
 const SIDES = [
@@ -82,7 +82,7 @@ function renderPersonCard(guest, personIdx, person, { removable }) {
   const name = personName(guest, personIdx, person);
   const key = seatKey(guest.id, personIdx);
   const removeBtn = removable
-    ? `<button class="btn-icon witness-remove" data-key="${escapeHtml(key)}" title="Retirer">✕</button>`
+    ? `<button class="btn-icon witness-remove" data-key="${escapeHtml(key)}" title="Retirer" aria-label="Retirer">✕</button>`
     : '';
   return `
     <div class="witness-card" draggable="${editableGlobal}" data-key="${escapeHtml(key)}">

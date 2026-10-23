@@ -1,6 +1,6 @@
 // admin/dashboard.js
-import { loadGuests, computeStats, renderStatsBar } from './guests.js?v=9';
-import { loadEvents } from './events.js?v=2';
+import { loadGuests, computeStats, renderStatsBar } from './guests.js?v=10';
+import { loadEvents } from './events.js?v=5';
 import { canRead } from './permissions.js';
 
 function escapeHtml(str) {

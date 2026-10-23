@@ -350,7 +350,7 @@ function buildListItemHtml(listDef, item, idx, eventOptions) {
       <div style="display:flex;gap:4px;margin-bottom:6px">
         <button type="button" class="btn-icon btn-list-up" title="Monter">↑</button>
         <button type="button" class="btn-icon btn-list-down" title="Descendre">↓</button>
-        <button type="button" class="btn-icon btn-remove-item" style="margin-left:auto">✕</button>
+        <button type="button" class="btn-icon btn-remove-item" style="margin-left:auto" aria-label="Retirer">✕</button>
       </div>
       ${fields}
     </div>`;
@@ -485,7 +485,7 @@ async function openBlockPanel(id, allBlocks, audience) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>${isNew ? 'Nouveau bloc' : 'Modifier le bloc'}</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body" id="panel-body">
       ${isNew ? renderTypeSelector(audience) : renderBlockForm(block, eventOptions)}

@@ -3,7 +3,7 @@ import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, addDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests } from './guests.js?v=9';
+import { loadGuests } from './guests.js?v=10';
 import { canWrite } from './permissions.js';
 
 const tablesCol = collection(db, 'tables');
@@ -102,7 +102,7 @@ function openAddTablePanel(onCreated) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>Nouvelle table</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body">
       <label class="field">
@@ -211,7 +211,7 @@ function openTableDetailPanel(table, guests, onChange, editable) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>${escapeHtml(table.name)}</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body" id="occupant-list">${occupantRows()}</div>
     <div class="panel-footer">

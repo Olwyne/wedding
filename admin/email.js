@@ -70,7 +70,7 @@ export function sendEmailWithConfirm(type, recipients, eventById) {
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
       <div class="panel-header">
         <h3>${escapeHtml(title)}</h3>
-        <button class="btn-icon" id="email-modal-close">✕</button>
+        <button class="btn-icon" id="email-modal-close" aria-label="Fermer">✕</button>
       </div>
       <div class="panel-body">
         ${buildRecipientList(recipients)}

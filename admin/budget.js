@@ -1,7 +1,7 @@
 // admin/budget.js
 import { db } from '../firebase-init.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadVendors, paidAmount, CATEGORIES } from './vendors.js?v=7';
+import { loadVendors, paidAmount, CATEGORIES } from './vendors.js?v=8';
 import { canWrite } from './permissions.js';
 
 const budgetDocRef = doc(db, 'settings', 'budget');
@@ -85,7 +85,7 @@ function renderTargetCell(key, value, editable, editingKeys) {
 function renderCategoryTable(categoryStats, editable, editingKeys) {
   if (!categoryStats.length) return '';
   return `
-    <table class="admin-table">
+    <div class="table-scroll"><table class="admin-table">
       <thead>
         <tr><th>Catégorie</th><th>Cible</th><th>Engagé</th><th>Versé</th><th>Reste</th></tr>
       </thead>
@@ -99,7 +99,7 @@ function renderCategoryTable(categoryStats, editable, editingKeys) {
             <td>${fmtMoney(c.engaged - c.paid)}</td>
           </tr>`).join('')}
       </tbody>
-    </table>`;
+    </table></div>`;
 }
 
 export async function renderBudgetTab() {

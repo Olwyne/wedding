@@ -5,10 +5,10 @@ import {
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
-import { loadGuests } from './guests.js?v=9';
-import { loadVendors } from './vendors.js?v=7';
-import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=2';
-import { renderTimelineGrid } from './dayof-timeline.js?v=2';
+import { loadGuests } from './guests.js?v=10';
+import { loadVendors } from './vendors.js?v=8';
+import { loadLanes, GENERAL_LANE_ID, GENERAL_LANE, openLaneManagerPanel } from './timeline-lanes.js?v=3';
+import { renderTimelineGrid } from './dayof-timeline.js?v=3';
 
 const dayOfCol = collection(db, 'runOfShow');
 let currentView = 'table';
@@ -181,7 +181,7 @@ function openDayOfPanel(id, items, guests, vendors, lanes) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>${isNew ? 'Nouvelle ligne' : 'Modifier la ligne'}</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body">
       <label class="field"><span>Heure</span><input id="dayof-time" type="time" value="${escapeHtml(v('time'))}" required></label>

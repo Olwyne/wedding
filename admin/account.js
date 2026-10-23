@@ -21,7 +21,7 @@ export function openAccountPanel() {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>Mon compte</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body">
       <div class="field"><span>Email</span><div>${escapeHtml(user.email)}</div></div>

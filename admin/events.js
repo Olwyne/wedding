@@ -88,7 +88,7 @@ function openEventPanel(id, events) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>${isNew ? 'Nouvel événement' : 'Modifier l\'événement'}</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body">
       <label class="field"><span>Ordre</span><input id="ev-order" type="number" value="${v('order') || events.length + 1}" required></label>

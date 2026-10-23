@@ -103,7 +103,7 @@ export async function renderVendorsTab() {
         `<button class="filter-pill ${currentFilter === id ? 'filter-pill-active' : ''}" data-filter="${id}">${label}</button>`
       ).join('')}
     </div>
-    <table class="admin-table">
+    <div class="table-scroll"><table class="admin-table">
       <thead>
         <tr>
           <th>Catégorie</th><th>Nom</th><th>Statut</th><th>Préféré</th><th>Total</th>
@@ -115,7 +115,7 @@ export async function renderVendorsTab() {
           ? filtered.map(v => renderVendorRow(v, editable)).join('')
           : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px">Aucune prestation.</td></tr>'}
       </tbody>
-    </table>`;
+    </table></div>`;
 
   panel.querySelectorAll('[data-filter]').forEach(btn =>
     btn.addEventListener('click', () => { currentFilter = btn.dataset.filter; renderVendorsTab(); })
@@ -157,7 +157,7 @@ function renderPaymentRow(p, idx) {
       <span>${escapeHtml(p.date || '')}</span>
       <span>${fmtMoney(p.amount)}</span>
       <span class="payment-row-note">${escapeHtml(p.note || '')}</span>
-      <button type="button" class="btn-icon payment-row-remove" data-idx="${idx}">✕</button>
+      <button type="button" class="btn-icon payment-row-remove" data-idx="${idx}" aria-label="Retirer">✕</button>
     </div>`;
 }
 
@@ -177,7 +177,7 @@ function openVendorPanel(id, vendors) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>${isNew ? 'Nouvelle prestation' : 'Modifier la prestation'}</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body">
       <label class="field">

@@ -3,7 +3,7 @@ import { db } from '../firebase-init.js';
 import {
   collection, getDocs, doc, setDoc, updateDoc, deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadEvents } from './events.js?v=2';
+import { loadEvents } from './events.js?v=5';
 import { canWrite } from './permissions.js';
 import { loadChildrenAllowed } from './settings.js?v=1';
 import { sendEmailWithConfirm } from './email.js';
@@ -266,7 +266,7 @@ export async function renderGuestsTab() {
 
   panel.innerHTML = `
     ${renderGuestFilters(events, guests)}
-    <table class="admin-table">
+    <div class="table-scroll"><table class="admin-table">
       <thead>
         <tr>
           <th>Nom</th><th>Côté</th><th>Max</th><th>RSVP</th>
@@ -278,7 +278,7 @@ export async function renderGuestsTab() {
           ? filteredGuests.map(g => renderGuestRow(g, editable)).join('')
           : `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">${guests.length > 0 ? 'Aucun invité ne correspond aux filtres.' : 'Aucun invité.'}</td></tr>`}
       </tbody>
-    </table>`;
+    </table></div>`;
 
   panel.querySelectorAll('[data-event-filter]').forEach(btn =>
     btn.addEventListener('click', () => {
@@ -395,7 +395,7 @@ function openRsvpDetail(guest, eventById) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>Réponse de ${escapeHtml(guest?.name || '')}</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body">
       <div class="field"><span>Statut</span><div>${escapeHtml(STATUS_LABELS[status] || STATUS_LABELS.pending)}</div></div>
@@ -430,7 +430,7 @@ function renderExpectedGuestRow(p, idx, childrenAllowed) {
         <option value="adult" ${p.type === 'adult' ? 'selected' : ''}>Adulte</option>
         <option value="child" ${p.type === 'child' ? 'selected' : ''}>Enfant</option>
       </select>
-      <button type="button" class="btn-icon eg-remove" data-idx="${idx}">✕</button>
+      <button type="button" class="btn-icon eg-remove" data-idx="${idx}" aria-label="Retirer">✕</button>
     </div>`;
 }
 
@@ -451,7 +451,7 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
   panelEl.innerHTML = `
     <div class="panel-header">
       <h3>${isNew ? 'Nouvel invité' : 'Modifier l\'invité'}</h3>
-      <button class="btn-icon" id="panel-close">✕</button>
+      <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body">
       <label class="field">

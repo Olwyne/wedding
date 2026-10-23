@@ -2,10 +2,10 @@
 import { db } from '../firebase-init.js';
 import { collection, doc, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { canWrite } from './permissions.js';
-import { loadGuests } from './guests.js?v=9';
-import { loadVendors } from './vendors.js?v=7';
-import { loadUsers } from './users.js?v=1';
-import { loadTasks, escapeHtml, STATUS_LABELS, MILESTONES, openTaskPanel } from './tasks-shared.js?v=3';
+import { loadGuests } from './guests.js?v=10';
+import { loadVendors } from './vendors.js?v=8';
+import { loadUsers } from './users.js?v=2';
+import { loadTasks, escapeHtml, STATUS_LABELS, MILESTONES, openTaskPanel } from './tasks-shared.js?v=4';
 
 const tasksCol = collection(db, 'tasks');
 

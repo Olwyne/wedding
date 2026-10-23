@@ -4,9 +4,9 @@ import {
   collection, getDocs, doc, addDoc, updateDoc,
   query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { loadGuests } from './guests.js?v=9';
-import { loadVendors } from './vendors.js?v=7';
-import { loadUsers } from './users.js?v=1';
+import { loadGuests } from './guests.js?v=10';
+import { loadVendors } from './vendors.js?v=8';
+import { loadUsers } from './users.js?v=2';
 
 const tasksCol = collection(db, 'tasks');
 
@@ -57,7 +57,7 @@ export function openTaskPanel(id, tasks, { onSaved, defaults = {}, readOnly = fa
     panelEl.innerHTML = `
       <div class="panel-header">
         <h3>${isNew ? 'Nouvelle tâche' : (readOnly ? 'Tâche' : 'Modifier la tâche')}</h3>
-        <button class="btn-icon" id="panel-close">✕</button>
+        <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
       </div>
       <div class="panel-body">
         <label class="field"><span>Titre</span><input id="task-title" value="${escapeHtml(v('title'))}" ${dis} required></label>
