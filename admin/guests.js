@@ -323,7 +323,7 @@ export async function renderGuestsTab() {
       const guestId = btn.dataset.id;
       btn.closest('.action-menu').hidden = true;
       if (action === 'view-rsvp') {
-        openRsvpDetail(guests.find(g => g.id === guestId), eventById);
+        openRsvpPanel(guests.find(g => g.id === guestId), eventById);
       } else if (action === 'edit-guest') {
         openGuestPanel(guestId, guests, events, childrenAllowed);
       } else if (action === 'delete-guest') {
@@ -405,15 +405,26 @@ export async function renderGuestsTab() {
   });
 }
 
-function openRsvpDetail(guest, eventById) {
+async function openRsvpPanel(guest, eventById) {
   const rsvp = guest?.rsvp || {};
-  const status = rsvp.status || 'pending';
-  const STATUS_LABELS = { confirmed: 'Confirmé', declined: 'Décliné', pending: 'En attente' };
 
-  const confirmedIds = Object.keys(rsvp.confirmedEvents || {}).filter(id => rsvp.confirmedEvents[id]);
-  const eventList = confirmedIds.length
-    ? confirmedIds.map(id => `<span class="pill">${escapeHtml(eventById[id]?.title_fr || id)}</span>`).join('')
-    : '<span style="color:var(--muted)">Aucun</span>';
+  function nameListHtml(id, names) {
+    const rows = (names || []).map((n, i) => `
+      <div class="expected-guest-row" data-idx="${i}">
+        <input type="text" class="name-list-input" value="${escapeHtml(n)}" placeholder="Nom">
+        <button type="button" class="btn-icon name-list-remove" aria-label="Retirer">✕</button>
+      </div>`).join('');
+    return `<div id="${id}-list">${rows}</div>
+      <button type="button" class="btn-secondary name-list-add" data-list="${id}" style="margin-top:4px">+ Ajouter</button>`;
+  }
+
+  const eventCheckboxes = Object.keys(eventById).map(id => {
+    const checked = rsvp.confirmedEvents?.[id] ? 'checked' : '';
+    return `<label style="display:flex;gap:6px;align-items:center;font-weight:normal;margin-bottom:4px">
+      <input type="checkbox" class="event-cb" data-event-id="${escapeHtml(id)}" ${checked}>
+      ${escapeHtml(eventById[id]?.title_fr || id)}
+    </label>`;
+  }).join('');
 
   const overlay = document.createElement('div');
   overlay.className = 'panel-overlay';
@@ -425,27 +436,136 @@ function openRsvpDetail(guest, eventById) {
       <button class="btn-icon" id="panel-close" aria-label="Fermer">✕</button>
     </div>
     <div class="panel-body">
-      <div class="field"><span>Statut</span><div>${escapeHtml(STATUS_LABELS[status] || STATUS_LABELS.pending)}</div></div>
-      <div class="field"><span>Nom déclaré</span><div>${escapeHtml(rsvp.name || '—')}</div></div>
-      <div class="field"><span>Email</span><div>${escapeHtml(rsvp.email || '—')}</div></div>
-      <div class="field"><span>Téléphone</span><div>${escapeHtml(rsvp.phone || '—')}</div></div>
-      <div class="field"><span>Adultes / Enfants</span><div>${rsvp.adults ?? 0} / ${rsvp.children ?? 0}</div></div>
-      <div class="field"><span>Autres adultes</span><div>${(rsvp.extraAdultNames || []).map(escapeHtml).join(', ') || '—'}</div></div>
-      <div class="field"><span>Enfants (noms)</span><div>${(rsvp.childNames || []).map(escapeHtml).join(', ') || '—'}</div></div>
-      <div class="field"><span>Événements confirmés</span><div class="pills">${eventList}</div></div>
-      <div class="field"><span>Allergies / régime</span><div>${escapeHtml(rsvp.diet || '—')}</div></div>
-      <div class="field"><span>Message</span><div>${escapeHtml(rsvp.message || '—')}</div></div>
-      <div class="field"><span>Répondu le</span><div>${rsvp.respondedAt ? new Date(rsvp.respondedAt).toLocaleString('fr-FR') : '—'}</div></div>
+      <label class="field">
+        <span>Statut</span>
+        <select id="rsvp-status">
+          <option value="pending"   ${rsvp.status === 'pending'   || !rsvp.status ? 'selected' : ''}>En attente</option>
+          <option value="confirmed" ${rsvp.status === 'confirmed' ? 'selected' : ''}>Confirmé</option>
+          <option value="declined"  ${rsvp.status === 'declined'  ? 'selected' : ''}>Décliné</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Nom déclaré</span>
+        <input id="rsvp-name" type="text" value="${escapeHtml(rsvp.name || '')}">
+      </label>
+      <label class="field">
+        <span>Email</span>
+        <input id="rsvp-email" type="email" value="${escapeHtml(rsvp.email || '')}">
+      </label>
+      <label class="field">
+        <span>Téléphone</span>
+        <input id="rsvp-phone" type="text" value="${escapeHtml(rsvp.phone || '')}">
+      </label>
+      <label class="field">
+        <span>Adultes</span>
+        <input id="rsvp-adults" type="number" min="0" value="${rsvp.adults ?? 0}">
+      </label>
+      <label class="field">
+        <span>Enfants</span>
+        <input id="rsvp-children" type="number" min="0" value="${rsvp.children ?? 0}">
+      </label>
+      <div class="field">
+        <span>Autres adultes (noms)</span>
+        ${nameListHtml('extra-adults', rsvp.extraAdultNames)}
+      </div>
+      <div class="field">
+        <span>Enfants (noms)</span>
+        ${nameListHtml('child-names', rsvp.childNames)}
+      </div>
+      <div class="field">
+        <span>Événements confirmés</span>
+        <div>${eventCheckboxes || '<em style="color:var(--muted)">Aucun événement configuré</em>'}</div>
+      </div>
+      <label class="field">
+        <span>Allergies / régime</span>
+        <textarea id="rsvp-diet">${escapeHtml(rsvp.diet || '')}</textarea>
+      </label>
+      <label class="field">
+        <span>Message</span>
+        <textarea id="rsvp-message">${escapeHtml(rsvp.message || '')}</textarea>
+      </label>
+      <div class="field">
+        <span>Répondu le</span>
+        <div>${rsvp.respondedAt ? new Date(rsvp.respondedAt).toLocaleString('fr-FR') : '—'}</div>
+      </div>
+      <p id="panel-error" class="login-error" hidden></p>
     </div>
     <div class="panel-footer">
-      <button class="btn-secondary" id="panel-cancel">Fermer</button>
+      <button class="btn-primary" id="panel-save">Enregistrer</button>
+      <button class="btn-secondary" id="panel-cancel">Annuler</button>
     </div>`;
 
+  function isSaving() { return panelEl.querySelector('#panel-save').disabled; }
   function close() { teardown(); overlay.remove(); panelEl.remove(); }
   const teardown = mountPanel(overlay, panelEl, close);
-  panelEl.querySelector('#panel-close').addEventListener('click', close);
-  panelEl.querySelector('#panel-cancel').addEventListener('click', close);
-  overlay.addEventListener('click', close);
+  panelEl.querySelector('#panel-close').addEventListener('click', () => { if (!isSaving()) close(); });
+  panelEl.querySelector('#panel-cancel').addEventListener('click', () => { if (!isSaving()) close(); });
+  overlay.addEventListener('click', () => { if (!isSaving()) close(); });
+
+  // Dynamic name lists
+  function bindNameLists() {
+    panelEl.querySelectorAll('.name-list-remove').forEach(btn => {
+      btn.onclick = () => btn.closest('.expected-guest-row').remove();
+    });
+    panelEl.querySelectorAll('.name-list-add').forEach(btn => {
+      btn.onclick = () => {
+        const listEl = panelEl.querySelector(`#${btn.dataset.list}-list`);
+        const idx = listEl.children.length;
+        listEl.insertAdjacentHTML('beforeend', `
+          <div class="expected-guest-row" data-idx="${idx}">
+            <input type="text" class="name-list-input" value="" placeholder="Nom">
+            <button type="button" class="btn-icon name-list-remove" aria-label="Retirer">✕</button>
+          </div>`);
+        bindNameLists();
+      };
+    });
+  }
+  bindNameLists();
+
+  panelEl.querySelector('#panel-save').addEventListener('click', async () => {
+    const saveBtn = panelEl.querySelector('#panel-save');
+    const errEl = panelEl.querySelector('#panel-error');
+    saveBtn.disabled = true;
+    errEl.hidden = true;
+
+    const confirmedEvents = {};
+    panelEl.querySelectorAll('.event-cb').forEach(cb => {
+      confirmedEvents[cb.dataset.eventId] = cb.checked;
+    });
+
+    const extraAdultNames = Array.from(
+      panelEl.querySelectorAll('#extra-adults-list .name-list-input')
+    ).map(i => i.value.trim()).filter(Boolean);
+
+    const childNames = Array.from(
+      panelEl.querySelectorAll('#child-names-list .name-list-input')
+    ).map(i => i.value.trim()).filter(Boolean);
+
+    const newRsvp = {
+      ...rsvp,
+      status:           panelEl.querySelector('#rsvp-status').value,
+      name:             panelEl.querySelector('#rsvp-name').value.trim(),
+      email:            panelEl.querySelector('#rsvp-email').value.trim(),
+      phone:            panelEl.querySelector('#rsvp-phone').value.trim(),
+      adults:           parseInt(panelEl.querySelector('#rsvp-adults').value, 10) || 0,
+      children:         parseInt(panelEl.querySelector('#rsvp-children').value, 10) || 0,
+      extraAdultNames,
+      childNames,
+      confirmedEvents,
+      diet:             panelEl.querySelector('#rsvp-diet').value.trim(),
+      message:          panelEl.querySelector('#rsvp-message').value.trim(),
+    };
+
+    try {
+      await updateDoc(doc(db, 'guests', guest.id), { rsvp: newRsvp });
+      close();
+      renderGuestsTab();
+    } catch (e) {
+      errEl.textContent = e.message || 'Erreur lors de l\'enregistrement.';
+      errEl.hidden = false;
+      saveBtn.disabled = false;
+    }
+  });
 }
 
 function renderExpectedGuestRow(p, idx, childrenAllowed) {
