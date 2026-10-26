@@ -71,7 +71,11 @@ rounded:
   sm: "4px"
   md: "6px"
   lg: "8px"
+  xl: "10px"
   pill: "999px"
+shadows:
+  card: "0 1px 3px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04)"
+  focus-ring: "0 0 0 3px rgba(110,26,26,.1)"
 spacing:
   xs: "8px"
   sm: "14px"
@@ -135,6 +139,11 @@ Palette à deux registres : une base bordeaux/or/crème côté site public (chau
 ### Neutral (admin)
 - **Texte** (`#111827`) / **Atténué** (`#5f6673`) / **Fond** (`#f5f6f8`) / **Bordure** (`#e5e7eb`) / **Bordure au survol** (`#d1d5db`, `--border-hover`) : palette neutre standard d'outil de gestion. **Bleu** (`#2563eb`) sert à l'état actif de la navigation, aux liens et aux états d'interaction temporaires (survol de dépôt, focus) ; **bordeaux** (`#6E1A1A`, le même token que le site public) n'apparaît que sur les actions de marque (logo, bouton de connexion) — un rappel d'identité délibéré, pas une fusion des deux systèmes.
   - `--muted` est fixé à `#5f6673` (et non `#6b7280`) pour garantir ≥4.5:1 sur `--admin-bg` et sur blanc — toute nouvelle teinte de texte atténué doit repasser ce test de contraste avant d'être adoptée.
+  - `--bg-subtle: #f9fafb` : surface un cran au-dessus du card blanc — fond des en-têtes de tableau, états hover des boutons secondaires, fond de code inline.
+  - `--bg-hover: #f3f4f6` : état hover dense — rangées de tableau, boutons icône, items de dropdown.
+  - `--shadow-card` : paire d'ombres standard de toute carte/tableau/panneau admin au repos (voir Elevation & Depth).
+  - `--focus-ring` : halo de focus accent pour tous les champs admin (≡ `0 0 0 3px rgba(110,26,26,.1)`).
+  - `--radius-sm/md/lg/xl/pill` : correspondances CSS des valeurs `rounded.*` du frontmatter (4 / 6 / 8 / 10 / 999 px).
 
 ### Badges de statut (admin, exception documentée)
 Les badges de statut (RSVP, prestataires) forment une mini-palette qualitative à part, distincte du chrome bleu/bordeaux ci-dessus — un indicateur de statut a besoin de plus de deux teintes pour rester lisible, et ce n'est pas une dérive : **ambre** (`#fef3c7`/`#92400e`) = en attente, **vert** (`#dcfce7`/`#15803d`) = confirmé, **rouge** (`#fee2e2`/`#b91c1c`) = refusé/rejeté, **jaune** (`#fef9c3`/`#854d0e`) = préféré, **violet** (`#ede9fe`/`#6d28d9`) = candidat. Toute nouvelle couleur de badge doit rester dans ce registre qualitatif (fond pastel + texte foncé de la même teinte) et ne jamais migrer vers le chrome de navigation/boutons.
