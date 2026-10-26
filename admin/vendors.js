@@ -106,6 +106,7 @@ export async function renderVendorsTab() {
         `<button class="filter-pill ${currentFilter === id ? 'filter-pill-active' : ''}" data-filter="${id}">${label}</button>`
       ).join('')}
     </div>
+    <p class="table-count">${filtered.length} prestation(s)${vendors.length !== filtered.length ? ` sur ${vendors.length}` : ''}</p>
     <div class="table-scroll"><table class="admin-table">
       <thead>
         <tr>

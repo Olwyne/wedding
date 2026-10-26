@@ -95,16 +95,19 @@ function renderGuestFilters(events, allGuests) {
   return `
     <div class="guest-filters">
       <div class="filter-group">
+        <span class="filter-group-label">Événement</span>
         <button class="filter-pill ${eventFilters.size === 0 ? 'filter-pill-active' : ''}" data-event-filter="__all__">Tous les événements</button>
         ${events.map(e => `<button class="filter-pill ${eventFilters.has(e.id) ? 'filter-pill-active' : ''}" data-event-filter="${escapeHtml(e.id)}">${escapeHtml(e.title_fr)}</button>`).join('')}
       </div>
       <div class="filter-group">
+        <span class="filter-group-label">Côté</span>
         ${SIDE_FILTERS.map(([id, label]) => `<button class="filter-pill ${sideFilter === id ? 'filter-pill-active' : ''}" data-side-filter="${id}">${label}</button>`).join('')}
       </div>
       <div class="filter-group">
+        <span class="filter-group-label">Statut</span>
         ${STATUS_FILTERS.map(([id, label]) => `<button class="filter-pill ${statusFilter === id ? 'filter-pill-active' : ''}" data-status-filter="${id}">${label}</button>`).join('')}
-        ${bulkBtn}
       </div>
+      ${bulkBtn ? `<div class="filter-bar-actions">${bulkBtn}</div>` : ''}
     </div>`;
 }
 
@@ -136,7 +139,7 @@ function renderActionsCell(g, editable) {
       ];
   return `
     <div class="action-menu-wrap">
-      <button type="button" class="btn-icon action-menu-btn" data-id="${escapeHtml(g.id)}" title="Actions" aria-label="Actions">⋮</button>
+      <button type="button" class="btn-icon action-menu-btn" data-id="${escapeHtml(g.id)}" aria-label="Actions"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" aria-hidden="true"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg></button>
       <div class="action-menu" hidden>
         ${items.map(it => `<button type="button" class="action-menu-item ${it.danger ? 'action-menu-item-danger' : ''}" data-action="${it.action}" data-id="${escapeHtml(g.id)}">${it.label}</button>`).join('')}
       </div>
@@ -277,6 +280,7 @@ export async function renderGuestsTab() {
 
   panel.innerHTML = `
     ${renderGuestFilters(events, guests)}
+    <p class="table-count">${filteredGuests.length} invité(s)${guests.length !== filteredGuests.length ? ` sur ${guests.length}` : ''}</p>
     <div class="table-scroll"><table class="admin-table">
       <thead>
         <tr>
