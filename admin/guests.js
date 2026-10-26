@@ -13,11 +13,13 @@ import { mountPanel } from './ui-panel.js';
 
 const guestsCol = collection(db, 'guests');
 
-let statusFilter = 'all';
-let sideFilter = 'all';
+let statusFilters = new Set();
+let sideFilters = new Set();
 let eventFilters = new Set();
+let sortCol = 'name';
+let sortDir = 'asc';
 
-const STATUS_FILTERS = [['all', 'Tous'], ['confirmed', 'Confirmés'], ['pending', 'En attente'], ['declined', 'Refusés']];
+const STATUS_OPTIONS = [['confirmed', 'Confirmé'], ['pending', 'En attente'], ['declined', 'Décliné']];
 
 export const SIDE_LABELS = { marie: 'Marié', mariee: 'Mariée', deux: 'Les deux' };
 export const SIDE_BADGE  = { marie: 'badge-marie', mariee: 'badge-mariee', deux: 'badge-deux' };
@@ -66,8 +68,8 @@ function guestStatus(g) {
 }
 
 function passesFilters(g) {
-  if (statusFilter !== 'all' && guestStatus(g) !== statusFilter) return false;
-  if (sideFilter !== 'all' && (g.side || 'deux') !== sideFilter) return false;
+  if (statusFilters.size > 0 && !statusFilters.has(guestStatus(g))) return false;
+  if (sideFilters.size > 0 && !sideFilters.has(g.side || 'deux')) return false;
   if (eventFilters.size > 0) {
     const assigned = g.assignedEvents || [];
     if (!assigned.some(id => eventFilters.has(id))) return false;
@@ -86,27 +88,65 @@ function renderEmailBulkButton(type, allGuests) {
   return `<button class="btn-secondary" id="bulk-email-btn" data-email-type="${type}">${mailIcon}${label}</button>`;
 }
 
-const SIDE_FILTERS = [['all', 'Tous les côtés'], ['marie', 'Marié'], ['mariee', 'Mariée'], ['deux', 'Les deux']];
+const SIDE_OPTIONS = [['marie', 'Marié'], ['mariee', 'Mariée'], ['deux', 'Les deux']];
 
-function renderGuestFilters(events, allGuests) {
-  let bulkBtn = '';
-  if (statusFilter === 'pending') bulkBtn = renderEmailBulkButton('relance', allGuests);
-  else if (statusFilter === 'confirmed') bulkBtn = renderEmailBulkButton('rappel', allGuests);
+const CHEVRON_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="filter-dropdown-chevron"><path d="m6 9 6 6 6-6"/></svg>`;
+const SORT_BOTH = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><path d="M5 10l3 3 3-3" opacity=".4"/><path d="M5 6l3-3 3 3" opacity=".4"/></svg>`;
+const SORT_UP   = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><path d="M5 10l3 3 3-3" opacity=".25"/><path d="M5 6l3-3 3 3"/></svg>`;
+const SORT_DOWN = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><path d="M5 10l3 3 3-3"/><path d="M5 6l3-3 3 3" opacity=".25"/></svg>`;
+
+function sortIcon(col) {
+  if (sortCol !== col) return `<span class="sort-icon">${SORT_BOTH}</span>`;
+  return `<span class="sort-icon sort-active">${sortDir === 'asc' ? SORT_UP : SORT_DOWN}</span>`;
+}
+
+const SORT_FNS = {
+  name:     g => (g.name || '').toLowerCase(),
+  side:     g => g.side || 'deux',
+  status:   g => guestStatus(g),
+  adults:   g => g.rsvp?.adults ?? -1,
+  children: g => g.rsvp?.children ?? -1,
+};
+
+function sortGuests(list) {
+  const fn = SORT_FNS[sortCol] || SORT_FNS.name;
+  return [...list].sort((a, b) => {
+    const va = fn(a), vb = fn(b);
+    const cmp = typeof va === 'string' ? va.localeCompare(vb, 'fr', { sensitivity: 'base' }) : va - vb;
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+}
+
+function renderDropdown(id, label, options, selectedSet) {
+  const hasActive = selectedSet.size > 0;
+  const summary = hasActive
+    ? (selectedSet.size === 1 ? (options.find(([v]) => selectedSet.has(v))?.[1] ?? '') : `${selectedSet.size} sélectionnés`)
+    : 'Tous';
   return `
-    <div class="guest-filters">
-      <div class="filter-group">
-        <span class="filter-group-label">Événement</span>
-        <button class="filter-pill ${eventFilters.size === 0 ? 'filter-pill-active' : ''}" data-event-filter="__all__">Tous les événements</button>
-        ${events.map(e => `<button class="filter-pill ${eventFilters.has(e.id) ? 'filter-pill-active' : ''}" data-event-filter="${escapeHtml(e.id)}">${escapeHtml(e.title_fr)}</button>`).join('')}
+    <div class="filter-dropdown" data-dropdown="${id}">
+      <button type="button" class="filter-dropdown-trigger${hasActive ? ' has-active' : ''}">
+        ${label} · ${summary} ${CHEVRON_SVG}
+      </button>
+      <div class="filter-dropdown-panel" hidden>
+        <label class="filter-dropdown-item">
+          <input type="checkbox" class="filter-dropdown-check" data-dropdown="${id}" value="__all__"${selectedSet.size === 0 ? ' checked' : ''}> Tous
+        </label>
+        ${options.map(([val, lbl]) => `<label class="filter-dropdown-item">
+          <input type="checkbox" class="filter-dropdown-check" data-dropdown="${id}" value="${val}"${selectedSet.has(val) ? ' checked' : ''}> ${escapeHtml(lbl)}
+        </label>`).join('')}
       </div>
-      <div class="filter-group">
-        <span class="filter-group-label">Côté</span>
-        ${SIDE_FILTERS.map(([id, label]) => `<button class="filter-pill ${sideFilter === id ? 'filter-pill-active' : ''}" data-side-filter="${id}">${label}</button>`).join('')}
-      </div>
-      <div class="filter-group">
-        <span class="filter-group-label">Statut</span>
-        ${STATUS_FILTERS.map(([id, label]) => `<button class="filter-pill ${statusFilter === id ? 'filter-pill-active' : ''}" data-status-filter="${id}">${label}</button>`).join('')}
-      </div>
+    </div>`;
+}
+
+function renderFilterBar(events, allGuests) {
+  let bulkBtn = '';
+  if (statusFilters.size === 1 && statusFilters.has('pending')) bulkBtn = renderEmailBulkButton('relance', allGuests);
+  else if (statusFilters.size === 1 && statusFilters.has('confirmed')) bulkBtn = renderEmailBulkButton('rappel', allGuests);
+  return `
+    <div class="filter-bar">
+      ${renderDropdown('events', 'Événement', events.map(e => [e.id, e.title_fr]), eventFilters)}
+      ${renderDropdown('side', 'Côté', SIDE_OPTIONS, sideFilters)}
+      ${renderDropdown('status', 'Statut', STATUS_OPTIONS, statusFilters)}
       ${bulkBtn ? `<div class="filter-bar-actions">${bulkBtn}</div>` : ''}
     </div>`;
 }
@@ -116,6 +156,10 @@ function ensureMenuCloseListener() {
   if (menuCloseListenerAttached) return;
   document.addEventListener('click', () => {
     document.querySelectorAll('.action-menu:not([hidden])').forEach(m => { m.hidden = true; });
+    document.querySelectorAll('.filter-dropdown.is-open').forEach(dd => {
+      dd.querySelector('.filter-dropdown-panel').hidden = true;
+      dd.classList.remove('is-open');
+    });
   });
   menuCloseListenerAttached = true;
 }
@@ -276,16 +320,21 @@ export async function renderGuestsTab() {
   const eventById = Object.fromEntries(events.map(e => [e.id, e]));
   const validEventIds = new Set(events.map(e => e.id));
   Array.from(eventFilters).forEach(id => { if (!validEventIds.has(id)) eventFilters.delete(id); });
-  const filteredGuests = guests.filter(passesFilters).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'fr', { sensitivity: 'base' }));
+  const filteredGuests = sortGuests(guests.filter(passesFilters));
 
   panel.innerHTML = `
-    ${renderGuestFilters(events, guests)}
+    ${renderFilterBar(events, guests)}
     <p class="table-count">${filteredGuests.length} invité(s)${guests.length !== filteredGuests.length ? ` sur ${guests.length}` : ''}</p>
     <div class="table-scroll"><table class="admin-table">
       <thead>
         <tr>
-          <th>Nom</th><th>Côté</th><th>Max</th><th>RSVP</th>
-          <th>Adultes</th><th>Enfants</th><th>Lien</th><th>Actions</th>
+          <th class="sortable" data-sort="name">Nom ${sortIcon('name')}</th>
+          <th class="sortable" data-sort="side">Côté ${sortIcon('side')}</th>
+          <th>Max</th>
+          <th class="sortable" data-sort="status">RSVP ${sortIcon('status')}</th>
+          <th class="sortable" data-sort="adults">Adultes ${sortIcon('adults')}</th>
+          <th class="sortable" data-sort="children">Enfants ${sortIcon('children')}</th>
+          <th>Lien</th><th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -295,21 +344,37 @@ export async function renderGuestsTab() {
       </tbody>
     </table></div>`;
 
-  panel.querySelectorAll('[data-event-filter]').forEach(btn =>
-    btn.addEventListener('click', () => {
-      const val = btn.dataset.eventFilter;
-      if (val === '__all__') eventFilters.clear();
-      else if (eventFilters.has(val)) eventFilters.delete(val);
-      else eventFilters.add(val);
+  panel.querySelectorAll('.filter-dropdown-trigger').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const dd = btn.closest('.filter-dropdown');
+      const ddPanel = dd.querySelector('.filter-dropdown-panel');
+      const wasOpen = !ddPanel.hidden;
+      document.querySelectorAll('.filter-dropdown.is-open').forEach(d => {
+        d.querySelector('.filter-dropdown-panel').hidden = true;
+        d.classList.remove('is-open');
+      });
+      if (!wasOpen) { ddPanel.hidden = false; dd.classList.add('is-open'); }
+    });
+  });
+  panel.querySelectorAll('.filter-dropdown-check').forEach(chk => {
+    chk.addEventListener('change', () => {
+      const ddId = chk.dataset.dropdown;
+      const set = ddId === 'events' ? eventFilters : ddId === 'side' ? sideFilters : statusFilters;
+      if (chk.value === '__all__') set.clear();
+      else if (chk.checked) set.add(chk.value);
+      else set.delete(chk.value);
       renderGuestsTab();
-    })
-  );
-  panel.querySelectorAll('[data-side-filter]').forEach(btn =>
-    btn.addEventListener('click', () => { sideFilter = btn.dataset.sideFilter; renderGuestsTab(); })
-  );
-  panel.querySelectorAll('[data-status-filter]').forEach(btn =>
-    btn.addEventListener('click', () => { statusFilter = btn.dataset.statusFilter; renderGuestsTab(); })
-  );
+    });
+  });
+  panel.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.sort;
+      if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortCol = col; sortDir = 'asc'; }
+      renderGuestsTab();
+    });
+  });
 
   ensureMenuCloseListener();
   panel.querySelectorAll('.action-menu-btn').forEach(btn => {

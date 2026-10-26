@@ -10,9 +10,62 @@ import { mountPanel } from './ui-panel.js';
 
 const vendorsCol = collection(db, 'vendors');
 
-let currentFilter = 'all';
+let statusFilters = new Set();
+let vendorSortCol = 'category';
+let vendorSortDir = 'asc';
+let vendorCloseListenerAttached = false;
 
-const FILTERS = [['all', 'Tous'], ['candidat', 'Candidat'], ['contacted', 'Contacté'], ['booked', 'Réservé'], ['paid', 'Payé'], ['rejected', 'Rejeté']];
+const STATUS_OPTIONS = [['candidat', 'Candidat'], ['contacted', 'Contacté'], ['booked', 'Réservé'], ['paid', 'Payé'], ['rejected', 'Rejeté']];
+
+const CHEVRON_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" class="filter-dropdown-chevron"><path d="m6 9 6 6 6-6"/></svg>`;
+const SORT_BOTH = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><path d="M5 10l3 3 3-3" opacity=".4"/><path d="M5 6l3-3 3 3" opacity=".4"/></svg>`;
+const SORT_UP   = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><path d="M5 10l3 3 3-3" opacity=".25"/><path d="M5 6l3-3 3 3"/></svg>`;
+const SORT_DOWN = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><path d="M5 10l3 3 3-3"/><path d="M5 6l3-3 3 3" opacity=".25"/></svg>`;
+
+function sortIconV(col) {
+  if (vendorSortCol !== col) return `<span class="sort-icon">${SORT_BOTH}</span>`;
+  return `<span class="sort-icon sort-active">${vendorSortDir === 'asc' ? SORT_UP : SORT_DOWN}</span>`;
+}
+
+const VENDOR_SORT_FNS = {
+  category:  v => (v.category || '').toLowerCase(),
+  name:      v => (v.name || '').toLowerCase(),
+  status:    v => v.status || 'contacted',
+  total:     v => Number(v.total) || 0,
+  paid:      v => paidAmount(v),
+  remaining: v => (Number(v.total) || 0) - paidAmount(v),
+  dueDate:   v => v.dueDate || '',
+};
+
+function sortVendors(list) {
+  const fn = VENDOR_SORT_FNS[vendorSortCol] || VENDOR_SORT_FNS.category;
+  return [...list].sort((a, b) => {
+    const va = fn(a), vb = fn(b);
+    const cmp = typeof va === 'string' ? va.localeCompare(vb, 'fr', { sensitivity: 'base' }) : va - vb;
+    return vendorSortDir === 'asc' ? cmp : -cmp;
+  });
+}
+
+function renderVendorDropdown() {
+  const hasActive = statusFilters.size > 0;
+  const summary = hasActive
+    ? (statusFilters.size === 1 ? (STATUS_OPTIONS.find(([v]) => statusFilters.has(v))?.[1] ?? '') : `${statusFilters.size} sélectionnés`)
+    : 'Tous';
+  return `
+    <div class="filter-dropdown" data-dropdown="vstatus">
+      <button type="button" class="filter-dropdown-trigger${hasActive ? ' has-active' : ''}">
+        Statut · ${summary} ${CHEVRON_SVG}
+      </button>
+      <div class="filter-dropdown-panel" hidden>
+        <label class="filter-dropdown-item">
+          <input type="checkbox" class="filter-dropdown-check" data-dropdown="vstatus" value="__all__"${statusFilters.size === 0 ? ' checked' : ''}> Tous
+        </label>
+        ${STATUS_OPTIONS.map(([val, lbl]) => `<label class="filter-dropdown-item">
+          <input type="checkbox" class="filter-dropdown-check" data-dropdown="vstatus" value="${val}"${statusFilters.has(val) ? ' checked' : ''}> ${lbl}
+        </label>`).join('')}
+      </div>
+    </div>`
+}
 
 async function markPreferred(vendorId, category, vendors) {
   const others = vendors.filter(v => v.id !== vendorId && v.category === category && v.preferred);
@@ -98,20 +151,23 @@ export async function renderVendorsTab() {
     return;
   }
 
-  const filtered = currentFilter === 'all' ? vendors : vendors.filter(v => (v.status || 'contacted') === currentFilter);
+  const filtered = sortVendors(statusFilters.size === 0 ? vendors : vendors.filter(v => statusFilters.has(v.status || 'contacted')));
 
   panel.innerHTML = `
-    <div class="vendor-filters">
-      ${FILTERS.map(([id, label]) =>
-        `<button class="filter-pill ${currentFilter === id ? 'filter-pill-active' : ''}" data-filter="${id}">${label}</button>`
-      ).join('')}
-    </div>
+    <div class="filter-bar">${renderVendorDropdown()}</div>
     <p class="table-count">${filtered.length} prestation(s)${vendors.length !== filtered.length ? ` sur ${vendors.length}` : ''}</p>
     <div class="table-scroll"><table class="admin-table">
       <thead>
         <tr>
-          <th>Catégorie</th><th>Nom</th><th>Statut</th><th>Préféré</th><th>Total</th>
-          <th>Versé</th><th>Reste</th><th>Échéance</th><th>Actions</th>
+          <th class="sortable" data-sort="category">Catégorie ${sortIconV('category')}</th>
+          <th class="sortable" data-sort="name">Nom ${sortIconV('name')}</th>
+          <th class="sortable" data-sort="status">Statut ${sortIconV('status')}</th>
+          <th>Préféré</th>
+          <th class="sortable" data-sort="total">Total ${sortIconV('total')}</th>
+          <th class="sortable" data-sort="paid">Versé ${sortIconV('paid')}</th>
+          <th class="sortable" data-sort="remaining">Reste ${sortIconV('remaining')}</th>
+          <th class="sortable" data-sort="dueDate">Échéance ${sortIconV('dueDate')}</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -121,9 +177,44 @@ export async function renderVendorsTab() {
       </tbody>
     </table></div>`;
 
-  panel.querySelectorAll('[data-filter]').forEach(btn =>
-    btn.addEventListener('click', () => { currentFilter = btn.dataset.filter; renderVendorsTab(); })
-  );
+  panel.querySelectorAll('.filter-dropdown-trigger').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const dd = btn.closest('.filter-dropdown');
+      const ddPanel = dd.querySelector('.filter-dropdown-panel');
+      const wasOpen = !ddPanel.hidden;
+      document.querySelectorAll('.filter-dropdown.is-open').forEach(d => {
+        d.querySelector('.filter-dropdown-panel').hidden = true;
+        d.classList.remove('is-open');
+      });
+      if (!wasOpen) { ddPanel.hidden = false; dd.classList.add('is-open'); }
+    });
+  });
+  panel.querySelectorAll('.filter-dropdown-check').forEach(chk => {
+    chk.addEventListener('change', () => {
+      if (chk.value === '__all__') statusFilters.clear();
+      else if (chk.checked) statusFilters.add(chk.value);
+      else statusFilters.delete(chk.value);
+      renderVendorsTab();
+    });
+  });
+  panel.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.sort;
+      if (vendorSortCol === col) vendorSortDir = vendorSortDir === 'asc' ? 'desc' : 'asc';
+      else { vendorSortCol = col; vendorSortDir = 'asc'; }
+      renderVendorsTab();
+    });
+  });
+  if (!vendorCloseListenerAttached) {
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.filter-dropdown.is-open').forEach(dd => {
+        dd.querySelector('.filter-dropdown-panel').hidden = true;
+        dd.classList.remove('is-open');
+      });
+    });
+    vendorCloseListenerAttached = true;
+  }
 
   if (editable) {
     document.getElementById('add-vendor-btn').addEventListener('click', () => openVendorPanel(null, vendors));

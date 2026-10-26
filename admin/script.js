@@ -2,9 +2,9 @@
 import { initAuth } from './auth.js?v=1';
 import { renderDashboardTab } from './dashboard.js?v=7';
 import { renderBlocksTab } from './blocks.js?v=11';
-import { renderGuestsTab } from './guests.js?v=14';
+import { renderGuestsTab } from './guests.js?v=15';
 import { renderTablesTab } from './tables.js?v=5';
-import { renderVendorsTab } from './vendors.js?v=11';
+import { renderVendorsTab } from './vendors.js?v=12';
 import { renderBudgetTab } from './budget.js?v=10';
 import { renderEventsTab } from './events.js?v=7';
 import { renderDayOfTab } from './dayof.js?v=8';
