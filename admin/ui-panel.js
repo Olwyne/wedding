@@ -1,8 +1,4 @@
-// admin/ui-panel.js
-// Shared mount/dismiss behavior for the side panels used across the backoffice
-// (guests, blocks, events, vendors, users, etc.): dialog semantics, a focus
-// trap, Escape-to-close, and focus restored to whatever opened the panel.
-// Mirrors the keyboard contract already implemented in ui-confirm.js.
+// Shared mount/dismiss for backoffice side panels: dialog semantics, focus trap, Escape, focus restore.
 
 const FOCUSABLE_SELECTOR = [
   'a[href]', 'button:not([disabled])', 'textarea:not([disabled])',
@@ -16,7 +12,7 @@ let labelIdSeq = 0;
  * panelEl, moves focus in, traps Tab, and closes on Escape.
  *
  * `closeFn` is the panel's own close handler (the one already wired to the
- * close button, cancel button, and overlay click) — pass the version that
+ * close button, cancel button, and overlay click); pass the version that
  * already applies any in-flight-save guard the panel needs.
  *
  * Returns `teardown()`, which the panel's close handler must call before (or

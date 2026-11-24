@@ -1,4 +1,3 @@
-// admin/email.js
 import { auth } from '../firebase-init.js';
 import { mountPanel } from './ui-panel.js';
 
@@ -9,9 +8,9 @@ const TYPE_LABELS = {
 };
 
 const TYPE_SUBJECTS = {
-  relance: 'Sophie & Sob – Nous attendons votre réponse 💌',
-  rappel: 'Sophie & Sob – On se retrouve bientôt ! 🎉',
-  account: 'Accès admin – Site de mariage Sophie & Sob',
+  relance: 'Sophie & Ruiyuan : nous attendons votre réponse',
+  rappel: 'Sophie & Ruiyuan : on se retrouve bientôt !',
+  account: 'Accès admin : site de mariage Sophie & Ruiyuan',
 };
 
 function escapeHtml(str) {

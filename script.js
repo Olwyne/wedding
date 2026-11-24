@@ -26,7 +26,7 @@ function sendRsvpEmails(rsvp) {
         const title = lang === 'zh' ? (e.title_zh || e.title_fr) : (e.title_fr || e.title_zh);
         const time  = lang === 'zh' ? (e.time_zh  || e.time_fr)  : (e.time_fr  || e.time_zh);
         const place = lang === 'zh' ? (e.place_zh || e.place_fr) : (e.place_fr || e.place_zh);
-        return [title, time, place].filter(Boolean).join(' – ');
+        return [title, time, place].filter(Boolean).join(' · ');
       }).join('\n');
     }
     programmeNote = lang === 'zh'
@@ -74,7 +74,7 @@ function escapeHtml(str) {
       fSectionWho: 'Qui vient', fSectionWhen: 'Quand', fSectionDetails: 'Détails',
       fExtraAdult: 'Adulte', fChildName: 'Enfant',
       fDiet: 'Allergies / régime', fDietPh: 'Ex : végétarien, sans gluten…', fMsg: 'Un petit mot', fMsgPh: 'Un message pour les mariés…',
-      childrenTolerated: "Idéalement, nous souhaitons que cette soirée soit réservée aux adultes. Nous vous serions très reconnaissants de prévoir une garde pour vos enfants — vous pourrez ainsi profiter pleinement de ce moment avec nous sans vous en préoccuper.\n\nSi toutefois vous ne pouvez pas faire garder vos enfants, aucun souci : merci simplement de bien renseigner le formulaire en indiquant le nombre d'enfants présents, afin que nous puissions nous organiser au mieux.",
+      childrenTolerated: "Idéalement, nous souhaitons que cette soirée soit réservée aux adultes. Nous vous serions très reconnaissants de prévoir une garde pour vos enfants, vous pourrez ainsi profiter pleinement de ce moment avec nous sans vous en préoccuper.\n\nSi toutefois vous ne pouvez pas faire garder vos enfants, aucun souci : merci simplement de bien renseigner le formulaire en indiquant le nombre d'enfants présents, afin que nous puissions nous organiser au mieux.",
       fSubmit: 'Envoyer ma réponse', fSubmitting: 'Envoi en cours, patientez', thankTitle: 'Merci du fond du cœur',
       thankTitleDecline: "C'est noté",
 thankAddresses: 'Merci ! Les adresses des lieux sont maintenant visibles dans Programme et Infos pratiques.',
@@ -84,7 +84,7 @@ thankAddresses: 'Merci ! Les adresses des lieux sont maintenant visibles dans Pr
       confirmNone: "C'est noté. Nous avons bien reçu votre réponse.",
       confirmDecline: 'Nous sommes tristes de ne pas vous voir, merci de nous avoir prévenus.',
       fPhotos: 'Partagez vos photos & vidéos',
-      fPhotosHint: 'Optionnel · Photos et vidéos de vos moments partagés avec nous — ils seront projetés lors du mariage. Max 30 fichiers.',
+      fPhotosHint: 'Optionnel · Photos et vidéos de vos moments partagés avec nous : ils seront projetés lors du mariage. Max 30 fichiers.',
       fPhotosAdd: '+ Ajouter des fichiers',
       fPhotosFallback: "Si l'envoi ne fonctionne pas ou vous avez beaucoup de fichiers à nous transmettre, envoyez-les à sophbyr@gmail.com ou partagez un lien dans le message.",
       fPhotosUploading: 'Envoi',
@@ -92,8 +92,8 @@ thankAddresses: 'Merci ! Les adresses des lieux sont maintenant visibles dans Pr
       fPhotosDone: 'Photos envoyées !',
       fPhotosError: "Certains fichiers n'ont pas pu être envoyés. Réessayez ou utilisez le lien ci-dessous.",
       submitError: "Erreur d'envoi, réessayez.",
-      submitErrorPhotos: "L'envoi de vos photos a échoué. Vérifiez votre connexion et réessayez — rien n'a encore été enregistré.",
-      submitErrorSave: "Vos photos ont bien été reçues, mais l'enregistrement de votre réponse a échoué. Réessayez — vos photos ne seront pas renvoyées.",
+      submitErrorPhotos: "L'envoi de vos photos a échoué. Vérifiez votre connexion et réessayez. Rien n'a encore été enregistré.",
+      submitErrorSave: "Vos photos ont bien été reçues, mais l'enregistrement de votre réponse a échoué. Réessayez. Vos photos ne seront pas renvoyées.",
       presenceRequiredError: 'Merci de préciser si vous serez présent·e.',
       eventsRequiredError: 'Sélectionnez au moins un événement.',
       addrHidden: 'Les lieux vous seront communiqués par mail ultérieurement.',
@@ -109,7 +109,7 @@ thankAddresses: 'Merci ! Les adresses des lieux sont maintenant visibles dans Pr
       fSectionWho: '出席人数', fSectionWhen: '时间', fSectionDetails: '详情',
       fExtraAdult: '成人', fChildName: '儿童',
       fDiet: '过敏 / 饮食', fDietPh: '如：素食、无麸质…', fMsg: '留言', fMsgPh: '给新人的祝福…',
-      childrenTolerated: '理想情况下，我们希望这个夜晚能成为一个专属成人的时刻。若您能为孩子们安排看护，我们将不胜感激——这样您便能全心全意地与我们共享这美好时光。\n\n若实在无法安排，完全没问题：请在RSVP表单中填写出席儿童的人数，以便我们提前做好安排。',
+      childrenTolerated: '理想情况下，我们希望这个夜晚能成为一个专属成人的时刻。若您能为孩子们安排看护，我们将不胜感激，这样您便能全心全意地与我们共享这美好时光。\n\n若实在无法安排，完全没问题：请在RSVP表单中填写出席儿童的人数，以便我们提前做好安排。',
       fSubmit: '提交回复', fSubmitting: '文件上传中，请稍候', thankTitle: '衷心感谢',
       thankTitleDecline: '已收到',
 thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“实用信息”中。',
@@ -119,7 +119,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       confirmNone: '已收到您的回复，谢谢！',
       confirmDecline: '很遗憾不能与您相聚，感谢您的告知。',
       fPhotos: '分享您的照片与视频',
-      fPhotosHint: '可选 · 与我们共度的美好时光的照片或视频——将在婚礼上展映。最多30个文件。',
+      fPhotosHint: '可选 · 与我们共度的美好时光的照片或视频，将在婚礼上展映。最多30个文件。',
       fPhotosAdd: '+ 添加文件',
       fPhotosFallback: '如果上传失败，或您有大量文件需要传送，请发送至 sophbyr@gmail.com 或在留言中附上分享链接。',
       fPhotosUploading: '上传中',
@@ -127,8 +127,8 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       fPhotosDone: '照片已发送！',
       fPhotosError: '部分文件上传失败，请重试或使用下方链接。',
       submitError: '发送失败，请重试。',
-      submitErrorPhotos: '照片上传失败，请检查网络连接后重试 —— 您的回复尚未保存。',
-      submitErrorSave: '您的照片已收到，但回复保存失败，请重试 —— 照片无需重新上传。',
+      submitErrorPhotos: '照片上传失败，请检查网络连接后重试，您的回复尚未保存。',
+      submitErrorSave: '您的照片已收到，但回复保存失败，请重试，照片无需重新上传。',
       presenceRequiredError: '请告知我们您是否会出席。',
       eventsRequiredError: '请至少选择一个活动。',
       addrHidden: '地点详情将通过邮件另行告知。',
@@ -253,7 +253,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
     }
   }
 
-  // ---- Envelope ----
+  // Envelope
   const envOverlay = document.getElementById('envelope-overlay');
   function openEnvelope() {
     if (!state.dataReady || state.env !== 'sealed') return;
@@ -294,10 +294,19 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
     document.body.style.overflow = state.env !== 'done' ? 'hidden' : '';
   }
 
-  // ---- Chrome text (langBtn + nav) ----
+  // Chrome text (langBtn + nav)
   function applyText() {
     const L = T[state.lang];
-    document.getElementById('lang-btn').textContent = L.langBtn;
+    const langBtn = document.getElementById('lang-btn');
+    langBtn.textContent = L.langBtn;
+    langBtn.lang = state.lang === 'zh' ? 'fr' : 'zh';
+  }
+
+  // Blocks whose builder renders nothing must not get a nav link (dead anchor)
+  function isEmptyBlock(b) {
+    if (b.type === 'gallery') return !(b.photos || []).some(p => typeof p === 'string' ? p : p && p.url);
+    if (b.type === 'infos') return !canSeeAddresses();
+    return false;
   }
 
   function renderNav() {
@@ -307,7 +316,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
     navlinks.innerHTML = '';
     mobileLinks.innerHTML = '';
     (cachedBlocks || [])
-      .filter(b => b.audience !== 'public' && TYPE_TO_ANCHOR[b.type])
+      .filter(b => b.audience !== 'public' && TYPE_TO_ANCHOR[b.type] && !isEmptyBlock(b))
       .forEach(b => {
         const label = bf(b, 'kicker', lang) || bf(b, 'title', lang);
         if (!label) return;
@@ -322,18 +331,26 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       });
   }
 
+  const burgerBtn = document.getElementById('burger-btn');
   function closeMenu() {
     state.menuOpen = false;
     document.getElementById('mobile-menu').hidden = true;
+    burgerBtn.setAttribute('aria-expanded', 'false');
+    burgerBtn.focus();
   }
-  document.getElementById('burger-btn').addEventListener('click', () => {
+  burgerBtn.setAttribute('aria-controls', 'mobile-menu');
+  burgerBtn.setAttribute('aria-expanded', 'false');
+  burgerBtn.addEventListener('click', () => {
     state.menuOpen = true;
     document.getElementById('mobile-menu').hidden = false;
+    burgerBtn.setAttribute('aria-expanded', 'true');
+    document.getElementById('mobile-menu-close').focus();
   });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.menuOpen) closeMenu(); });
   document.getElementById('mobile-menu-close').addEventListener('click', closeMenu);
   document.getElementById('nav-brand-link').addEventListener('click', closeMenu);
 
-  // ---- Countdown ----
+  // Countdown
   function tick() {
     let diff = TARGET - Date.now();
     if (diff <= 0) {
@@ -374,14 +391,14 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       </div>`).join('');
   }
 
-  // ---- Access view ----
+  // Access view
   function renderAccessView() {
     const isPublic = state.access === 'public';
     document.getElementById('teaser').hidden = !isPublic;
     document.getElementById('site').hidden = isPublic;
   }
 
-  // ---- Language toggle ----
+  // Language toggle
   function toggleLang() {
     state.lang = state.lang === 'fr' ? 'zh' : 'fr';
     const params = new URLSearchParams(window.location.search);
@@ -393,7 +410,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
   }
   document.getElementById('lang-btn').addEventListener('click', toggleLang);
 
-  // ---- RSVP helpers (called from buildRsvpBlock) ----
+  // RSVP helpers (called from buildRsvpBlock)
   function renderRsvpEventsInto(wrap) {
     wrap.innerHTML = '';
     visibleEvents().forEach(ev => {
@@ -454,8 +471,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
     if (deadlineEl) deadlineEl.hidden = !deadlinePassed;
   }
 
-  // ==================== Block type builders ====================
-
+  // Block type builders
   function buildBlockItem(block, lang) {
     const item = document.createElement('div');
     item.className = 'block-item';
@@ -557,11 +573,11 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
           <div class="cal monogram-xi" aria-hidden="true">囍</div>
         </div>
         <div class="kicker hero-kicker">${escapeHtml(bf(block, 'kicker', lang))}</div>
-        <div class="hero-names">
+        <h1 class="hero-names">
           ${lang === 'zh'
-            ? `<h1 class="hero-name cal">胡瑞原 <span class="hero-amp">&amp;</span> 苏菲·博耶</h1>`
-            : `<h1 class="hero-name">Ruiyuan Hu</h1><span class="cal hero-amp">&amp;</span><h1 class="hero-name">Sophie Boyer</h1>`}
-        </div>
+            ? `<span class="hero-name cal">胡瑞原 <span class="hero-amp">&amp;</span> 苏菲·博耶</span>`
+            : `<span class="hero-name">Ruiyuan Hu</span><span class="cal hero-amp">&amp;</span><span class="hero-name">Sophie Boyer</span>`}
+        </h1>
         <div class="hero-zh${lang === 'zh' ? '' : ' cal'}">${lang === 'zh' ? 'Ruiyuan Hu <span class="amp-italic">&amp;</span> Sophie Boyer' : '胡瑞原 <span class="amp-italic">&amp;</span> 苏菲·博耶'}</div>
         <div class="hero-date-row">
           <span class="rule"></span>
@@ -853,7 +869,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
         </div>
 
         <div id="rsvp-deadline-passed" class="rsvp-deadline-passed" hidden>
-          <div class="cal rsvp-thanks-glyph" aria-hidden="true">🕊️</div>
+          <div class="cal rsvp-thanks-glyph" aria-hidden="true">谢</div>
           <h3 class="rsvp-thanks-title">${escapeHtml(L.deadlineTitle)}</h3>
           <div class="rsvp-confirm-line">${L.deadlineMsg.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}</div>
         </div>
@@ -1096,25 +1112,16 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
       </div>
       <div class="gallery-grid" id="gallery-grid"></div>`;
     const galleryGrid = section.querySelector('#gallery-grid');
-    const photos = block.photos || [];
-    if (photos.length) {
-      photos.forEach((p, i) => {
-        const url = typeof p === 'string' ? p : p.url;
-        const alt = (typeof p === 'object' && p.alt) ? p.alt : `Photo ${i + 1}`;
-        if (!url) return;
-        const slot = document.createElement('div');
-        slot.className = 'gallery-slot';
-        slot.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" loading="lazy">`;
-        galleryGrid.appendChild(slot);
-      });
-    } else {
-      for (let i = 0; i < 6; i++) {
-        const slot = document.createElement('div');
-        slot.className = 'gallery-slot';
-        slot.setAttribute('aria-label', `Photo ${i + 1}`);
-        galleryGrid.appendChild(slot);
-      }
-    }
+    if (isEmptyBlock(block)) return null;
+    (block.photos || []).forEach((p, i) => {
+      const url = typeof p === 'string' ? p : p.url;
+      const alt = (typeof p === 'object' && p.alt) ? p.alt : `Photo ${i + 1}`;
+      if (!url) return;
+      const slot = document.createElement('div');
+      slot.className = 'gallery-slot';
+      slot.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" loading="lazy">`;
+      galleryGrid.appendChild(slot);
+    });
     return section;
   }
 
@@ -1139,7 +1146,7 @@ thankAddresses: '谢谢！活动地点的地址现已显示在“流程”和“
         </div>
         <div class="footer-rule"></div>
         <div class="footer-names">${escapeHtml(block.names || 'Ruiyuan Hu & Sophie Boyer').replace(/&amp;/g, '<span class="amp">&amp;</span>')}</div>
-        <div class="footer-date">${escapeHtml(block.dateLocation || '24 · 07 · 2027 — LOGNES')}</div>
+        <div class="footer-date">${escapeHtml(block.dateLocation || '24 · 07 · 2027 · LOGNES')}</div>
       </div>`;
     return footer;
   }

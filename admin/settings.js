@@ -1,4 +1,3 @@
-// admin/settings.js
 import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import { doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';

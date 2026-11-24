@@ -1,4 +1,3 @@
-// admin/richtext.js
 const ALLOWED_TAGS = new Set(['P', 'BR', 'B', 'STRONG', 'I', 'EM', 'UL', 'LI']);
 const DROP_ENTIRELY = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TITLE', 'TEXTAREA']);
 

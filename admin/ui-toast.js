@@ -1,7 +1,4 @@
-// admin/ui-toast.js
-// A plain-language, announced toast with an optional "Annuler" (undo) action.
-// Used to give destructive actions a short grace window instead of being
-// instant and irreversible.
+// Announced toast with optional undo: destructive actions get a grace window.
 
 let container = null;
 function getContainer() {

@@ -1,4 +1,3 @@
-// admin/vendors.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
@@ -173,7 +172,7 @@ export async function renderVendorsTab() {
       <tbody>
         ${filtered.length
           ? filtered.map(v => renderVendorRow(v, editable)).join('')
-          : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px">Aucune prestation.</td></tr>'}
+          : `<tr><td colspan="9" class="empty-cell"><strong>Aucune prestation.</strong>${editable ? '<br>Ajoutez le premier prestataire avec « + Ajouter une prestation » pour suivre devis et versements.' : ''}</td></tr>`}
       </tbody>
     </table></div>`;
 

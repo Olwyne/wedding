@@ -38,9 +38,9 @@ function escapeHtml(str) {
 }
 
 function buildSubject(type) {
-  if (type === 'relance') return 'Sophie & Ruiyuan – Nous attendons votre réponse 💌';
-  if (type === 'rappel') return 'Sophie & Ruiyuan – On se retrouve bientôt ! 🎉';
-  if (type === 'account') return 'Accès admin – Site de mariage Sophie & Ruiyuan';
+  if (type === 'relance') return 'Sophie & Ruiyuan : nous attendons votre réponse';
+  if (type === 'rappel') return 'Sophie & Ruiyuan : on se retrouve bientôt !';
+  if (type === 'account') return 'Accès admin : site de mariage Sophie & Ruiyuan';
   return '';
 }
 
@@ -93,7 +93,7 @@ function buildRelanceHtml({ name, token, origin, lang }) {
   const btnStyle = 'display:inline-block;background:#6E1A1A;color:#F4E9CE!important;text-decoration:none;padding:13px 30px;border-radius:6px;font-size:14px;letter-spacing:.05em;margin:20px 0;';
   return emailWrap(`
     <tr><td style="padding:34px 32px 10px;">
-      <h1 style="margin:0 0 16px;font-size:20px;color:#3a1010;font-weight:600;">Nous attendons votre réponse 💌</h1>
+      <h1 style="margin:0 0 16px;font-size:20px;color:#3a1010;font-weight:600;">Nous attendons votre réponse</h1>
       <p style="margin:0 0 8px;font-size:14px;color:#3a1010;line-height:1.7;">Bonjour ${escapeHtml(name)},</p>
       <p style="margin:0 0 20px;font-size:14px;color:#555;line-height:1.7;">Nous organisons notre mariage et nous n'avons pas encore reçu votre réponse. Nous serions ravis de vous compter parmi nous !</p>
       <p style="margin:0 0 4px;font-size:14px;color:#555;">Merci de confirmer votre présence :</p>
@@ -115,9 +115,9 @@ function buildRappelHtml({ name, events }) {
   const eventListZh = eventList;
   return emailWrap(`
     <tr><td style="padding:34px 32px 10px;">
-      <h1 style="margin:0 0 16px;font-size:20px;color:#3a1010;font-weight:600;">On se retrouve bientôt ! 🎉</h1>
+      <h1 style="margin:0 0 16px;font-size:20px;color:#3a1010;font-weight:600;">On se retrouve bientôt !</h1>
       <p style="margin:0 0 8px;font-size:14px;color:#3a1010;line-height:1.7;">Bonjour ${escapeHtml(name)},</p>
-      <p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.7;">Le grand jour approche ! Nous avons hâte de vous retrouver pour célébrer avec vous.</p>
+      <p style="margin:0 0 16px;font-size:14px;color:#555;line-height:1.7;">Le grand jour approche ! Nous avons hâte de célébrer ce jour avec vous.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
         <tr>
           <td style="padding:10px 0;border-bottom:1px solid #eee;color:#999;font-size:12px;letter-spacing:.05em;text-transform:uppercase;width:40%;">Date</td>
@@ -178,7 +178,7 @@ export default async function handler(req, res) {
     if (u.protocol !== 'https:') throw new Error('not https');
     origin = u.origin;
   } catch {
-    // leave origin empty — links will be relative (no invite link)
+    // leave origin empty; links will be relative (no invite link)
   }
   if (!type || !Array.isArray(recipients) || recipients.length === 0) {
     return res.status(400).json({ error: 'Missing type or recipients' });
