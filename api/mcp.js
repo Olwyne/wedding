@@ -1,10 +1,15 @@
 import crypto from 'crypto';
 import { admin } from './lib/auth.js';
 
-// Read-only remote MCP server (Streamable HTTP, stateless JSON-RPC).
+// Remote MCP server (Streamable HTTP, stateless JSON-RPC): read + create/update, no delete.
 // Auth: `Authorization: Bearer $MCP_API_KEY`. `admins` is deliberately not exposed (previewToken).
 const COLLECTIONS = ['guests', 'events', 'tables', 'vendors', 'tasks', 'runOfShow', 'timelineLanes', 'blocks'];
 const SINGLE_DOCS = { general: 'settings/general', budget: 'settings/budget' };
+
+const FIELDS_DOC = 'Sous-champs via dot-notation (ex. "rsvp.confirmedEvents.<eventId>": true). '
+  + 'guests: name, rsvp{status,adults,children,confirmedEvents{eventId:bool}}, maxAdults, maxChildren. '
+  + 'vendors (= prestataires et dépenses du budget): category, name, contact, status, total (nombre en €), dueDate, link, notes, payments[]. '
+  + 'tasks (checklist): title, description, status (todo|in_progress|done), dueDate, assignedTo, milestone.';
 
 const TOOLS = [
   {
@@ -26,6 +31,37 @@ const TOOLS = [
       type: 'object',
       properties: { name: { type: 'string', enum: Object.keys(SINGLE_DOCS) } },
       required: ['name'],
+    },
+  },
+  {
+    name: 'create_document',
+    description: `Crée un document dans une collection. ${FIELDS_DOC}`,
+    inputSchema: {
+      type: 'object',
+      properties: { collection: { type: 'string', enum: COLLECTIONS }, fields: { type: 'object' } },
+      required: ['collection', 'fields'],
+    },
+  },
+  {
+    name: 'update_document',
+    description: `Modifie des champs d'un document existant, les autres champs sont conservés. Ex.: cocher une tâche = {status:"done"}. ${FIELDS_DOC}`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        collection: { type: 'string', enum: COLLECTIONS },
+        id: { type: 'string' },
+        fields: { type: 'object' },
+      },
+      required: ['collection', 'id', 'fields'],
+    },
+  },
+  {
+    name: 'update_settings',
+    description: "Modifie le budget (budget: target = budget total en €, categoryTargets = {catégorie: €}) ou les réglages (general). Fusionne avec l'existant.",
+    inputSchema: {
+      type: 'object',
+      properties: { name: { type: 'string', enum: Object.keys(SINGLE_DOCS) }, fields: { type: 'object' } },
+      required: ['name', 'fields'],
     },
   },
   {
@@ -55,6 +91,26 @@ async function callTool(name, args = {}) {
     if (!path) throw new Error('Unknown settings doc');
     const doc = await db().doc(path).get();
     return plain(doc.data() ?? null);
+  }
+  if (name === 'create_document' || name === 'update_document' || name === 'update_settings') {
+    const { fields } = args;
+    if (!fields || typeof fields !== 'object' || Array.isArray(fields) || !Object.keys(fields).length) {
+      throw new Error('fields must be a non-empty object');
+    }
+    if (name === 'create_document') {
+      if (!COLLECTIONS.includes(args.collection)) throw new Error('Unknown collection');
+      const ref = await db().collection(args.collection).add({ ...fields, createdAt: new Date().toISOString() });
+      return { id: ref.id };
+    }
+    if (name === 'update_document') {
+      if (!COLLECTIONS.includes(args.collection) || !args.id) throw new Error('Unknown collection or missing id');
+      await db().collection(args.collection).doc(args.id).update(fields); // throws if doc missing
+      return { ok: true };
+    }
+    const path = SINGLE_DOCS[args.name];
+    if (!path) throw new Error('Unknown settings doc');
+    await db().doc(path).set(fields, { merge: true });
+    return { ok: true };
   }
   if (name === 'rsvp_summary') {
     const snap = await db().collection('guests').get();
