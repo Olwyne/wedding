@@ -1,4 +1,3 @@
-// admin/tables.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
@@ -28,7 +27,7 @@ function personsOf(guest) {
 }
 
 function personName(guest, personIdx, person) {
-  return person?.name?.trim() || `${guest.name} – Invité ${personIdx + 1}`;
+  return person?.name?.trim() || `${guest.name} · Invité ${personIdx + 1}`;
 }
 
 // seat key = "guestId:personIdx"
@@ -377,7 +376,6 @@ export async function renderTablesTab(statusFilter = 'all') {
     return;
   }
 
-  // Build set of all placed seat keys
   const placedKeys = new Set(tables.flatMap(t => t.seats || []));
 
   panel.innerHTML = `

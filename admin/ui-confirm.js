@@ -1,6 +1,4 @@
-// admin/ui-confirm.js
-// Replaces native confirm()/alert() with dialogs that match the product's own
-// panel visual language and are announced to assistive tech.
+// Accessible replacement for native confirm()/alert().
 
 /**
  * Shows a centered confirm dialog. Resolves true/false. Keyboard: Esc cancels,

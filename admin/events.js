@@ -1,4 +1,3 @@
-// admin/events.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { db } from '../firebase-init.js';
 import {

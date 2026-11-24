@@ -1,4 +1,3 @@
-// admin/timeline-lanes.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { db } from '../firebase-init.js';
 import { mountPanel } from './ui-panel.js';

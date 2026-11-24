@@ -1,4 +1,3 @@
-// admin/todo.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { db } from '../firebase-init.js';
 import { collection, doc, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -107,7 +106,7 @@ function renderFreeView(tasks, guestsById, vendorsById, adminsById, editable) {
                  </div>`
               : ''}</td>
           </tr>`).join('')
-          : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px">Aucune tâche.</td></tr>'}
+          : `<tr><td colspan="7" class="empty-cell"><strong>Aucune tâche.</strong>${editable ? '<br>« + Ajouter une tâche » crée la première ; elle apparaîtra aussi au calendrier si elle a une échéance.' : ''}</td></tr>`}
       </tbody>
     </table>`;
 }

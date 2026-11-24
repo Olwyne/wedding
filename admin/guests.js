@@ -1,4 +1,3 @@
-// admin/guests.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
@@ -8,7 +7,7 @@ import {
 import { loadEvents } from './events.js?v=7';
 import { canWrite } from './permissions.js';
 import { loadChildrenAllowed } from './settings.js?v=2';
-import { sendEmailWithConfirm } from './email.js?v=1';
+import { sendEmailWithConfirm } from './email.js?v=2';
 import { mountPanel } from './ui-panel.js';
 
 const guestsCol = collection(db, 'guests');
@@ -340,7 +339,7 @@ export async function renderGuestsTab() {
       <tbody>
         ${filteredGuests.length
           ? filteredGuests.map(g => renderGuestRow(g, editable)).join('')
-          : `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px">${guests.length > 0 ? 'Aucun invité ne correspond aux filtres.' : 'Aucun invité.'}</td></tr>`}
+          : `<tr><td colspan="8" class="empty-cell"><strong>${guests.length > 0 ? 'Aucun invité ne correspond aux filtres.' : 'Aucun invité pour l\'instant.'}</strong>${guests.length > 0 ? '<br>Retirez un filtre pour revoir la liste.' : (editable ? '<br>Ajoutez le premier avec « + Ajouter un invité » : un lien d\'invitation personnel est créé pour lui.' : '')}</td></tr>`}
       </tbody>
     </table></div>`;
 
@@ -436,7 +435,6 @@ export async function renderGuestsTab() {
       }
     });
   });
-  // Bulk email button
   const bulkEmailBtn = panel.querySelector('#bulk-email-btn');
   if (bulkEmailBtn) {
     bulkEmailBtn.addEventListener('click', async () => {
@@ -571,7 +569,6 @@ async function openRsvpPanel(guest, eventById) {
   panelEl.querySelector('#panel-cancel').addEventListener('click', () => { if (!isSaving()) close(); });
   overlay.addEventListener('click', () => { if (!isSaving()) close(); });
 
-  // Dynamic name lists
   function bindNameLists() {
     panelEl.querySelectorAll('.name-list-remove').forEach(btn => {
       btn.onclick = () => btn.closest('.expected-guest-row').remove();
@@ -680,15 +677,15 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
       <div class="field">
         <span>Langue email</span>
         <div class="btn-group" id="lang-group">
-          <button type="button" class="btn-group-item ${(guest?.lang || 'fr') === 'fr' ? 'active' : ''}" data-lang="fr">FR</button>
-          <button type="button" class="btn-group-item ${(guest?.lang || 'fr') === 'zh' ? 'active' : ''}" data-lang="zh">ZH</button>
+          <button type="button" class="btn-group-item ${(guest?.lang || 'fr') === 'fr' ? 'active' : ''}" data-lang="fr" aria-pressed="${(guest?.lang || 'fr') === 'fr'}">FR</button>
+          <button type="button" class="btn-group-item ${(guest?.lang || 'fr') === 'zh' ? 'active' : ''}" data-lang="zh" aria-pressed="${(guest?.lang || 'fr') === 'zh'}">ZH</button>
         </div>
       </div>
       <div class="field">
         <span>Côté</span>
         <div class="btn-group" id="side-group">
           ${['marie','mariee','deux'].map(s => `
-            <button type="button" class="btn-group-item ${(guest?.side || 'deux') === s ? 'active' : ''}" data-side="${s}">
+            <button type="button" class="btn-group-item ${(guest?.side || 'deux') === s ? 'active' : ''}" data-side="${s}" aria-pressed="${(guest?.side || 'deux') === s}">
               ${SIDE_LABELS[s]}
             </button>`).join('')}
         </div>
@@ -703,7 +700,7 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
         <span>Événements</span>
         <div class="event-cards" id="event-cards">
           ${events.map(e => `
-            <div class="event-card ${assignedSet.has(e.id) ? 'selected' : ''}" data-event-id="${escapeHtml(e.id)}">
+            <div class="event-card ${assignedSet.has(e.id) ? 'selected' : ''}" data-event-id="${escapeHtml(e.id)}" role="checkbox" tabindex="0" aria-checked="${assignedSet.has(e.id)}">
               <div class="event-card-check">${assignedSet.has(e.id) ? '✓' : ''}</div>
               <div class="event-card-info">
                 <div class="event-card-title">${escapeHtml(e.title_fr)}</div>
@@ -725,23 +722,22 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
   panelEl.querySelector('#panel-cancel').addEventListener('click', close);
   overlay.addEventListener('click', close);
 
-  // Side toggle
   panelEl.querySelectorAll('#side-group .btn-group-item').forEach(btn => {
     btn.addEventListener('click', () => {
-      panelEl.querySelectorAll('#side-group .btn-group-item').forEach(b => b.classList.remove('active'));
+      panelEl.querySelectorAll('#side-group .btn-group-item').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
     });
   });
 
-  // Lang toggle
   panelEl.querySelectorAll('#lang-group .btn-group-item').forEach(btn => {
     btn.addEventListener('click', () => {
-      panelEl.querySelectorAll('#lang-group .btn-group-item').forEach(b => b.classList.remove('active'));
+      panelEl.querySelectorAll('#lang-group .btn-group-item').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
     });
   });
 
-  // Expected guests list
   function refreshExpectedGuestList() {
     const listEl = panelEl.querySelector('#expected-guest-list');
     listEl.innerHTML = expectedGuests.map((p, i) => renderExpectedGuestRow(p, i, childrenAllowed)).join('');
@@ -776,12 +772,16 @@ function openGuestPanel(id, guests, events, childrenAllowed) {
     refreshExpectedGuestList();
   });
 
-  // Event card toggle
   panelEl.querySelectorAll('.event-card').forEach(card => {
-    card.addEventListener('click', () => {
+    const toggle = () => {
       card.classList.toggle('selected');
+      card.setAttribute('aria-checked', String(card.classList.contains('selected')));
       card.querySelector('.event-card-check').textContent =
         card.classList.contains('selected') ? '✓' : '';
+    };
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', e => {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); }
     });
   });
 

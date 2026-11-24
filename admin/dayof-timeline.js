@@ -1,8 +1,7 @@
-// admin/dayof-timeline.js
 import { GENERAL_LANE_ID } from './timeline-lanes.js?v=6';
 
-export const DAY_START_MIN = 0;        // 00:00
-export const DAY_END_MIN = 24 * 60;    // 24:00
+export const DAY_START_MIN = 0;
+export const DAY_END_MIN = 24 * 60;
 export const PX_PER_MIN = 2;
 export const SNAP_MIN = 15;
 export const DEFAULT_DURATION_MIN = 30;

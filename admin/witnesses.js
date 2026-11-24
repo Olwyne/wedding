@@ -1,4 +1,3 @@
-// admin/witnesses.js
 import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
 import { doc, updateDoc, deleteField } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -32,7 +31,7 @@ function personsOf(guest) {
 }
 
 function personName(guest, personIdx, person) {
-  return person?.name?.trim() || `${guest.name} – Invité ${personIdx + 1}`;
+  return person?.name?.trim() || `${guest.name} · Invité ${personIdx + 1}`;
 }
 
 // seat key = "guestId:personIdx"

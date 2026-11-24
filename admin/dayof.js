@@ -1,4 +1,3 @@
-// admin/dayof.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { showToast } from './ui-toast.js?v=1';
 import { db } from '../firebase-init.js';
@@ -65,8 +64,8 @@ export async function renderDayOfTab() {
     <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div style="display:flex;gap:10px;align-items:center">
         <div class="btn-group" style="margin-bottom:0;width:auto">
-          <button class="btn-group-item dayof-view-btn ${currentView === 'table' ? 'active' : ''}" data-view="table">Tableau</button>
-          <button class="btn-group-item dayof-view-btn ${currentView === 'frise' ? 'active' : ''}" data-view="frise">Frise</button>
+          <button class="btn-group-item dayof-view-btn ${currentView === 'table' ? 'active' : ''}" data-view="table" aria-pressed="${currentView === 'table'}">Tableau</button>
+          <button class="btn-group-item dayof-view-btn ${currentView === 'frise' ? 'active' : ''}" data-view="frise" aria-pressed="${currentView === 'frise'}">Frise</button>
         </div>
         ${editable ? '<button id="manage-lanes-btn" class="btn-secondary">Gérer les lanes</button>' : ''}
       </div>
@@ -98,7 +97,7 @@ export async function renderDayOfTab() {
                  </div>`
               : ''}</td>
           </tr>`).join('')
-          : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px">Aucune ligne.</td></tr>'}
+          : `<tr><td colspan="9" class="empty-cell"><strong>Aucune ligne au déroulé.</strong>${editable ? '<br>« + Ajouter une ligne » place le premier moment de la journée.' : ''}</td></tr>`}
       </tbody>
     </table>
     </div>

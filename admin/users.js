@@ -1,4 +1,3 @@
-// admin/users.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { showToast } from './ui-toast.js?v=1';
 import { db, auth } from '../firebase-init.js';
@@ -115,7 +114,7 @@ export async function renderUsersTab() {
       <tbody>
         ${users.length
           ? users.map(u => renderUserRow(u, editable)).join('')
-          : '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:40px">Aucun utilisateur.</td></tr>'}
+          : `<tr><td colspan="3" class="empty-cell"><strong>Aucun autre utilisateur.</strong>${editable ? '<br>« + Inviter un utilisateur » donne un accès limité par section.' : ''}</td></tr>`}
       </tbody>
     </table></div>`;
 

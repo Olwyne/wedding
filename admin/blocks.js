@@ -1,4 +1,3 @@
-// admin/blocks.js
 import { confirmDialog } from './ui-confirm.js?v=1';
 import { db } from '../firebase-init.js';
 import {
@@ -40,8 +39,8 @@ const TYPE_DEFS = {
       { key: 'kicker', label: 'Kicker', kind: 'text' },
       { key: 'place', label: 'Lieu', kind: 'text' },
       { key: 'fusion', label: 'Accroche fusion', kind: 'text' },
-      { key: 'envInvite', label: 'Enveloppe — invitation', kind: 'text' },
-      { key: 'envHint', label: 'Enveloppe — indice', kind: 'text' },
+      { key: 'envInvite', label: 'Enveloppe : invitation', kind: 'text' },
+      { key: 'envHint', label: 'Enveloppe : indice', kind: 'text' },
     ] },
   story: { label: 'Histoire', audience: 'invite', fields: [
       { key: 'kicker', label: 'Kicker', kind: 'text' },
@@ -125,7 +124,7 @@ const TYPE_DEFS = {
       { key: 'email', label: 'Email', kind: 'plain' },
       { key: 'phone', label: 'Téléphone', kind: 'plain' },
       { key: 'names', label: 'Noms (ex : Sophie & Ruiyuan)', kind: 'plain' },
-      { key: 'dateLocation', label: 'Date et lieu (ex : 24 · 07 · 2027 — LOGNES)', kind: 'plain' },
+      { key: 'dateLocation', label: 'Date et lieu (ex : 24 · 07 · 2027 · LOGNES)', kind: 'plain' },
     ] },
 };
 
@@ -157,8 +156,8 @@ function renderBlockRow(block, idx, total, editable) {
     ? escapeHtml(block.title_fr || '(sans titre)')
     : escapeHtml(def.label);
   const moveCell = editable
-    ? `<button class="btn-icon btn-up" data-idx="${idx}" ${idx === 0 ? 'disabled' : ''}>↑</button>
-       <button class="btn-icon btn-down" data-idx="${idx}" ${idx === total - 1 ? 'disabled' : ''}>↓</button>`
+    ? `<button class="btn-icon btn-up" data-idx="${idx}" aria-label="Monter" ${idx === 0 ? 'disabled' : ''}>↑</button>
+       <button class="btn-icon btn-down" data-idx="${idx}" aria-label="Descendre" ${idx === total - 1 ? 'disabled' : ''}>↓</button>`
     : '';
   const visibleCell = editable
     ? `<label class="toggle">
@@ -207,10 +206,10 @@ export async function renderBlocksTab() {
 
   panel.innerHTML = `
     <div class="subtab-nav">
-      <button class="subtab-btn ${activeAudience === 'invite' ? 'active' : ''}" data-aud="invite">
+      <button class="subtab-btn ${activeAudience === 'invite' ? 'active' : ''}" data-aud="invite" aria-pressed="${activeAudience === 'invite'}">
         Vue connectée
       </button>
-      <button class="subtab-btn ${activeAudience === 'public' ? 'active' : ''}" data-aud="public">
+      <button class="subtab-btn ${activeAudience === 'public' ? 'active' : ''}" data-aud="public" aria-pressed="${activeAudience === 'public'}">
         Vue non connectée
       </button>
     </div>
@@ -224,7 +223,7 @@ export async function renderBlocksTab() {
       <tbody>
         ${filtered.length
           ? filtered.map((b, i) => renderBlockRow(b, i, filtered.length, editable)).join('')
-          : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:40px">Aucun bloc — ajoutez-en un !</td></tr>'}
+          : `<tr><td colspan="5" class="empty-cell"><strong>Aucun bloc : le site invité est vide.</strong>${editable ? '<br>Utilisez « + Ajouter un bloc » pour créer la première section.' : ''}</td></tr>`}
       </tbody>
     </table>`;
 
@@ -267,9 +266,9 @@ function renderTypeSelector(audience) {
     <p style="color:var(--muted);font-size:14px;margin-bottom:4px">Choisissez le type de bloc :</p>
     <div class="type-cards">
       ${options.map(([id, def]) => `
-        <div class="type-card" data-type="${id}">
-          <div class="type-card-label">${escapeHtml(def.label)}</div>
-        </div>`).join('')}
+        <button type="button" class="type-card" data-type="${id}">
+          <span class="type-card-label">${escapeHtml(def.label)}</span>
+        </button>`).join('')}
     </div>`;
 }
 
